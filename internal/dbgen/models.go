@@ -352,20 +352,36 @@ type TrashEntry struct {
 	RestoredAt       pgtype.Timestamptz `json:"restored_at"`
 }
 
+type UploadPatchAttempt struct {
+	UploadID    pgtype.UUID        `json:"upload_id"`
+	Epoch       int64              `json:"epoch"`
+	State       string             `json:"state"`
+	AdmittedAt  pgtype.Timestamptz `json:"admitted_at"`
+	EndedAt     pgtype.Timestamptz `json:"ended_at"`
+	OffsetStart int64              `json:"offset_start"`
+	OffsetEnd   int64              `json:"offset_end"`
+	ErrorCode   *string            `json:"error_code"`
+}
+
 type UploadSession struct {
-	ID                pgtype.UUID        `json:"id"`
-	OperationID       pgtype.UUID        `json:"operation_id"`
-	ExpectedSize      int64              `json:"expected_size"`
-	ExpectedVersionID pgtype.UUID        `json:"expected_version_id"`
-	NativeUploadRef   *string            `json:"native_upload_ref"`
-	NodeID            string             `json:"node_id"`
-	State             string             `json:"state"`
-	ReceivedBytes     int64              `json:"received_bytes"`
-	ExpiresAt         pgtype.Timestamptz `json:"expires_at"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
-	NativeResourceID  *string            `json:"native_resource_id"`
-	TransferCompleted bool               `json:"transfer_completed"`
+	ID                           pgtype.UUID        `json:"id"`
+	OperationID                  pgtype.UUID        `json:"operation_id"`
+	ExpectedSize                 int64              `json:"expected_size"`
+	ExpectedVersionID            pgtype.UUID        `json:"expected_version_id"`
+	NativeUploadRef              *string            `json:"native_upload_ref"`
+	NodeID                       string             `json:"node_id"`
+	State                        string             `json:"state"`
+	ReceivedBytes                int64              `json:"received_bytes"`
+	ExpiresAt                    pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt                    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                    pgtype.Timestamptz `json:"updated_at"`
+	NativeResourceID             *string            `json:"native_resource_id"`
+	TransferCompleted            bool               `json:"transfer_completed"`
+	PatchEpoch                   int64              `json:"patch_epoch"`
+	InFlightPatches              int32              `json:"in_flight_patches"`
+	AbandonRequestedAt           pgtype.Timestamptz `json:"abandon_requested_at"`
+	NativeTerminationConfirmedAt pgtype.Timestamptz `json:"native_termination_confirmed_at"`
+	LegacyDispatchUnknown        bool               `json:"legacy_dispatch_unknown"`
 }
 
 type WebSession struct {

@@ -1,0 +1,3 @@
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	2.895s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/delegation	2.123s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/identity	2.666s

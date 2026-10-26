@@ -1,0 +1,40 @@
+=== RUN   TestRepairWorkerPageTimeoutPersistsPartialThenResumesAfterRestart
+    repair_worker_pages_test.go:74: 首次真实子进程 timeout 后状态=partial page_count=2 ready=1 failed=1
+    repair_worker_pages_test.go:102: 重启后仅重试缺失页 2，调用记录="1\n2\n2"；旧 partial 与完整产物均保留
+--- PASS: TestRepairWorkerPageTimeoutPersistsPartialThenResumesAfterRestart (1.48s)
+=== RUN   TestRepairWorkerCompletionDuringTrashAndRestore
+=== RUN   TestRepairWorkerCompletionDuringTrashAndRestore/before_delete
+    repair_worker_visibility_test.go:204: 真实 PG、真实 delete/restore、激活不重读原件、默认 Markdown/搜索一致
+=== RUN   TestRepairWorkerCompletionDuringTrashAndRestore/during_trash
+    repair_worker_visibility_test.go:204: 真实 PG、真实 delete/restore、激活不重读原件、默认 Markdown/搜索一致
+=== RUN   TestRepairWorkerCompletionDuringTrashAndRestore/during_restore
+    repair_worker_visibility_test.go:204: 真实 PG、真实 delete/restore、激活不重读原件、默认 Markdown/搜索一致
+--- PASS: TestRepairWorkerCompletionDuringTrashAndRestore (0.92s)
+    --- PASS: TestRepairWorkerCompletionDuringTrashAndRestore/before_delete (0.30s)
+    --- PASS: TestRepairWorkerCompletionDuringTrashAndRestore/during_trash (0.32s)
+    --- PASS: TestRepairWorkerCompletionDuringTrashAndRestore/during_restore (0.30s)
+=== RUN   TestRepairWorkerActivationFailureRestartAndDeleteRace
+--- PASS: TestRepairWorkerActivationFailureRestartAndDeleteRace (0.28s)
+=== RUN   TestRepairWorkerAncestorRestoreWithOldPointer
+--- PASS: TestRepairWorkerAncestorRestoreWithOldPointer (0.36s)
+=== RUN   TestRepairWorkerLoserCleanupRestartAndLateUpsert
+    repair_worker_visibility_test.go:368: 新代先完成、旧代晚到、删除失败/重启、迟到 Upsert 均收敛；固定旧产物可读
+--- PASS: TestRepairWorkerLoserCleanupRestartAndLateUpsert (0.33s)
+=== RUN   TestRepairWorkerMigrationReentrantAndPageFence
+--- PASS: TestRepairWorkerMigrationReentrantAndPageFence (0.19s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	5.066s
+=== RUN   TestRepairConversionHTTPStreamsPagesBeforeResult
+--- PASS: TestRepairConversionHTTPStreamsPagesBeforeResult (0.00s)
+=== RUN   TestRepairConversionProcessTimeoutKillAndBounds
+--- PASS: TestRepairConversionProcessTimeoutKillAndBounds (1.03s)
+=== RUN   TestRepairConversionRealAdapterSyntheticPDF
+    repair_pages_test.go:137: 真实 PDF 文本提取：status=ready pages=2 engine=pdf-page-pipeline/pypdf-6.10.0/pdfium-5.14.0（OCR/视觉 not_run）
+    repair_pages_test.go:138: 真实 adapter=/Users/konghayao/code/ai/agent-clouddrive-F/converters/adapter.py，page events=4
+    repair_pages_test.go:160: pretty-print 完整 result 已消费：行数=41
+--- PASS: TestRepairConversionRealAdapterSyntheticPDF (0.62s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/converters	3.927s
+testing: warning: no tests to run
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/search	1.877s [no tests to run]

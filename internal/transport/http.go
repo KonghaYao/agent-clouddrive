@@ -391,19 +391,17 @@ func (a *API) tus(ctx context.Context, c *app.RequestContext) {
 			reject(domain.NewError(domain.DependencyUnavailable, "streaming uploader unavailable"))
 			return
 		}
+		epoch, err := a.Service.AdmitUploadPatch(ctx, actor, id, offset, int64(length))
+		if err != nil {
+			reject(err)
+			return
+		}
 		st, e = uploader.StreamUpload(ctx, info, offset, c.RequestBodyStream(), int64(length), cred)
+		e = a.Service.CompleteUploadPatch(ctx, id, epoch, st, e)
 	}
 	if e != nil {
 		reject(e)
 		return
-	}
-	// Record progress on every accepted chunk so a stalled transfer is distinguishable
-	// from "client never sent PATCH" or "server finished but finalize failed".
-	if method == "PATCH" && st.Offset > 0 {
-		if e = a.Service.RecordUploadProgress(ctx, id, st.Offset, st.ResourceID); e != nil {
-			reject(e)
-			return
-		}
 	}
 	c.Header("Tus-Resumable", "1.0.0")
 	c.Header("Upload-Offset", strconv.FormatInt(st.Offset, 10))

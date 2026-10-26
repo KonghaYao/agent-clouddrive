@@ -1,0 +1,3 @@
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	32.008s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/transport	2.172s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/ocis	2.519s
