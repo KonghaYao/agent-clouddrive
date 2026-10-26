@@ -57,6 +57,8 @@
 | 2026-10-26 | `GOTOOLCHAIN=go1.25.0 go vet ./...` | 0 | 基线，无 DB | `evidence/repair-2026-10-26/go-vet-baseline.log` |
 | 2026-10-26 | `DRIVE_TEST_DATABASE_URL=… go test -race -count=1 -timeout=900s ./...` | 0 | 基线，原生 PG 17.11 | `evidence/repair-2026-10-26/logs/go-test-baseline-with-db.log` |
 | 2026-10-26 | 同上 + `DRIVE_TEST_NATS_URL` + `DRIVE_TEST_MEILISEARCH_URL`，合并后全量 | 0 | 原生 PG+NATS+Meilisearch；所有包 `ok` | `evidence/repair-2026-10-26/logs/integration-all-fulltest.log` |
+| 2026-10-26 | 最终全量：同上命令（含 `TestRepairUpgradeFromBaseline`） | 0 | 12 个包 `ok`，无 FAIL/DATA RACE | `evidence/repair-2026-10-26/logs/final-fulltest.log` |
+| 2026-10-26 | `go test -run TestRepairUpgradeFromBaseline ./internal/migrate` | 0 | 原生 PG；基线 000001–000008（含 seed）→ 000009–000013 | 本记录 + `final-fulltest.log` |
 | 2026-10-26 | `GOTOOLCHAIN=go1.25.0 go vet ./...` | 0 | 合并后 | `evidence/repair-2026-10-26/logs/integration-all-vet.log` |
 | 2026-10-26 | `~/go/bin/sqlc generate`；`git status` | 0 | 5 个合并迁移后零漂移 | 本记录 + `git status` |
 | 2026-10-26 | `python -m unittest discover -s converters/tests` | 0 | 67 tests（65 pass，2 skip） | `evidence/repair-2026-10-26/logs/integration-all-python.log` |
