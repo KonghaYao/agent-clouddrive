@@ -47,6 +47,12 @@ func (repairPreviewIdentity) DelegatedCredential(context.Context, ports.Delegati
 	return ports.Credential{}, ports.ErrUnverified
 }
 
+// IdentityEvents makes the preview fixture a trusted event source so the
+// share-resolution path can prove continuity instead of failing closed.
+func (repairPreviewIdentity) IdentityEvents(context.Context, string, string) (ports.IdentityEventBatch, error) {
+	return ports.IdentityEventBatch{Continuous: true, Anchor: "repair-http-preview-anchor"}, nil
+}
+
 func repairHTTPDigest(s string) string {
 	h := sha256.Sum256([]byte(s))
 	return hex.EncodeToString(h[:])
