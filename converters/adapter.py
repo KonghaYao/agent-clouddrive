@@ -25,7 +25,6 @@ import shutil
 import signal
 import subprocess
 import sys
-import tempfile
 import threading
 import time
 import urllib.error
@@ -62,7 +61,6 @@ ATTEMPT_MARKER = ".clouddrive-attempt"
 ATTEMPT_LOCK = ".clouddrive-attempt.lock"
 ATTEMPT_SERVICE = "clouddrive-adapter"
 MODEL_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/@+-]{0,199}$")
-PAGE_STAGES = ("render", "text", "ocr", "description")
 MODE = os.getenv("ADAPTER_MODE", "anydoc")
 
 
@@ -184,10 +182,10 @@ def selected_pages(request, total):
     if recipe.get("resume_pages"):
         selection = recipe["resume_pages"]
         if any(page > total for page in selection):
-            raise AdapterError("invalid_page", "pages")
+            raise AdapterError("limit_exceeded", "pages")
     elif recipe.get("page"):
         if recipe["page"] > total:
-            raise AdapterError("invalid_page", "pages")
+            raise AdapterError("limit_exceeded", "pages")
         selection = [recipe["page"]]
     else:
         selection = list(range(1, total + 1))
@@ -236,11 +234,16 @@ def read_input(request):
     return data, filename.rsplit(".", 1)[-1].lower()
 
 
+def engine_info(name, version):
+    # model/provider are additive; older Go consumers ignore unknown fields.
+    return {"name": name, "version": version, "model": "", "provider": ""}
+
+
 def empty_result(engine=None):
     return {"schema_version": 1, "status": "ready", "markdown": "", "assets": [], "pages": [],
             "completeness": {"status": "ready", "total_pages": 0, "missing_text_pages": [],
                              "missing_description_pages": [], "not_processed_pages": [], "warnings": []},
-            "errors": [], "engine": engine or {"name": MODE, "version": VERSION},
+            "errors": [], "engine": engine_info(**(engine or {"name": MODE, "version": VERSION})),
             # Actual vision provider/model that executed; never a deployment guess.
             "model": {"provider": "", "name": "", "source": "none"}}
 
@@ -302,14 +305,17 @@ class PageReporter:
         self.stream.flush()
 
 
-def text_ref(text, **extra):
-    reference = {"sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(), "chars": len(text)}
-    reference.update(extra)
-    return reference
+def page_ref(markdown, assets=(), record=None, **extra):
+    """Minimal persistable slice for one page stage (no temporary paths).
 
-
-def rendered_ref(identifier, data, **extra):
-    reference = {"asset_id": identifier, "media_type": "image/png", "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)}
+    `markdown` is the fragment produced by this stage (the page marker is
+    included in the first event of the page), `assets` are the assets produced
+    by this stage, and `pages` carries the current page status record. Replaying
+    the events of a page in order reproduces its Result page exactly.
+    """
+    reference = {"markdown": markdown, "assets": list(assets)}
+    if record is not None:
+        reference["pages"] = [dict(record)]
     reference.update(extra)
     return reference
 
@@ -317,6 +323,8 @@ def rendered_ref(identifier, data, **extra):
 def record_model(result, target):
     if target:
         result["model"] = {"provider": target["provider"], "name": target["model"], "source": target["source"]}
+        result["engine"]["model"] = target["model"]
+        result["engine"]["provider"] = target["provider"]
 
 
 def enforce_output_budget(result, request):
@@ -383,7 +391,7 @@ def convert_raster(data, ext, request, preview=False, reporter=None):
             result["completeness"]["total_pages"] = total
             if total > request["recipe"]["max_pages"]:
                 raise AdapterError("limit_exceeded", "render")
-            indices, chosen, not_processed = selected_pages(request, total)
+            indices, _, not_processed = selected_pages(request, total)
             result["completeness"]["not_processed_pages"] = not_processed
             if not_processed:
                 result["completeness"]["warnings"].append("page_subset_processed")
@@ -391,49 +399,62 @@ def convert_raster(data, ext, request, preview=False, reporter=None):
                 page_no = index + 1
                 record = {"page": page_no, "block": f"p{page_no}-b01", "text_status": "not_required", "description_status": "not_required"}
                 result["pages"].append(record)
+                page_assets = []
+                marker = "" if preview else f"\n<!-- page:{page_no} block:p{page_no}-b01 -->\n\n"
+                pending = marker
+                result["markdown"] += marker
                 try:
                     image.seek(index)
                     png = frame_png(image)
                 except AdapterError as error:
                     add_error(result, error.code, "render", page_no)
-                    reporter.emit(page_no, "render", "failed", error=error)
+                    reporter.emit(page_no, "render", "failed", page_ref(pending, (), record), error=error)
+                    pending = ""
                     continue
                 except (OSError, ValueError, EOFError):
                     add_error(result, "malformed", "render", page_no)
-                    reporter.emit(page_no, "render", "failed", error=AdapterError("malformed", "render", page=page_no))
+                    reporter.emit(page_no, "render", "failed", page_ref(pending, (), record), error=AdapterError("malformed", "render", page=page_no))
+                    pending = ""
                     continue
                 identifier = asset(result, png, page_no)
-                if not preview:
-                    result["markdown"] += f"\n<!-- page:{page_no} block:p{page_no}-b01 -->\n\n![Page {page_no}](asset:{identifier})\n"
-                reporter.emit(page_no, "render", "ready", rendered_ref(identifier, png))
+                page_assets.append(result["assets"][-1])
+                fragment = "" if preview else f"![Page {page_no}](asset:{identifier})\n"
+                result["markdown"] += fragment
+                reporter.emit(page_no, "render", "ready", page_ref(pending + fragment, page_assets, record))
+                pending = ""
                 if preview:
-                    reporter.emit(page_no, "text", "not_required")
-                    reporter.emit(page_no, "description", "not_required")
+                    reporter.emit(page_no, "text", "not_required", page_ref("", (), record))
+                    reporter.emit(page_no, "description", "not_required", page_ref("", (), record))
                     continue
                 try:
                     text = ocr_remote(png, request)
-                    result["markdown"] += text.strip() + "\n"
                     record["text_status"] = "ready"
-                    reporter.emit(page_no, "ocr", "ready", text_ref(text))
-                    reporter.emit(page_no, "text", "ready", text_ref(text))
+                    fragment = text.strip() + "\n"
+                    result["markdown"] += fragment
+                    reporter.emit(page_no, "ocr", "ready", page_ref(pending + fragment, (), record))
+                    pending = ""
+                    reporter.emit(page_no, "text", "ready", page_ref("", (), record))
                 except AdapterError as error:
                     record["text_status"] = "failed"
                     add_error(result, error.code, "ocr", page_no, error.retryable)
-                    reporter.emit(page_no, "ocr", "failed", error=error)
-                    reporter.emit(page_no, "text", "failed", error=error)
+                    reporter.emit(page_no, "ocr", "failed", page_ref(pending, (), record), error=error)
+                    pending = ""
+                    reporter.emit(page_no, "text", "failed", page_ref("", (), record), error=error)
                 try:
                     if request["recipe"].get("describe_images", True) is False:
                         raise AdapterError("description_disabled", "description")
                     meta = {}
                     description = describe(png, request, meta)
                     record_model(result, meta)
-                    result["markdown"] += f"\nImage description (page {page_no}): {description}\n"
+                    fragment = f"\nImage description (page {page_no}): {description}\n"
+                    result["markdown"] += fragment
                     record["description_status"] = "ready"
-                    reporter.emit(page_no, "description", "ready", text_ref(description, model=result["model"]["name"], provider=result["model"]["provider"]))
+                    reporter.emit(page_no, "description", "ready",
+                                  page_ref(pending + fragment, (), record, model=result["model"]["name"], provider=result["model"]["provider"]))
                 except AdapterError as error:
                     record["description_status"] = "failed"
                     add_error(result, error.code, "description", page_no, error.retryable)
-                    reporter.emit(page_no, "description", "failed", error=error)
+                    reporter.emit(page_no, "description", "failed", page_ref(pending, (), record), error=error)
     except AdapterError:
         raise
     except (OSError, ValueError, SyntaxError, Image.DecompressionBombError):
@@ -506,9 +527,10 @@ def directory_bytes(path):
 class AttemptDirectory:
     """Attempt-scoped staging directory owned and cleaned by the parent process.
 
-    The owning process holds an exclusive flock for the whole attempt. The
-    reaper only removes a directory when that lock is free, so concurrent
-    attempts are never deleted while their source is still in use.
+    The owning process holds a shared flock for the whole attempt (inherited by
+    a running child). The reaper only removes a directory when it can take the
+    exclusive lock, so concurrent attempts are never deleted while their source
+    is still in use.
     """
 
     def __init__(self, path, handle):
@@ -523,13 +545,15 @@ class AttemptDirectory:
     def create(cls, root=None):
         root = Path(root) if root else attempt_root()
         root.mkdir(parents=True, exist_ok=True, mode=0o700)
-        path = Path(tempfile.mkdtemp(prefix=ATTEMPT_PREFIX, dir=str(root)))
+        path = root / (ATTEMPT_PREFIX + secrets.token_hex(16))
         try:
-            path.chmod(0o700)
+            path.mkdir(mode=0o700)
             marker = {"service": ATTEMPT_SERVICE, "version": VERSION, "pid": os.getpid(), "created": time.time()}
             (path / ATTEMPT_MARKER).write_text(json.dumps(marker))
             handle = (path / ATTEMPT_LOCK).open("a+b")
-            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            # Shared lock: the owner and any inherited child both hold it, so
+            # the reaper's exclusive probe can never delete an active attempt.
+            fcntl.flock(handle.fileno(), fcntl.LOCK_SH | fcntl.LOCK_NB)
         except OSError:
             shutil.rmtree(path, ignore_errors=True)
             raise
@@ -885,7 +909,9 @@ def page_has_visual(page):
         return True
     try:
         contents = page.get_contents()
-        return content_has_visual(contents.get_data() if contents else b"")
+        # pypdf's ContentStream defines a falsy length; `if contents` would
+        # silently skip the stream (the original CV03 root cause).
+        return content_has_visual(contents.get_data() if contents is not None else b"")
     except Exception:
         # Unreadable content cannot be proven text-only.
         return True
@@ -923,7 +949,7 @@ def convert_pdf(data, request, preview=False, reporter=None):
         result["completeness"]["total_pages"] = total
         if total > recipe["max_pages"]:
             raise AdapterError("limit_exceeded", "pdf")
-        indices, chosen, not_processed = selected_pages(request, total)
+        indices, _, not_processed = selected_pages(request, total)
         result["completeness"]["not_processed_pages"] = not_processed
         if not_processed:
             result["completeness"]["warnings"].append("page_subset_processed")
@@ -942,23 +968,29 @@ def convert_pdf(data, request, preview=False, reporter=None):
 
 def pdf_preview_page(document, index, result, reporter):
     page_no = index + 1
-    result["pages"].append({"page": page_no, "block": f"p{page_no}-b01", "text_status": "not_required", "description_status": "not_required"})
+    record = {"page": page_no, "block": f"p{page_no}-b01", "text_status": "not_required", "description_status": "not_required"}
+    result["pages"].append(record)
+    page_assets = []
     try:
         image = pdf_page_png(document, index)
-        identifier = asset(result, image, page_no)
-        reporter.emit(page_no, "render", "ready", rendered_ref(identifier, image))
+        asset(result, image, page_no)
+        page_assets.append(result["assets"][-1])
+        reporter.emit(page_no, "render", "ready", page_ref("", page_assets, record))
     except AdapterError as error:
         add_error(result, error.code, "render", page_no)
-        reporter.emit(page_no, "render", "failed", error=error)
-    reporter.emit(page_no, "text", "not_required")
-    reporter.emit(page_no, "description", "not_required")
+        reporter.emit(page_no, "render", "failed", page_ref("", page_assets, record), error=error)
+    reporter.emit(page_no, "text", "not_required", page_ref("", (), record))
+    reporter.emit(page_no, "description", "not_required", page_ref("", (), record))
 
 
 def pdf_text_page(reader, document, index, request, result, reporter):
     page_no = index + 1
     record = {"page": page_no, "block": f"p{page_no}-b01", "text_status": "not_required", "description_status": "not_required"}
     result["pages"].append(record)
-    result["markdown"] += f"\n<!-- page:{page_no} block:p{page_no}-b01 -->\n\n"
+    marker = f"\n<!-- page:{page_no} block:p{page_no}-b01 -->\n\n"
+    result["markdown"] += marker
+    pending = marker  # markdown not yet carried by a page event
+    page_assets = []
     page = reader.pages[index]
     try:
         text = page.extract_text() or ""
@@ -973,11 +1005,15 @@ def pdf_text_page(reader, document, index, request, result, reporter):
         try:
             image = pdf_page_png(document, index)
             identifier = asset(result, image, page_no)
-            result["markdown"] += f"\n![Page {page_no}](asset:{identifier})\n"
-            reporter.emit(page_no, "render", "ready", rendered_ref(identifier, image))
+            page_assets.append(result["assets"][-1])
+            fragment = f"\n![Page {page_no}](asset:{identifier})\n"
+            result["markdown"] += fragment
+            reporter.emit(page_no, "render", "ready", page_ref(pending + fragment, page_assets, record))
+            pending = ""
         except AdapterError as error:
             add_error(result, error.code, "render", page_no)
-            reporter.emit(page_no, "render", "failed", error=error)
+            reporter.emit(page_no, "render", "failed", page_ref(pending, page_assets, record), error=error)
+            pending = ""
     if scan:
         record["text_status"] = "failed"
         try:
@@ -985,19 +1021,30 @@ def pdf_text_page(reader, document, index, request, result, reporter):
                 raise AdapterError("render_failed", "ocr")
             text = ocr_remote(image, request)
             record["text_status"] = "ready"
-            reporter.emit(page_no, "ocr", "ready", text_ref(text))
+            fragment = text.strip() + "\n"
+            result["markdown"] += fragment
+            reporter.emit(page_no, "ocr", "ready", page_ref(pending + fragment, (), record))
+            pending = ""
         except AdapterError as error:
             add_error(result, error.code, "ocr", page_no, error.retryable)
-            reporter.emit(page_no, "ocr", "failed", error=error)
+            reporter.emit(page_no, "ocr", "failed", page_ref(pending, (), record), error=error)
+            pending = ""
     elif text.strip():
         record["text_status"] = "ready"
-    if text.strip():
-        result["markdown"] += f"{text.strip()}\n"
-        reporter.emit(page_no, "text", "ready", text_ref(text))
+    if not scan and text.strip():
+        fragment = text.strip() + "\n"
+        result["markdown"] += fragment
+        reporter.emit(page_no, "text", "ready", page_ref(pending + fragment, (), record))
+        pending = ""
+    elif scan and record["text_status"] == "ready":
+        reporter.emit(page_no, "text", "ready", page_ref(pending, (), record))
+        pending = ""
     elif scan:
-        reporter.emit(page_no, "text", "failed", error=AdapterError("ocr_failed", "text", page=page_no))
+        reporter.emit(page_no, "text", "failed", page_ref(pending, (), record), error=AdapterError("ocr_failed", "text", page=page_no))
+        pending = ""
     else:
-        reporter.emit(page_no, "text", "not_required")
+        reporter.emit(page_no, "text", "not_required", page_ref(pending, (), record))
+        pending = ""
     if scan or has_visual:
         try:
             if image is None:
@@ -1008,15 +1055,17 @@ def pdf_text_page(reader, document, index, request, result, reporter):
             meta = {}
             description = describe(image, request, meta)
             record_model(result, meta)
-            result["markdown"] += f"\nImage description (page {page_no}): {description}\n"
+            fragment = f"\nImage description (page {page_no}): {description}\n"
+            result["markdown"] += fragment
             record["description_status"] = "ready"
-            reporter.emit(page_no, "description", "ready", text_ref(description, model=result["model"]["name"], provider=result["model"]["provider"]))
+            reporter.emit(page_no, "description", "ready",
+                          page_ref(pending + fragment, (), record, model=result["model"]["name"], provider=result["model"]["provider"]))
         except AdapterError as error:
             record["description_status"] = "failed"
             add_error(result, error.code, "description", page_no, error.retryable)
-            reporter.emit(page_no, "description", "failed", error=error)
+            reporter.emit(page_no, "description", "failed", page_ref(pending, (), record), error=error)
     else:
-        reporter.emit(page_no, "description", "not_required")
+        reporter.emit(page_no, "description", "not_required", page_ref(pending, (), record))
 
 
 def convert_anydoc(data, ext, request):
@@ -1155,7 +1204,7 @@ def preview_office(data, ext, request, attempt=None):
         if not pdf.startswith(b"%PDF"):
             raise AdapterError("invalid_provider_response", "preview")
         result = convert_pdf(pdf, request, preview=True)
-        result["engine"] = {"name": "kkfileview-raster-preview", "version": "5.0.3+clouddrive-pdf.1/" + VERSION}
+        result["engine"] = engine_info("kkfileview-raster-preview", "5.0.3+clouddrive-pdf.1/" + VERSION)
         return result
     finally:
         if source is not None:
@@ -1334,47 +1383,60 @@ class Handler(BaseHTTPRequestHandler):
                 return False
             started, offset, total, deadline = False, 0, 0, time.monotonic() + timeout
             limit = MAX_OUTPUT + MAX_PAGE_EVENTS
-            with out.open("rb") as reader:
-                while True:
-                    finished = process.poll() is not None
+            try:
+                with out.open("rb") as reader:
+                    while True:
+                        finished = process.poll() is not None
+                        reader.seek(offset)
+                        data = reader.read(65536)
+                        if data:
+                            offset += len(data)
+                            total += len(data)
+                            if not started:
+                                self.chunked_start()
+                                started = True
+                            self.chunked_write(data)
+                        if finished:
+                            break
+                        if total > limit or time.monotonic() > deadline:
+                            os.killpg(process.pid, signal.SIGKILL)
+                            process.wait()
+                            if not started:
+                                self.chunked_start()
+                            code = "timeout" if time.monotonic() > deadline else "resource_limit"
+                            self.chunked_write(json.dumps(dict(error_result(AdapterError(code, "execute", retryable=code == "timeout")), type="result")).encode() + b"\n")
+                            self.chunked_end()
+                            return True
+                        if not data:
+                            time.sleep(0.02)
+                # Drain bytes written between the last read and process exit.
+                with out.open("rb") as reader:
                     reader.seek(offset)
-                    data = reader.read(65536)
-                    if data:
+                    while True:
+                        data = reader.read(65536)
+                        if not data:
+                            break
                         offset += len(data)
                         total += len(data)
-                        if not started:
-                            self.chunked_start()
-                            started = True
                         self.chunked_write(data)
-                    if finished:
-                        break
-                    if total > limit or time.monotonic() > deadline:
+                if total > limit:
+                    self.chunked_write(json.dumps(dict(error_result(AdapterError("resource_limit", "execute")), type="result")).encode() + b"\n")
+                elif process.returncode != 0 or total == 0:
+                    # The child died before writing its authoritative final line.
+                    self.chunked_write(json.dumps(dict(error_result(AdapterError("resource_limit", "execute")), type="result")).encode() + b"\n")
+                if not started:
+                    self.chunked_start()
+                self.chunked_end()
+                return True
+            finally:
+                # A disconnected client or a relay error must not leave the
+                # child converting an attempt whose response is already gone.
+                if process.poll() is None:
+                    try:
                         os.killpg(process.pid, signal.SIGKILL)
-                        process.wait()
-                        if not started:
-                            self.chunked_start()
-                        code = "timeout" if time.monotonic() > deadline else "resource_limit"
-                        self.chunked_write(json.dumps(dict(error_result(AdapterError(code, "execute", retryable=code == "timeout")), type="result")).encode() + b"\n")
-                        self.chunked_end()
-                        return True
-                    if not data:
-                        time.sleep(0.02)
-            # Drain bytes written between the last read and process exit.
-            with out.open("rb") as reader:
-                reader.seek(offset)
-                while True:
-                    data = reader.read(65536)
-                    if not data:
-                        break
-                    offset += len(data)
-                    total += len(data)
-                    self.chunked_write(data)
-            if total > limit:
-                self.chunked_write(json.dumps(dict(error_result(AdapterError("resource_limit", "execute")), type="result")).encode() + b"\n")
-            if not started:
-                self.chunked_start()
-            self.chunked_end()
-            return True
+                    except OSError:
+                        pass
+                    process.wait()
 
     def do_POST(self):
         if self.path != "/v1/execute":
@@ -1425,9 +1487,17 @@ class Handler(BaseHTTPRequestHandler):
             if diagnostic:
                 record_cleanup_failure(diagnostic)
         except AdapterError as error:
+            # Clean up before answering so the caller never observes a leftover
+            # original after a reported timeout/failure.
+            if attempt is not None:
+                cleanup_attempt(attempt)
+                attempt = None
             if not self.ndjson_started:
                 self.json(200, error_result(error))
         except (ValueError, TypeError, OSError):
+            if attempt is not None:
+                cleanup_attempt(attempt)
+                attempt = None
             if not self.ndjson_started:
                 self.json(400, error_result(AdapterError("invalid_request")))
         finally:
@@ -1461,7 +1531,20 @@ def inherited_attempt():
     path = Path(value)
     if read_attempt_marker(path) is None:
         return None
-    return AttemptDirectory(path, None)
+    handle = None
+    try:
+        handle = (path / ATTEMPT_LOCK).open("a+b")
+        # Join the parent's shared lock so a reaper cannot delete this attempt
+        # while the child still reads its staged original.
+        fcntl.flock(handle.fileno(), fcntl.LOCK_SH | fcntl.LOCK_NB)
+    except OSError:
+        if handle is not None:
+            try:
+                handle.close()
+            except OSError:
+                pass
+        handle = None
+    return AttemptDirectory(path, handle)
 
 
 def main():

@@ -203,7 +203,10 @@ class ActualAnyDocTests(unittest.TestCase):
     def test_csv_upstream(self):
         result = adapter.execute(request(b"name,value\nAlice,17\n", "table.csv"))
         self.assertEqual(result["status"], "ready", result)
-        self.assertEqual(result["engine"], {"name": "firecrawl-anydoc", "version": "0.2.4"})
+        self.assertEqual({"name": result["engine"]["name"], "version": result["engine"]["version"]},
+                         {"name": "firecrawl-anydoc", "version": "0.2.4"})
+        # v2 provenance fields: no vision model executes for CSV extraction.
+        self.assertEqual((result["engine"]["model"], result["engine"]["provider"]), ("", ""))
         self.assertIn("| Alice | 17 |", result["markdown"])
 
     def test_rtf_upstream(self):
