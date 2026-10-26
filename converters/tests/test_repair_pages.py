@@ -717,6 +717,14 @@ class PageProtocolTests(unittest.TestCase):
                 self.assertEqual(process.returncode, 0, errors.decode())
                 lines = [first] + rest.splitlines()
                 events = [json.loads(line) for line in lines if line.strip()]
+                raw = first + rest
+                self.assertTrue(raw.endswith(b"\n"), "JSONL stream must end with a newline")
+                raw_lines = raw.split(b"\n")[:-1]
+                self.assertEqual(len(raw_lines), len(events), "every stdout line must be one complete JSON value")
+                for line in raw_lines:
+                    self.assertIsInstance(json.loads(line), dict)
+                self.assertEqual(sum(1 for event in events if event["type"] == "page") + 1, len(events))
+                self.assertEqual(sum(1 for event in events if event["type"] == "result"), 1)
         finally:
             ocr.close()
             vision.close()

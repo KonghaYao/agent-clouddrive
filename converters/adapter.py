@@ -301,7 +301,7 @@ class PageReporter:
             event["result_ref"] = result_ref
         if error is not None:
             event["error"] = {"code": error.code, "retryable": error.retryable}
-        self.stream.write(json.dumps(event, ensure_ascii=False) + "\n")
+        self.stream.write(json.dumps(event, ensure_ascii=False, separators=(",", ":")) + "\n")
         self.stream.flush()
 
 
@@ -1404,7 +1404,7 @@ class Handler(BaseHTTPRequestHandler):
                             if not started:
                                 self.chunked_start()
                             code = "timeout" if time.monotonic() > deadline else "resource_limit"
-                            self.chunked_write(json.dumps(dict(error_result(AdapterError(code, "execute", retryable=code == "timeout")), type="result")).encode() + b"\n")
+                            self.chunked_write(json.dumps(dict(error_result(AdapterError(code, "execute", retryable=code == "timeout")), type="result"), separators=(",", ":")).encode() + b"\n")
                             self.chunked_end()
                             return True
                         if not data:
@@ -1420,10 +1420,10 @@ class Handler(BaseHTTPRequestHandler):
                         total += len(data)
                         self.chunked_write(data)
                 if total > limit:
-                    self.chunked_write(json.dumps(dict(error_result(AdapterError("resource_limit", "execute")), type="result")).encode() + b"\n")
+                    self.chunked_write(json.dumps(dict(error_result(AdapterError("resource_limit", "execute")), type="result"), separators=(",", ":")).encode() + b"\n")
                 elif process.returncode != 0 or total == 0:
                     # The child died before writing its authoritative final line.
-                    self.chunked_write(json.dumps(dict(error_result(AdapterError("resource_limit", "execute")), type="result")).encode() + b"\n")
+                    self.chunked_write(json.dumps(dict(error_result(AdapterError("resource_limit", "execute")), type="result"), separators=(",", ":")).encode() + b"\n")
                 if not started:
                     self.chunked_start()
                 self.chunked_end()
@@ -1566,7 +1566,7 @@ def main():
         # The final line is always the full ConversionResult so a consumer that
         # only reads the tail still gets an authoritative status.
         payload = dict(result, type="result") if enabled else result
-        print(json.dumps(payload, ensure_ascii=False), flush=True)
+        print(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), flush=True)
     else:
         if not secret("ADAPTER_TOKEN"):
             raise SystemExit("ADAPTER_TOKEN_FILE or ADAPTER_TOKEN must be configured")
