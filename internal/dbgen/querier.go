@@ -16,6 +16,7 @@ type Querier interface {
 	// in ONE pgx transaction, so a failed quota check does not leave a locked file.
 	BeginFileOperation(ctx context.Context, arg BeginFileOperationParams) (FileOperation, error)
 	BindNativeUpload(ctx context.Context, arg BindNativeUploadParams) (UploadSession, error)
+	ClaimBatchLease(ctx context.Context, arg ClaimBatchLeaseParams) (BatchOperation, error)
 	ClaimConversionJob(ctx context.Context, arg ClaimConversionJobParams) (ConversionJob, error)
 	ClaimConversionJobs(ctx context.Context, arg ClaimConversionJobsParams) ([]ConversionJob, error)
 	ClaimOutbox(ctx context.Context, arg ClaimOutboxParams) ([]Outbox, error)

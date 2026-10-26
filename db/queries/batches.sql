@@ -6,6 +6,9 @@ SELECT * FROM batch_operations WHERE actor_principal_id = $1 AND idempotency_key
 INSERT INTO batch_items(batch_id,item_id,depends_on,command,input,idempotency_key) VALUES($1,$2,$3,$4,$5,$6) RETURNING *;
 -- name: SetBatchItemResult :execrows
 UPDATE batch_items SET operation_id = $3,status = $4,result = $5 WHERE batch_id = $1 AND item_id = $2 AND status <> 'succeeded';
+-- name: ClaimBatchLease :one
+UPDATE batch_operations SET lease_owner=$2,lease_token=lease_token+1,lease_until=now()+interval '2 minutes'
+WHERE id=$1 AND state='running' AND (lease_until IS NULL OR lease_until<=now()) RETURNING *;
 -- name: ListBatchItems :many
 SELECT * FROM batch_items WHERE batch_id = $1 ORDER BY item_id;
 -- name: FinishBatchOperation :execrows

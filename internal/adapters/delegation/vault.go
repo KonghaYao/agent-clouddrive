@@ -173,6 +173,10 @@ func (w *Wrapper) authorizeSource(ctx context.Context, tx pgx.Tx, in ports.Deleg
 		// Maintenance may inspect an unresolved authorized MOVE using its live
 		// operation lease. This exception grants no mutation or arbitrary history.
 		e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM file_operations o JOIN files f ON f.id=o.file_id JOIN spaces s ON s.id=f.space_id JOIN principals p ON p.id=f.owner_id WHERE o.id::text=$1 AND o.kind IN('move','rename','delete','restore') AND o.state IN('executing','outcome_unknown','remote_confirmed') AND o.lease_until>now() AND o.actor_principal_id=p.id AND p.issuer=$2 AND p.subject=$3 AND p.status='active' AND f.native_resource_id=$4 AND s.native_space_id=$5 AND f.native_instance=$6)`, in.JobID, in.Subject.Issuer, in.Subject.Subject, in.Source.ResourceID, in.Source.SpaceID, in.Source.Instance).Scan(&allowed)
+		if e == nil && !allowed {
+			// 仅允许带有效恢复租约的内部保留根任务读取固定空间根；不授权任意文件。
+			e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM retention_roots r JOIN spaces s ON s.id=r.space_id JOIN principals p ON p.id=s.owner_id WHERE r.operation_id::text=$1 AND r.state IN('prepared','executing','outcome_unknown') AND r.lease_until>now() AND p.issuer=$2 AND p.subject=$3 AND p.status='active' AND s.native_root_resource_id=$4 AND s.native_space_id=$5 AND s.native_instance=$6)`, in.JobID, in.Subject.Issuer, in.Subject.Subject, in.Source.ResourceID, in.Source.SpaceID, in.Source.Instance).Scan(&allowed)
+		}
 	} else {
 		if in.Source.RevisionID == "" || in.Source.ETag == "" {
 			return ports.ErrUnauthorized
