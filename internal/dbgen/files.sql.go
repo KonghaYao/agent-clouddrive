@@ -158,7 +158,7 @@ func (q *Queries) CreateTrashEntry(ctx context.Context, arg CreateTrashEntryPara
 }
 
 const getArtifactSet = `-- name: GetArtifactSet :one
-SELECT id, source_version_id, generation, recipe_fingerprint, recipe_snapshot, manifest_key, markdown_key, manifest_sha256, markdown_sha256, completeness, index_task_id, index_state, indexed_at, published_at, created_at FROM artifact_sets WHERE id = $1 AND published_at IS NOT NULL
+SELECT id, source_version_id, generation, recipe_fingerprint, recipe_snapshot, manifest_key, markdown_key, manifest_sha256, markdown_sha256, completeness, index_task_id, index_state, indexed_at, published_at, created_at, attempt FROM artifact_sets WHERE id = $1 AND published_at IS NOT NULL
 `
 
 func (q *Queries) GetArtifactSet(ctx context.Context, id pgtype.UUID) (ArtifactSet, error) {
@@ -180,6 +180,7 @@ func (q *Queries) GetArtifactSet(ctx context.Context, id pgtype.UUID) (ArtifactS
 		&i.IndexedAt,
 		&i.PublishedAt,
 		&i.CreatedAt,
+		&i.Attempt,
 	)
 	return i, err
 }

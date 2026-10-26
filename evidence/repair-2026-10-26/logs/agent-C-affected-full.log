@@ -1,0 +1,8 @@
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	29.127s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/access	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/batch	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/core	[no test files]
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application/delegation	1.841s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/converters	2.446s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/search	1.479s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/ports	[no test files]

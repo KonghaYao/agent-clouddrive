@@ -20,6 +20,29 @@ type AccessTicket struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 }
 
+type ArtifactActivationTask struct {
+	FileID        pgtype.UUID        `json:"file_id"`
+	ArtifactSetID pgtype.UUID        `json:"artifact_set_id"`
+	State         string             `json:"state"`
+	Attempt       int32              `json:"attempt"`
+	LeaseOwner    *string            `json:"lease_owner"`
+	LeaseToken    int64              `json:"lease_token"`
+	LeaseUntil    pgtype.Timestamptz `json:"lease_until"`
+	RetryAt       pgtype.Timestamptz `json:"retry_at"`
+	LastError     *string            `json:"last_error"`
+}
+
+type ArtifactCleanupTask struct {
+	ArtifactSetID pgtype.UUID        `json:"artifact_set_id"`
+	State         string             `json:"state"`
+	Attempt       int32              `json:"attempt"`
+	LeaseOwner    *string            `json:"lease_owner"`
+	LeaseToken    int64              `json:"lease_token"`
+	LeaseUntil    pgtype.Timestamptz `json:"lease_until"`
+	RetryAt       pgtype.Timestamptz `json:"retry_at"`
+	LastError     *string            `json:"last_error"`
+}
+
 type ArtifactSet struct {
 	ID                pgtype.UUID        `json:"id"`
 	SourceVersionID   pgtype.UUID        `json:"source_version_id"`
@@ -36,6 +59,7 @@ type ArtifactSet struct {
 	IndexedAt         pgtype.Timestamptz `json:"indexed_at"`
 	PublishedAt       pgtype.Timestamptz `json:"published_at"`
 	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	Attempt           int32              `json:"attempt"`
 }
 
 type AuditGrant struct {
@@ -106,17 +130,23 @@ type ConversionJob struct {
 	ArtifactSetID     pgtype.UUID        `json:"artifact_set_id"`
 	CreatedAt         pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	PageCount         int32              `json:"page_count"`
+	PagesReady        int32              `json:"pages_ready"`
+	PagesFailed       int32              `json:"pages_failed"`
+	Completeness      []byte             `json:"completeness"`
+	ActualEngine      []byte             `json:"actual_engine"`
 }
 
 type ConversionPageResult struct {
-	JobID      pgtype.UUID `json:"job_id"`
-	PageNo     int32       `json:"page_no"`
-	Stage      string      `json:"stage"`
-	Attempt    int32       `json:"attempt"`
-	LeaseToken int64       `json:"lease_token"`
-	State      string      `json:"state"`
-	ResultRef  []byte      `json:"result_ref"`
-	ErrorCode  *string     `json:"error_code"`
+	JobID      pgtype.UUID        `json:"job_id"`
+	PageNo     int32              `json:"page_no"`
+	Stage      string             `json:"stage"`
+	Attempt    int32              `json:"attempt"`
+	LeaseToken int64              `json:"lease_token"`
+	State      string             `json:"state"`
+	ResultRef  []byte             `json:"result_ref"`
+	ErrorCode  *string            `json:"error_code"`
+	RecordedAt pgtype.Timestamptz `json:"recorded_at"`
 }
 
 type ConversionRequest struct {

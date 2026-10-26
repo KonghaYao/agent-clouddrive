@@ -1,0 +1,10 @@
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/api	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/contracts	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/maintenance	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/worker	[no test files]
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/artifactstore	1.447s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/converters	1.661s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/delegation	3.075s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/identity	2.110s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/ocis	2.710s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/search	3.035s

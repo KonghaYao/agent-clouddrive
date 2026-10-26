@@ -4,6 +4,7 @@ package ports
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -214,8 +215,10 @@ type IdentityAdapter interface {
 }
 
 type EngineInfo struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
+	Name     string `json:"name"`
+	Version  string `json:"version"`
+	Model    string `json:"model,omitempty"`
+	Provider string `json:"provider,omitempty"`
 }
 type Capabilities struct {
 	SchemaVersion  int        `json:"schema_version"`
@@ -240,6 +243,8 @@ type ConversionInput struct {
 	PageEnd         int    `json:"page_end,omitempty"`
 }
 type Recipe struct {
+	PageReport      bool           `json:"page_report,omitempty"`
+	ResumePages     []int          `json:"resume_pages,omitempty"`
 	Fingerprint     string         `json:"fingerprint"`
 	Engine          string         `json:"engine,omitempty"`
 	EngineVersion   string         `json:"engine_version,omitempty"`
@@ -255,6 +260,8 @@ type Recipe struct {
 	MaxOutputBytes  int64          `json:"max_output_bytes"`
 }
 type ConversionRequest struct {
+	PageReport  bool            `json:"page_report,omitempty"`
+	ResumePages []int           `json:"resume_pages,omitempty"`
 	JobID       string          `json:"job_id"`
 	AttemptID   string          `json:"attempt_id"`
 	Capability  string          `json:"capability"`
@@ -302,6 +309,7 @@ type ConversionPage struct {
 	Block             string `json:"block"`
 }
 type ConversionResult struct {
+	Model        json.RawMessage   `json:"model,omitempty"`
 	Status       string            `json:"status"`
 	Engine       EngineInfo        `json:"engine"`
 	Markdown     string            `json:"markdown"`
@@ -311,6 +319,21 @@ type ConversionResult struct {
 	Locations    []Location        `json:"locations,omitempty"`
 	Errors       []ConversionError `json:"errors"`
 }
+
+// PageEvent 是 v2 JSONL 页/阶段增量；ResultRef 使用内联、校验和受控结果，不接受外部对象地址。
+type PageEvent struct {
+	Type      string           `json:"type"`
+	Page      int              `json:"page"`
+	Stage     string           `json:"stage"`
+	State     string           `json:"state"`
+	ResultRef json.RawMessage  `json:"result_ref"`
+	Error     *ConversionError `json:"error,omitempty"`
+}
+
+type PageConverter interface {
+	ExecutePages(context.Context, ConversionRequest, func(PageEvent) error) (ConversionResult, error)
+}
+
 type Converter interface {
 	Capabilities(context.Context) (Capabilities, error)
 	Execute(context.Context, ConversionRequest) (ConversionResult, error)
