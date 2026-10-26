@@ -1,0 +1,11 @@
+test_http_cannot_silently_be_production (test_deploy.DeploymentTests.test_http_cannot_silently_be_production) ... ok
+test_local_and_s3_generation_idempotent (test_deploy.DeploymentTests.test_local_and_s3_generation_idempotent) ... ok
+test_no_silent_storage_migration (test_deploy.DeploymentTests.test_no_silent_storage_migration) ... ok
+test_reference_realm_security (test_deploy.DeploymentTests.test_reference_realm_security) ... ok
+test_actual_signed_bucket_creation_is_idempotent (test_s3_init.RustFSBucketTests.test_actual_signed_bucket_creation_is_idempotent) ... skipped 'native official RustFS binary not configured'
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.288s
+
+OK (skipped=1)
+deploy exit=0

@@ -1,0 +1,11 @@
+HEAD: 5c5da6df6b1c5b48ea99186b5c047a531ca4b40d
+== sqlc generate ==
+sqlc exit:0
+== git status after sqlc ==
+== go vet ==
+vet exit:0
+== mcp contract ==
+contracts exit:0
+mcp diff exit:0
+== openapi ==
+openapi diff exit:0

@@ -1,0 +1,11 @@
+test_default_never_trusts_client_protocol (test_repair_gateway_cookie.RepairCookieTests.test_default_never_trusts_client_protocol) ... ok
+test_only_explicit_local_generation_allows_http (test_repair_gateway_cookie.RepairCookieTests.test_only_explicit_local_generation_allows_http) ... ok
+test_real_nginx_tls_proxy_and_forged_headers (test_repair_gateway_cookie.RepairCookieTests.test_real_nginx_tls_proxy_and_forged_headers) ... ok
+test_realm_replay_enabled_without_login_activity_capture (test_repair_gateway_cookie.RepairCookieTests.test_realm_replay_enabled_without_login_activity_capture) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.605s
+
+OK
+真实 nginx：TLS 直连、可信代理、伪造协议头、开发 HTTP Cookie 检查通过
+真实 nginx：TLS 直连、可信代理、伪造协议头、开发 HTTP Cookie 检查通过

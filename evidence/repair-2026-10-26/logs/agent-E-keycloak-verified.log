@@ -1,0 +1,6 @@
+=== RUN   TestRepairIdentityLiveKeycloak
+    repair_auth_test.go:388: 真实 Keycloak Admin Events + 原生 PG + application：两次采样之间 disabled→enabled、零访问、旧三类分享撤销、新确认可用
+--- PASS: TestRepairIdentityLiveKeycloak (0.44s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	4.535s
+隔离 Keycloak realm 已删除；未修改 demo realm。

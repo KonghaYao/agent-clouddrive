@@ -1,0 +1,51 @@
+=== RUN   TestRepairLifecycleInboundHolds
+=== RUN   TestRepairLifecycleInboundHolds/parent-rename
+=== RUN   TestRepairLifecycleInboundHolds/parent-move
+=== RUN   TestRepairLifecycleInboundHolds/parent-delete
+=== RUN   TestRepairLifecycleInboundHolds/ancestor-rename
+=== RUN   TestRepairLifecycleInboundHolds/ancestor-move
+=== RUN   TestRepairLifecycleInboundHolds/ancestor-delete
+--- PASS: TestRepairLifecycleInboundHolds (1.85s)
+    --- PASS: TestRepairLifecycleInboundHolds/parent-rename (0.31s)
+    --- PASS: TestRepairLifecycleInboundHolds/parent-move (0.41s)
+    --- PASS: TestRepairLifecycleInboundHolds/parent-delete (0.41s)
+    --- PASS: TestRepairLifecycleInboundHolds/ancestor-rename (0.23s)
+    --- PASS: TestRepairLifecycleInboundHolds/ancestor-move (0.24s)
+    --- PASS: TestRepairLifecycleInboundHolds/ancestor-delete (0.25s)
+=== RUN   TestRepairLifecycleHistoricalTargetConvergence
+=== RUN   TestRepairLifecycleHistoricalTargetConvergence/deleted=false
+=== RUN   TestRepairLifecycleHistoricalTargetConvergence/deleted=true
+--- PASS: TestRepairLifecycleHistoricalTargetConvergence (0.50s)
+    --- PASS: TestRepairLifecycleHistoricalTargetConvergence/deleted=false (0.20s)
+    --- PASS: TestRepairLifecycleHistoricalTargetConvergence/deleted=true (0.30s)
+=== RUN   TestRepairBatchSingleConnection
+--- PASS: TestRepairBatchSingleConnection (0.18s)
+=== RUN   TestRepairBatchConcurrentBatchesExhaustPool
+--- PASS: TestRepairBatchConcurrentBatchesExhaustPool (0.29s)
+=== RUN   TestRepairBatchCancellationAndLeaseTakeover
+--- PASS: TestRepairBatchCancellationAndLeaseTakeover (0.22s)
+=== RUN   TestRepairRetentionCrashAndLostResponse
+=== RUN   TestRepairRetentionCrashAndLostResponse/before=true
+=== RUN   TestRepairRetentionCrashAndLostResponse/before=false
+--- PASS: TestRepairRetentionCrashAndLostResponse (0.45s)
+    --- PASS: TestRepairRetentionCrashAndLostResponse/before=true (0.22s)
+    --- PASS: TestRepairRetentionCrashAndLostResponse/before=false (0.22s)
+=== RUN   TestRepairRetentionConcurrentFirstDeletes
+--- PASS: TestRepairRetentionConcurrentFirstDeletes (0.23s)
+=== RUN   TestRepairLifecycleRestoreOnlyScope
+=== RUN   TestRepairLifecycleRestoreOnlyScope/nested=false
+=== RUN   TestRepairLifecycleRestoreOnlyScope/nested=true
+--- PASS: TestRepairLifecycleRestoreOnlyScope (0.47s)
+    --- PASS: TestRepairLifecycleRestoreOnlyScope/nested=false (0.25s)
+    --- PASS: TestRepairLifecycleRestoreOnlyScope/nested=true (0.22s)
+=== RUN   TestRepairLifecycleMigrationReentrant
+    repair_lifecycle_test.go:532: PostgreSQL 17.11 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+--- PASS: TestRepairLifecycleMigrationReentrant (0.16s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	6.121s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/access	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/batch	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/core	[no test files]
+testing: warning: no tests to run
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application/delegation	1.349s [no tests to run]

@@ -1,0 +1,16 @@
+test_http_cannot_silently_be_production (test_deploy.DeploymentTests.test_http_cannot_silently_be_production) ... ok
+test_local_and_s3_generation_idempotent (test_deploy.DeploymentTests.test_local_and_s3_generation_idempotent) ... ok
+test_no_silent_storage_migration (test_deploy.DeploymentTests.test_no_silent_storage_migration) ... ok
+test_reference_realm_security (test_deploy.DeploymentTests.test_reference_realm_security) ... ok
+test_default_never_trusts_client_protocol (test_repair_gateway_cookie.RepairCookieTests.test_default_never_trusts_client_protocol) ... ok
+test_only_explicit_local_generation_allows_http (test_repair_gateway_cookie.RepairCookieTests.test_only_explicit_local_generation_allows_http) ... ok
+test_real_nginx_tls_proxy_and_forged_headers (test_repair_gateway_cookie.RepairCookieTests.test_real_nginx_tls_proxy_and_forged_headers) ... ok
+test_realm_replay_enabled_without_login_activity_capture (test_repair_gateway_cookie.RepairCookieTests.test_realm_replay_enabled_without_login_activity_capture) ... ok
+test_actual_signed_bucket_creation_is_idempotent (test_s3_init.RustFSBucketTests.test_actual_signed_bucket_creation_is_idempotent) ... skipped 'native official RustFS binary not configured'
+
+----------------------------------------------------------------------
+Ran 9 tests in 1.915s
+
+OK (skipped=1)
+真实 nginx：TLS 直连、可信代理、伪造协议头、开发 HTTP Cookie 检查通过
+真实 nginx：TLS 直连、可信代理、伪造协议头、开发 HTTP Cookie 检查通过

@@ -1,0 +1,246 @@
+=== RUN   TestValidIdempotencyKey
+=== RUN   TestValidIdempotencyKey/empty
+=== RUN   TestValidIdempotencyKey/200_ASCII_characters
+=== RUN   TestValidIdempotencyKey/201_ASCII_characters
+=== RUN   TestValidIdempotencyKey/200_multibyte_characters
+=== RUN   TestValidIdempotencyKey/201_multibyte_characters
+=== RUN   TestValidIdempotencyKey/browser_upload_key
+--- PASS: TestValidIdempotencyKey (0.00s)
+    --- PASS: TestValidIdempotencyKey/empty (0.00s)
+    --- PASS: TestValidIdempotencyKey/200_ASCII_characters (0.00s)
+    --- PASS: TestValidIdempotencyKey/201_ASCII_characters (0.00s)
+    --- PASS: TestValidIdempotencyKey/200_multibyte_characters (0.00s)
+    --- PASS: TestValidIdempotencyKey/201_multibyte_characters (0.00s)
+    --- PASS: TestValidIdempotencyKey/browser_upload_key (0.00s)
+=== RUN   TestBeginUploadRejectsInvalidKeyBeforeUsingDatabase
+=== RUN   TestBeginUploadRejectsInvalidKeyBeforeUsingDatabase/empty
+=== RUN   TestBeginUploadRejectsInvalidKeyBeforeUsingDatabase/overlong_ASCII
+=== RUN   TestBeginUploadRejectsInvalidKeyBeforeUsingDatabase/overlong_multibyte
+--- PASS: TestBeginUploadRejectsInvalidKeyBeforeUsingDatabase (0.00s)
+    --- PASS: TestBeginUploadRejectsInvalidKeyBeforeUsingDatabase/empty (0.00s)
+    --- PASS: TestBeginUploadRejectsInvalidKeyBeforeUsingDatabase/overlong_ASCII (0.00s)
+    --- PASS: TestBeginUploadRejectsInvalidKeyBeforeUsingDatabase/overlong_multibyte (0.00s)
+=== RUN   TestMutationMkdirRenameAndIdempotence
+--- PASS: TestMutationMkdirRenameAndIdempotence (0.22s)
+=== RUN   TestMutationUnknownOutcomeBlocksAndRetains
+--- PASS: TestMutationUnknownOutcomeBlocksAndRetains (0.17s)
+=== RUN   TestMutationDeleteRestoreAndQuota
+--- PASS: TestMutationDeleteRestoreAndQuota (0.23s)
+=== RUN   TestBatchIndependentAndDependencyBlocked
+--- PASS: TestBatchIndependentAndDependencyBlocked (0.20s)
+=== RUN   TestMkdirDefinitiveFailureReleasesPath
+--- PASS: TestMkdirDefinitiveFailureReleasesPath (0.19s)
+=== RUN   TestMutationReconcilesLostMoveResponse
+--- PASS: TestMutationReconcilesLostMoveResponse (0.19s)
+=== RUN   TestPreparedAdmissionRecoveryFencesLateNativeDispatch
+--- PASS: TestPreparedAdmissionRecoveryFencesLateNativeDispatch (0.21s)
+=== RUN   TestFeedbackLeavesNoIdentityActivityRecord
+--- PASS: TestFeedbackLeavesNoIdentityActivityRecord (0.23s)
+=== RUN   TestAnonymousRateIsGlobalBoundedAndEphemeral
+--- PASS: TestAnonymousRateIsGlobalBoundedAndEphemeral (0.00s)
+=== RUN   TestRepairLifecycleNativeOCIS
+    repair_lifecycle_native_test.go:58: REPAIR_NATIVE_WRITES=yes and private delegated credential required
+--- SKIP: TestRepairLifecycleNativeOCIS (0.00s)
+=== RUN   TestRepairLifecycleInboundHolds
+=== RUN   TestRepairLifecycleInboundHolds/parent-rename
+=== RUN   TestRepairLifecycleInboundHolds/parent-move
+=== RUN   TestRepairLifecycleInboundHolds/parent-delete
+=== RUN   TestRepairLifecycleInboundHolds/ancestor-rename
+=== RUN   TestRepairLifecycleInboundHolds/ancestor-move
+=== RUN   TestRepairLifecycleInboundHolds/ancestor-delete
+--- PASS: TestRepairLifecycleInboundHolds (2.07s)
+    --- PASS: TestRepairLifecycleInboundHolds/parent-rename (0.31s)
+    --- PASS: TestRepairLifecycleInboundHolds/parent-move (0.23s)
+    --- PASS: TestRepairLifecycleInboundHolds/parent-delete (0.22s)
+    --- PASS: TestRepairLifecycleInboundHolds/ancestor-rename (0.51s)
+    --- PASS: TestRepairLifecycleInboundHolds/ancestor-move (0.36s)
+    --- PASS: TestRepairLifecycleInboundHolds/ancestor-delete (0.43s)
+=== RUN   TestRepairLifecycleHistoricalTargetConvergence
+=== RUN   TestRepairLifecycleHistoricalTargetConvergence/deleted=false
+=== RUN   TestRepairLifecycleHistoricalTargetConvergence/deleted=true
+--- PASS: TestRepairLifecycleHistoricalTargetConvergence (0.62s)
+    --- PASS: TestRepairLifecycleHistoricalTargetConvergence/deleted=false (0.30s)
+    --- PASS: TestRepairLifecycleHistoricalTargetConvergence/deleted=true (0.32s)
+=== RUN   TestRepairBatchSingleConnection
+--- PASS: TestRepairBatchSingleConnection (0.27s)
+=== RUN   TestRepairBatchConcurrentBatchesExhaustPool
+--- PASS: TestRepairBatchConcurrentBatchesExhaustPool (0.33s)
+=== RUN   TestRepairBatchCancellationAndLeaseTakeover
+--- PASS: TestRepairBatchCancellationAndLeaseTakeover (0.28s)
+=== RUN   TestRepairRetentionCrashAndLostResponse
+=== RUN   TestRepairRetentionCrashAndLostResponse/before=true
+=== RUN   TestRepairRetentionCrashAndLostResponse/before=false
+--- PASS: TestRepairRetentionCrashAndLostResponse (0.60s)
+    --- PASS: TestRepairRetentionCrashAndLostResponse/before=true (0.34s)
+    --- PASS: TestRepairRetentionCrashAndLostResponse/before=false (0.27s)
+=== RUN   TestRepairRetentionConcurrentFirstDeletes
+--- PASS: TestRepairRetentionConcurrentFirstDeletes (0.28s)
+=== RUN   TestRepairLifecycleRestoreOnlyScope
+=== RUN   TestRepairLifecycleRestoreOnlyScope/nested=false
+=== RUN   TestRepairLifecycleRestoreOnlyScope/nested=true
+--- PASS: TestRepairLifecycleRestoreOnlyScope (0.65s)
+    --- PASS: TestRepairLifecycleRestoreOnlyScope/nested=false (0.24s)
+    --- PASS: TestRepairLifecycleRestoreOnlyScope/nested=true (0.41s)
+=== RUN   TestRepairLifecycleRestoreParentDenials
+--- PASS: TestRepairLifecycleRestoreParentDenials (0.26s)
+=== RUN   TestRepairRetentionIdentityMismatchAndFence
+--- PASS: TestRepairRetentionIdentityMismatchAndFence (0.25s)
+=== RUN   TestRepairLifecycleMigrationReentrant
+    repair_lifecycle_test.go:609: PostgreSQL 17.11 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+--- PASS: TestRepairLifecycleMigrationReentrant (0.20s)
+=== RUN   TestReviewUploadCannotEnterPendingMoveTarget
+--- PASS: TestReviewUploadCannotEnterPendingMoveTarget (0.25s)
+=== RUN   TestReviewAnonymousFixedShareSelectsAuthorizedSource
+--- PASS: TestReviewAnonymousFixedShareSelectsAuthorizedSource (0.21s)
+=== RUN   TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata
+--- PASS: TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata (0.23s)
+=== RUN   TestReviewPinnedMarkdownSurvivesBusinessTrash
+--- PASS: TestReviewPinnedMarkdownSurvivesBusinessTrash (0.37s)
+=== RUN   TestReviewAuditRequiresSpecificActiveHumanGrant
+--- PASS: TestReviewAuditRequiresSpecificActiveHumanGrant (0.43s)
+=== RUN   TestReviewUploadReloadsParentAfterSpaceSerialization
+--- PASS: TestReviewUploadReloadsParentAfterSpaceSerialization (0.31s)
+=== RUN   TestReviewCanceledBeforeNativeUploadReleasesReservation
+--- PASS: TestReviewCanceledBeforeNativeUploadReleasesReservation (0.20s)
+=== RUN   TestSharePendingDeleteRestoreRequiresFreshConfirmation
+--- PASS: TestSharePendingDeleteRestoreRequiresFreshConfirmation (0.17s)
+=== RUN   TestSharePendingAccountReenableRequiresFreshConfirmation
+--- PASS: TestSharePendingAccountReenableRequiresFreshConfirmation (0.27s)
+=== RUN   TestShareApprovalExpiryCannotExpand
+--- PASS: TestShareApprovalExpiryCannotExpand (0.25s)
+=== RUN   TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant (0.30s)
+=== RUN   TestMaintenanceIdentitySyncDoesNotReviveShares
+--- PASS: TestMaintenanceIdentitySyncDoesNotReviveShares (0.23s)
+=== RUN   TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant (0.22s)
+=== RUN   TestSharedContentUsesAuthorizedFixedVersion
+--- PASS: TestSharedContentUsesAuthorizedFixedVersion (0.21s)
+=== RUN   TestObservedDisableNeverRevivesPublicShare
+--- PASS: TestObservedDisableNeverRevivesPublicShare (0.18s)
+=== RUN   TestStressReviewPlainTextMarkersCannotForgePagesOrAmplifyBlocks
+--- PASS: TestStressReviewPlainTextMarkersCannotForgePagesOrAmplifyBlocks (0.00s)
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/duplicate
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/overflow
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/too_many
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_page
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_block
+--- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/duplicate (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/overflow (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/too_many (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_page (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_block (0.00s)
+=== RUN   TestStressReviewBlankParagraphsDoNotAllocatePerSeparator
+--- PASS: TestStressReviewBlankParagraphsDoNotAllocatePerSeparator (0.00s)
+=== RUN   TestStressReviewLatePathSnapshotCannotOverwriteNewerMove
+--- PASS: TestStressReviewLatePathSnapshotCannotOverwriteNewerMove (0.16s)
+=== RUN   TestStressReviewMaintenanceWorksWithOnePoolConnection
+--- PASS: TestStressReviewMaintenanceWorksWithOnePoolConnection (0.18s)
+=== RUN   TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners
+--- PASS: TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners (0.18s)
+=== RUN   TestStressReviewLateDeleteCannotEraseRestoredSearch
+--- PASS: TestStressReviewLateDeleteCannotEraseRestoredSearch (0.28s)
+=== RUN   TestStressReviewIndexRebuildPersistsDetectedAccountDisable
+--- PASS: TestStressReviewIndexRebuildPersistsDetectedAccountDisable (0.25s)
+=== RUN   TestStressReviewOutboxWorkLongerThanLeaseCanFinish
+--- PASS: TestStressReviewOutboxWorkLongerThanLeaseCanFinish (4.22s)
+=== RUN   TestStressReviewStolenOutboxFenceCancelsInFlightIndex
+--- PASS: TestStressReviewStolenOutboxFenceCancelsInFlightIndex (1.20s)
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true
+--- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches (1.59s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false (0.66s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true (0.92s)
+=== RUN   TestBeginUploadReportsIncompleteOwnerUpload
+--- PASS: TestBeginUploadReportsIncompleteOwnerUpload (0.17s)
+=== RUN   TestBeginUploadReportsNameTakenForVisibleFile
+--- PASS: TestBeginUploadReportsNameTakenForVisibleFile (0.18s)
+=== RUN   TestAbandonUploadReleasesQuotaAndFreesPath
+--- PASS: TestAbandonUploadReleasesQuotaAndFreesPath (0.17s)
+=== RUN   TestAbandonUploadKeepsVisibleFile
+--- PASS: TestAbandonUploadKeepsVisibleFile (0.18s)
+=== RUN   TestAbandonUploadRefusesAcceptedTransferData
+=== RUN   TestAbandonUploadRefusesAcceptedTransferData/bytes_received
+=== RUN   TestAbandonUploadRefusesAcceptedTransferData/transfer_completed
+--- PASS: TestAbandonUploadRefusesAcceptedTransferData (0.38s)
+    --- PASS: TestAbandonUploadRefusesAcceptedTransferData/bytes_received (0.22s)
+    --- PASS: TestAbandonUploadRefusesAcceptedTransferData/transfer_completed (0.16s)
+=== RUN   TestAbandonUploadIsOwnerScoped
+--- PASS: TestAbandonUploadIsOwnerScoped (0.16s)
+=== RUN   TestEarlyFinalizePreservesResumableUpload
+--- PASS: TestEarlyFinalizePreservesResumableUpload (0.17s)
+=== RUN   TestRecordUploadProgressPersistsEachAcceptedChunk
+--- PASS: TestRecordUploadProgressPersistsEachAcceptedChunk (0.17s)
+=== RUN   TestUploadConcurrentOverwriteExcludesEntireTransfer
+--- PASS: TestUploadConcurrentOverwriteExcludesEntireTransfer (0.21s)
+=== RUN   TestUploadIdempotencyConflictAndDuplicateCommit
+--- PASS: TestUploadIdempotencyConflictAndDuplicateCommit (0.18s)
+=== RUN   TestUploadUnknownOutcomeKeepsReservation
+=== RUN   TestUploadUnknownOutcomeKeepsReservation/remote_mutation_outcome_unknown;_reconcile_before_retry
+=== RUN   TestUploadUnknownOutcomeKeepsReservation/transport_connection_reset_after_request_dispatch
+--- PASS: TestUploadUnknownOutcomeKeepsReservation (0.35s)
+    --- PASS: TestUploadUnknownOutcomeKeepsReservation/remote_mutation_outcome_unknown;_reconcile_before_retry (0.17s)
+    --- PASS: TestUploadUnknownOutcomeKeepsReservation/transport_connection_reset_after_request_dispatch (0.19s)
+=== RUN   TestUploadDefinitiveFailureFreesProvisionalPath
+--- PASS: TestUploadDefinitiveFailureFreesProvisionalPath (0.19s)
+=== RUN   TestUploadConcurrentSameKeyAdmitsOnce
+--- PASS: TestUploadConcurrentSameKeyAdmitsOnce (0.18s)
+=== RUN   TestUploadedTrashRetainsQuotaVersionsAndFeedback
+--- PASS: TestUploadedTrashRetainsQuotaVersionsAndFeedback (0.32s)
+=== RUN   TestDirectTextTruthfulness
+--- PASS: TestDirectTextTruthfulness (0.00s)
+=== RUN   TestPageProvenanceIsNotInvented
+--- PASS: TestPageProvenanceIsNotInvented (0.00s)
+=== RUN   TestConversionFailureClassification
+--- PASS: TestConversionFailureClassification (0.00s)
+=== RUN   TestWorkerLimitPreservesOriginal
+--- PASS: TestWorkerLimitPreservesOriginal (0.23s)
+=== RUN   TestWorkerPostgresNATSMeiliIntegration
+    worker_test.go:179: set DRIVE_TEST_NATS_URL and DRIVE_TEST_MEILI_URL for real integration
+--- SKIP: TestWorkerPostgresNATSMeiliIntegration (0.00s)
+=== RUN   TestManifestNeverContainsDelegation
+--- PASS: TestManifestNeverContainsDelegation (0.00s)
+=== RUN   TestMaintenancePathUpdatesRespectBatchLimit
+=== RUN   TestMaintenancePathUpdatesRespectBatchLimit/0
+=== RUN   TestMaintenancePathUpdatesRespectBatchLimit/1
+=== RUN   TestMaintenancePathUpdatesRespectBatchLimit/100
+=== RUN   TestMaintenancePathUpdatesRespectBatchLimit/101
+=== RUN   TestMaintenancePathUpdatesRespectBatchLimit/201
+--- PASS: TestMaintenancePathUpdatesRespectBatchLimit (0.00s)
+    --- PASS: TestMaintenancePathUpdatesRespectBatchLimit/0 (0.00s)
+    --- PASS: TestMaintenancePathUpdatesRespectBatchLimit/1 (0.00s)
+    --- PASS: TestMaintenancePathUpdatesRespectBatchLimit/100 (0.00s)
+    --- PASS: TestMaintenancePathUpdatesRespectBatchLimit/101 (0.00s)
+    --- PASS: TestMaintenancePathUpdatesRespectBatchLimit/201 (0.00s)
+=== RUN   TestMaintenancePathBatchFailureIsNotAcknowledged
+=== RUN   TestMaintenancePathBatchFailureIsNotAcknowledged/wait=false
+=== RUN   TestMaintenancePathBatchFailureIsNotAcknowledged/wait=true
+--- PASS: TestMaintenancePathBatchFailureIsNotAcknowledged (0.00s)
+    --- PASS: TestMaintenancePathBatchFailureIsNotAcknowledged/wait=false (0.00s)
+    --- PASS: TestMaintenancePathBatchFailureIsNotAcknowledged/wait=true (0.00s)
+=== RUN   TestMaintenanceDrainsBacklogWhileIdentityIsUnavailable
+--- PASS: TestMaintenanceDrainsBacklogWhileIdentityIsUnavailable (1.82s)
+=== RUN   TestMaintenanceIdentitySyncProgressesWhileOutboxIsStalled
+2026/10/26 17:16:22 WARN outbox retry scheduled event_id=3c98ab2a-97fa-472f-a7db-279031e8229a
+--- PASS: TestMaintenanceIdentitySyncProgressesWhileOutboxIsStalled (1.25s)
+=== RUN   TestMaintenanceSlowPrincipalDoesNotStarveLaterDisable
+--- PASS: TestMaintenanceSlowPrincipalDoesNotStarveLaterDisable (5.18s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	33.127s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/access	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/batch	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/core	[no test files]
+=== RUN   TestOfflineVerifierEncryptionBoundToPrincipal
+--- PASS: TestOfflineVerifierEncryptionBoundToPrincipal (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application/delegation	1.390s
+=== RUN   TestCipherAuthenticatesOwnerAndTampering
+--- PASS: TestCipherAuthenticatesOwnerAndTampering (0.00s)
+=== RUN   TestVaultPostgresIntegration
+    vault_test.go:219: real PostgreSQL + mock IdP: encrypted persistence, concurrent refresh rotation, owner/source checks, live disable, lifecycle rejection and revoke passed
+--- PASS: TestVaultPostgresIntegration (0.23s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/delegation	2.090s

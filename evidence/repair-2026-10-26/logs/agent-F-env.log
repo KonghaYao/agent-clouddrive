@@ -1,0 +1,12 @@
+python 3.12.8 (main, Mar 17 2025, 21:54:10) [Clang 19.1.7 ]
+pypdf 6.10.0
+pypdfium2 5.14.0
+Pillow 12.3.0
+CairoSVG 2.8.2
+firecrawl-anydoc 0.2.4
+reportlab 4.4.9
+python-docx 1.2.0
+openpyxl 3.1.5
+python-pptx 1.0.2
+PyYAML 6.0.3
+platform macOS-26.5.1-arm64-arm-64bit

@@ -1,0 +1,53 @@
+=== RUN   TestRepairLifecycleInboundHolds
+=== RUN   TestRepairLifecycleInboundHolds/parent-rename
+=== RUN   TestRepairLifecycleInboundHolds/parent-move
+=== RUN   TestRepairLifecycleInboundHolds/parent-delete
+=== RUN   TestRepairLifecycleInboundHolds/ancestor-rename
+=== RUN   TestRepairLifecycleInboundHolds/ancestor-move
+=== RUN   TestRepairLifecycleInboundHolds/ancestor-delete
+--- PASS: TestRepairLifecycleInboundHolds (1.42s)
+    --- PASS: TestRepairLifecycleInboundHolds/parent-rename (0.27s)
+    --- PASS: TestRepairLifecycleInboundHolds/parent-move (0.24s)
+    --- PASS: TestRepairLifecycleInboundHolds/parent-delete (0.22s)
+    --- PASS: TestRepairLifecycleInboundHolds/ancestor-rename (0.23s)
+    --- PASS: TestRepairLifecycleInboundHolds/ancestor-move (0.22s)
+    --- PASS: TestRepairLifecycleInboundHolds/ancestor-delete (0.24s)
+=== RUN   TestRepairLifecycleHistoricalTargetConvergence
+=== RUN   TestRepairLifecycleHistoricalTargetConvergence/deleted=false
+=== RUN   TestRepairLifecycleHistoricalTargetConvergence/deleted=true
+    repair_lifecycle_test.go:236: remote mutation outcome unknown; reconcile before retry
+--- FAIL: TestRepairLifecycleHistoricalTargetConvergence (0.40s)
+    --- PASS: TestRepairLifecycleHistoricalTargetConvergence/deleted=false (0.21s)
+    --- FAIL: TestRepairLifecycleHistoricalTargetConvergence/deleted=true (0.20s)
+=== RUN   TestRepairBatchSingleConnection
+--- PASS: TestRepairBatchSingleConnection (0.19s)
+=== RUN   TestRepairBatchConcurrentBatchesExhaustPool
+--- PASS: TestRepairBatchConcurrentBatchesExhaustPool (0.20s)
+=== RUN   TestRepairBatchCancellationAndLeaseTakeover
+--- PASS: TestRepairBatchCancellationAndLeaseTakeover (0.20s)
+=== RUN   TestRepairRetentionCrashAndLostResponse
+=== RUN   TestRepairRetentionCrashAndLostResponse/before=true
+=== RUN   TestRepairRetentionCrashAndLostResponse/before=false
+--- PASS: TestRepairRetentionCrashAndLostResponse (0.53s)
+    --- PASS: TestRepairRetentionCrashAndLostResponse/before=true (0.21s)
+    --- PASS: TestRepairRetentionCrashAndLostResponse/before=false (0.32s)
+=== RUN   TestRepairRetentionConcurrentFirstDeletes
+--- PASS: TestRepairRetentionConcurrentFirstDeletes (0.25s)
+=== RUN   TestRepairLifecycleRestoreOnlyScope
+=== RUN   TestRepairLifecycleRestoreOnlyScope/nested=false
+=== RUN   TestRepairLifecycleRestoreOnlyScope/nested=true
+--- PASS: TestRepairLifecycleRestoreOnlyScope (0.42s)
+    --- PASS: TestRepairLifecycleRestoreOnlyScope/nested=false (0.20s)
+    --- PASS: TestRepairLifecycleRestoreOnlyScope/nested=true (0.22s)
+=== RUN   TestRepairLifecycleMigrationReentrant
+    repair_lifecycle_test.go:531: PostgreSQL 17.11 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+--- PASS: TestRepairLifecycleMigrationReentrant (0.18s)
+FAIL
+FAIL	github.com/agentclouddrive/agent-clouddrive/internal/application	4.240s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/access	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/batch	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/core	[no test files]
+testing: warning: no tests to run
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application/delegation	1.809s [no tests to run]
+FAIL

@@ -1,0 +1,58 @@
+test_multipage_tiff_loses_second_page_and_reports_ready (__main__.AuditConverterDefects.test_multipage_tiff_loses_second_page_and_reports_ready) ... FAIL
+test_office_input_larger_than_output_cap_fails_and_leaks (__main__.AuditConverterDefects.test_office_input_larger_than_output_cap_fails_and_leaks) ... FAIL
+test_office_timeout_leaves_temporary_original (__main__.AuditConverterDefects.test_office_timeout_leaves_temporary_original) ... FAIL
+test_pdf_straight_line_chart_reported_complete_without_visuals (__main__.AuditConverterDefects.test_pdf_straight_line_chart_reported_complete_without_visuals) ... FAIL
+test_queued_recipe_model_ignored_by_runtime (__main__.AuditConverterDefects.test_queued_recipe_model_ignored_by_runtime) ... FAIL
+test_slow_second_pdf_page_discards_successful_first_page (__main__.AuditConverterDefects.test_slow_second_pdf_page_discards_successful_first_page) ... ok
+
+======================================================================
+FAIL: test_multipage_tiff_loses_second_page_and_reports_ready (__main__.AuditConverterDefects.test_multipage_tiff_loses_second_page_and_reports_ready)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/repair-kit/agent-clouddrive-repair-kit/audit-evidence/tests/audit_converters_repro.py", line 63, in test_multipage_tiff_loses_second_page_and_reports_ready
+    self.assertEqual(result["completeness"]["total_pages"], 1)
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_office_input_larger_than_output_cap_fails_and_leaks (__main__.AuditConverterDefects.test_office_input_larger_than_output_cap_fails_and_leaks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/repair-kit/agent-clouddrive-repair-kit/audit-evidence/tests/audit_converters_repro.py", line 101, in test_office_input_larger_than_output_cap_fails_and_leaks
+    self.assertEqual(len(files), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_office_timeout_leaves_temporary_original (__main__.AuditConverterDefects.test_office_timeout_leaves_temporary_original)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/repair-kit/agent-clouddrive-repair-kit/audit-evidence/tests/audit_converters_repro.py", line 152, in test_office_timeout_leaves_temporary_original
+    self.assertEqual(len(files), i + 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_pdf_straight_line_chart_reported_complete_without_visuals (__main__.AuditConverterDefects.test_pdf_straight_line_chart_reported_complete_without_visuals)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/repair-kit/agent-clouddrive-repair-kit/audit-evidence/tests/audit_converters_repro.py", line 47, in test_pdf_straight_line_chart_reported_complete_without_visuals
+    self.assertEqual(result["status"], "ready")
+AssertionError: 'partial' != 'ready'
+- partial
++ ready
+
+
+======================================================================
+FAIL: test_queued_recipe_model_ignored_by_runtime (__main__.AuditConverterDefects.test_queued_recipe_model_ignored_by_runtime)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/repair-kit/agent-clouddrive-repair-kit/audit-evidence/tests/audit_converters_repro.py", line 76, in test_queued_recipe_model_ignored_by_runtime
+    self.assertEqual(provider.call_args.args[1]["model"], "new-deployment-model")
+AssertionError: 'previous-approved-model' != 'new-deployment-model'
+- previous-approved-model
++ new-deployment-model
+
+
+----------------------------------------------------------------------
+Ran 6 tests in 5.711s
+
+FAILED (failures=5)
+PAGED TIMEOUT: actual two-page PDF; page1 OCR succeeded; page2 blocked; output lost all pages; retry OCR calls=4

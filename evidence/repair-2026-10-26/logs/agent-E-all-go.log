@@ -1,0 +1,22 @@
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/api	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/contracts	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/maintenance	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/worker	[no test files]
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/artifactstore	2.576s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/converters	2.116s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/delegation	3.495s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/identity	1.467s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/ocis	3.228s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/search	1.742s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	28.710s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/access	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/batch	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/core	[no test files]
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application/delegation	3.673s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/bootstrap	[no test files]
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/config	3.277s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/dbgen	[no test files]
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/domain	4.114s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/migrate	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/ports	[no test files]
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/transport	4.690s

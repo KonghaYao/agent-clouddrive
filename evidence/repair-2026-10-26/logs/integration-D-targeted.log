@@ -1,0 +1,3 @@
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	4.485s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/transport	4.117s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/artifactstore	1.923s

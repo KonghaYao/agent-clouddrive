@@ -1,0 +1,5 @@
+=== RUN   TestMeiliIntegration
+    meili_test.go:126: real Meilisearch: configure, async completion, owner filtering, partial path update, artifact-set deletion passed
+--- PASS: TestMeiliIntegration (0.20s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/search	1.462s
