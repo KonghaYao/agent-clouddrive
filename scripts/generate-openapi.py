@@ -10,7 +10,7 @@ schemas={
 'UploadRequest':obj({'parent_id':uid,'file_id':uid,'name':st,'size_bytes':integer,'content_type':st,'expected_version_id':uid,'expected_metadata_revision':integer,'idempotency_key':st},['name','size_bytes','idempotency_key']),
 'UploadSession':obj({'id':uid,'file_id':uid,'operation_id':uid,'status':st,'upload_url':{'type':'string','format':'uri'},'expires_at':{'type':'string','format':'date-time'}},['id','operation_id','status','upload_url']),
 'Mutation':obj({'parent_id':uid,'name':st,'expected_metadata_revision':integer,'expected_version_id':uid,'idempotency_key':st},['expected_metadata_revision','idempotency_key']),
-'CreateDirectory':obj({'parent_id':uid,'name':st,'idempotency_key':st},['name','idempotency_key']),
+'CreateDirectory':obj({'parent_id':uid,'name':st,'expected_parent_revision':{'type':'integer','minimum':1},'idempotency_key':st},['name','idempotency_key']),
 'ShareRequest':obj({'file_id':uid,'audience_type':{'enum':['user','group','link']},'audience_id':st,'rights':{'type':'array','items':{'enum':['read','download','preview']}},'version_policy':{'enum':['latest','fixed']},'version_id':uid,'expires_at':{'type':'string','format':'date-time'}},['file_id','audience_type']),
 'Feedback':obj({'file_id':uid,'version_id':uid,'artifact_set_id':uid,'category':{'enum':['text','description','missing_page','format','other']},'body':{'type':'string','minLength':1,'maxLength':10000}},['file_id','version_id','category','body']),
 'Search':obj({'query':st,'cursor':st,'limit':{'type':'integer','minimum':1,'maximum':100}},['query']),
@@ -31,6 +31,8 @@ for method,path,summary,request,response in rows:
  for p in re.findall(r'{(.*?)}',path):entry['parameters'].append({'name':p,'in':'path','required':True,'schema':st})
  if method=='GET' and (path.startswith('/v1/files') or path.startswith('/v1/audit/files')):
   for p in ['parent_id','cursor','version_id','artifact_set_id']:entry['parameters'].append({'name':p,'in':'query','schema':st})
+ if method=='GET' and (path.startswith('/v1/preview') or path.startswith('/s/')):
+  entry['parameters'].append({'name':'version_id','in':'query','schema':st})
  if request:entry['requestBody']={'required':True,'content':{'application/json':{'schema':S(request)}}}
  if '/content' in path or '/download/' in path or '/pages/' in path or '/assets/' in path:entry['responses']['200']['content']={'application/octet-stream':{'schema':{'type':'string','format':'binary'}}};entry['responses']['206']={'description':'Authorized single byte range'}
  if '/tus/' in path:
