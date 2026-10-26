@@ -1,0 +1,56 @@
+test_atomic_output_modes_ignore_restrictive_umask (test_demo.LauncherTests.test_atomic_output_modes_ignore_restrictive_umask) ... ok
+test_child_failure_never_prints_secret_and_timeout_is_bounded (test_demo.LauncherTests.test_child_failure_never_prints_secret_and_timeout_is_bounded) ... ok
+test_config_generation_is_outside_source_and_keeps_native_safety (test_demo.LauncherTests.test_config_generation_is_outside_source_and_keeps_native_safety) ... ok
+test_host_env_cannot_override_bind_origin_storage_or_compose (test_demo.LauncherTests.test_host_env_cannot_override_bind_origin_storage_or_compose) ... ok
+test_orchestration_waits_then_migrates_and_never_gates_failed_probe (test_demo.LauncherTests.test_orchestration_waits_then_migrates_and_never_gates_failed_probe) ... Building the real frontend, API and converters. First start can take several minutes.
+Dependencies are healthy; applying database migrations before starting the application.
+Checking real OIDC identity, delegated native storage, stale-write admission and retained history.
+Running real sample uploads, conversion, preview and search checks.
+Building the real frontend, API and converters. First start can take several minutes.
+Dependencies are healthy; applying database migrations before starting the application.
+Checking real OIDC identity, delegated native storage, stale-write admission and retained history.
+ok
+test_port_conflict_never_silently_changes_origin (test_demo.LauncherTests.test_port_conflict_never_silently_changes_origin) ... ok
+test_preflight_requires_complete_project_bound_real_proofs (test_demo.LauncherTests.test_preflight_requires_complete_project_bound_real_proofs) ... ok
+test_published_gateway_checks_built_js_and_exact_oidc_origin (test_demo.LauncherTests.test_published_gateway_checks_built_js_and_exact_oidc_origin) ... ok
+test_reduced_compose_retains_real_services_and_no_optional_dependencies (test_demo.LauncherTests.test_reduced_compose_retains_real_services_and_no_optional_dependencies) ... ok
+test_remote_docker_context_precedence_and_pinning (test_demo.LauncherTests.test_remote_docker_context_precedence_and_pinning) ... ok
+test_repeated_start_does_not_reseed_or_overwrite_user_edits (test_demo.LauncherTests.test_repeated_start_does_not_reseed_or_overwrite_user_edits) ... ok
+test_runtime_refuses_symlinks_hardlinks_foreign_and_world_writable (test_demo.LauncherTests.test_runtime_refuses_symlinks_hardlinks_foreign_and_world_writable) ... ok
+test_status_formats_and_unhealthy_fail (test_demo.LauncherTests.test_status_formats_and_unhealthy_fail) ... ok
+test_stop_only_stops_keeps_data_and_never_downs_volumes (test_demo.LauncherTests.test_stop_only_stops_keeps_data_and_never_downs_volumes) ... ok
+test_unmarked_or_mismatched_runtime_is_not_adopted (test_demo.LauncherTests.test_unmarked_or_mismatched_runtime_is_not_adopted) ... ok
+test_unsafe_resolved_config_is_rejected (test_demo.LauncherTests.test_unsafe_resolved_config_is_rejected) ... ok
+test_check_does_not_create_missing_journal (test_seed.OfflineFixture.test_check_does_not_create_missing_journal) ... ok
+test_corrupted_journal_cannot_adopt_unrelated_parent (test_seed.OfflineFixture.test_corrupted_journal_cannot_adopt_unrelated_parent) ... ok
+test_current_user_edit_refuses_next_version (test_seed.OfflineFixture.test_current_user_edit_refuses_next_version) ... ok
+test_external_public_origin_rejected (test_seed.OfflineFixture.test_external_public_origin_rejected) ... ok
+test_generated_samples_private_outside_source_and_no_clobber (test_seed.OfflineFixture.test_generated_samples_private_outside_source_and_no_clobber) ... ok
+test_insecure_runtime_rejected (test_seed.OfflineFixture.test_insecure_runtime_rejected) ... ok
+test_journal_is_private_secret_free_and_bound (test_seed.OfflineFixture.test_journal_is_private_secret_free_and_bound) ... ok
+test_journal_rejects_changed_marker_or_schema (test_seed.OfflineFixture.test_journal_rejects_changed_marker_or_schema) ... ok
+test_journal_rejects_unknown_secret_fields (test_seed.OfflineFixture.test_journal_rejects_unknown_secret_fields) ... ok
+test_known_tus_offset_resumes_only_remaining_bytes (test_seed.OfflineFixture.test_known_tus_offset_resumes_only_remaining_bytes) ... ok
+test_light_ready_does_not_mutate_or_recreate_samples (test_seed.OfflineFixture.test_light_ready_does_not_mutate_or_recreate_samples) ... ok
+test_non_demo_credentials_rejected (test_seed.OfflineFixture.test_non_demo_credentials_rejected) ... ok
+test_original_harness_http_policy_unchanged (test_seed.OfflineFixture.test_original_harness_http_policy_unchanged) ... ok
+test_outcome_unknown_does_not_send_patch (test_seed.OfflineFixture.test_outcome_unknown_does_not_send_patch) ... ok
+test_passed_without_completed_steps_is_not_ready (test_seed.OfflineFixture.test_passed_without_completed_steps_is_not_ready) ... ok
+test_private_files_fail_closed (test_seed.OfflineFixture.test_private_files_fail_closed) ... ok
+test_private_json_symlink_and_hardlink_rejected (test_seed.OfflineFixture.test_private_json_symlink_and_hardlink_rejected) ... ok
+test_public_resolution_and_mixed_answer_rejected (test_seed.OfflineFixture.test_public_resolution_and_mixed_answer_rejected) ... ok
+test_redacted_unexpected_failures (test_seed.OfflineFixture.test_redacted_unexpected_failures) ... ok
+test_runtime_guard (test_seed.OfflineFixture.test_runtime_guard) ... ok
+test_samples_directory_symlink_rejected (test_seed.OfflineFixture.test_samples_directory_symlink_rejected) ... ok
+test_saved_upload_response_is_verified_before_any_patch (test_seed.OfflineFixture.test_saved_upload_response_is_verified_before_any_patch) ... ok
+test_search_hit_binds_published_artifact_not_merely_valid_uuid (test_seed.OfflineFixture.test_search_hit_binds_published_artifact_not_merely_valid_uuid) ... ok
+test_source_generation_deterministic_and_pdf_valid_structure (test_seed.OfflineFixture.test_source_generation_deterministic_and_pdf_valid_structure) ... ok
+test_tls_native_proof_requires_explicit_ca_and_loopback (test_seed.OfflineFixture.test_tls_native_proof_requires_explicit_ca_and_loopback) ... ok
+test_untrusted_demo_request_fails_before_io (test_seed.OfflineFixture.test_untrusted_demo_request_fails_before_io) ... ok
+test_upload_intent_written_before_network (test_seed.OfflineFixture.test_upload_intent_written_before_network) ... ok
+
+----------------------------------------------------------------------
+Ran 43 tests in 0.107s
+
+OK
+Stopped. Docker volumes, sample files and login credentials are retained. Run start to resume.

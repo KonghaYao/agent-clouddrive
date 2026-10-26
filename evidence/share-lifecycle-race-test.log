@@ -1,0 +1,10 @@
+=== RUN   TestSharePendingDeleteRestoreRequiresFreshConfirmation
+--- PASS: TestSharePendingDeleteRestoreRequiresFreshConfirmation (0.17s)
+=== RUN   TestSharePendingAccountReenableRequiresFreshConfirmation
+--- PASS: TestSharePendingAccountReenableRequiresFreshConfirmation (0.13s)
+=== RUN   TestShareApprovalExpiryCannotExpand
+--- PASS: TestShareApprovalExpiryCannotExpand (0.13s)
+=== RUN   TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant (0.24s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	1.683s

@@ -1,0 +1,320 @@
+waiting for server to start.... done
+server started
+Native dependencies ready: PostgreSQL, NATS JetStream, Meilisearch.
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/api	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/contracts	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/maintenance	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/worker	[no test files]
+=== RUN   TestLocalImmutableRoundTrip
+--- PASS: TestLocalImmutableRoundTrip (0.01s)
+=== RUN   TestLocalSymlinkEscapeAndConcurrentPublish
+--- PASS: TestLocalSymlinkEscapeAndConcurrentPublish (0.00s)
+=== RUN   TestS3ConditionalAndChecksumHeaders
+--- PASS: TestS3ConditionalAndChecksumHeaders (0.01s)
+=== RUN   TestS3Integration
+    store_test.go:138: set DRIVE_TEST_S3_URL for real S3/RustFS integration
+--- SKIP: TestS3Integration (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/artifactstore	1.028s
+=== RUN   TestExecuteContract
+--- PASS: TestExecuteContract (0.00s)
+=== RUN   TestRejectExternalURLAndFalseSuccess
+--- PASS: TestRejectExternalURLAndFalseSuccess (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/converters	1.016s
+=== RUN   TestCipherAuthenticatesOwnerAndTampering
+--- PASS: TestCipherAuthenticatesOwnerAndTampering (0.00s)
+=== RUN   TestVaultPostgresIntegration
+    vault_test.go:200: real PostgreSQL + mock IdP: encrypted persistence, concurrent refresh rotation, owner/source checks, live disable, lifecycle rejection and revoke passed
+--- PASS: TestVaultPostgresIntegration (0.11s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/delegation	1.140s
+=== RUN   TestStrictJWTValidationAndLiveDisable
+--- PASS: TestStrictJWTValidationAndLiveDisable (0.10s)
+=== RUN   TestGroupsAndExchangeFailClosed
+--- PASS: TestGroupsAndExchangeFailClosed (0.07s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/identity	1.183s
+=== RUN   TestUnverifiedCapabilitiesFailClosed
+--- PASS: TestUnverifiedCapabilitiesFailClosed (0.00s)
+=== RUN   TestReadIgnoresStaleServerPreconditionSafely
+--- PASS: TestReadIgnoresStaleServerPreconditionSafely (0.00s)
+=== RUN   TestUploadRejectsForeignLocation
+--- PASS: TestUploadRejectsForeignLocation (0.00s)
+=== RUN   TestOCISIntegration
+    ocis_test.go:99: set DRIVE_TEST_OCIS_URL for native oCIS integration
+--- SKIP: TestOCISIntegration (0.00s)
+=== RUN   TestReconcileRequiresServerTransportProof
+--- PASS: TestReconcileRequiresServerTransportProof (0.00s)
+=== RUN   TestMutationServerErrorIsUnknown
+--- PASS: TestMutationServerErrorIsUnknown (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/ocis	1.019s
+=== RUN   TestMandatoryOwnerFilterAndNoTotals
+--- PASS: TestMandatoryOwnerFilterAndNoTotals (0.00s)
+=== RUN   TestWaitRequiresSucceeded
+--- PASS: TestWaitRequiresSucceeded (0.00s)
+=== RUN   TestChunkUTF8AndStableProvenance
+--- PASS: TestChunkUTF8AndStableProvenance (0.00s)
+=== RUN   TestMeiliIntegration
+    meili_test.go:126: real Meilisearch: configure, async completion, owner filtering, partial path update, artifact-set deletion passed
+--- PASS: TestMeiliIntegration (0.10s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/search	1.123s
+=== RUN   TestMutationMkdirRenameAndIdempotence
+--- PASS: TestMutationMkdirRenameAndIdempotence (0.11s)
+=== RUN   TestMutationUnknownOutcomeBlocksAndRetains
+--- PASS: TestMutationUnknownOutcomeBlocksAndRetains (0.10s)
+=== RUN   TestMutationDeleteRestoreAndQuota
+--- PASS: TestMutationDeleteRestoreAndQuota (0.14s)
+=== RUN   TestBatchIndependentAndDependencyBlocked
+--- PASS: TestBatchIndependentAndDependencyBlocked (0.15s)
+=== RUN   TestMkdirDefinitiveFailureReleasesPath
+--- PASS: TestMkdirDefinitiveFailureReleasesPath (0.12s)
+=== RUN   TestMutationReconcilesLostMoveResponse
+--- PASS: TestMutationReconcilesLostMoveResponse (0.13s)
+=== RUN   TestPreparedAdmissionRecoveryFencesLateNativeDispatch
+--- PASS: TestPreparedAdmissionRecoveryFencesLateNativeDispatch (0.12s)
+=== RUN   TestFeedbackLeavesNoIdentityActivityRecord
+--- PASS: TestFeedbackLeavesNoIdentityActivityRecord (0.11s)
+=== RUN   TestOfflineVerifierEncryptionBoundToPrincipal
+--- PASS: TestOfflineVerifierEncryptionBoundToPrincipal (0.00s)
+=== RUN   TestAnonymousRateIsGlobalBoundedAndEphemeral
+--- PASS: TestAnonymousRateIsGlobalBoundedAndEphemeral (0.00s)
+=== RUN   TestReviewUploadCannotEnterPendingMoveTarget
+--- PASS: TestReviewUploadCannotEnterPendingMoveTarget (0.12s)
+=== RUN   TestReviewAnonymousFixedShareSelectsAuthorizedSource
+--- PASS: TestReviewAnonymousFixedShareSelectsAuthorizedSource (0.11s)
+=== RUN   TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata
+--- PASS: TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata (0.10s)
+=== RUN   TestReviewPinnedMarkdownSurvivesBusinessTrash
+--- PASS: TestReviewPinnedMarkdownSurvivesBusinessTrash (0.11s)
+=== RUN   TestReviewAuditRequiresSpecificActiveHumanGrant
+--- PASS: TestReviewAuditRequiresSpecificActiveHumanGrant (0.11s)
+=== RUN   TestReviewUploadReloadsParentAfterSpaceSerialization
+--- PASS: TestReviewUploadReloadsParentAfterSpaceSerialization (0.14s)
+=== RUN   TestReviewCanceledBeforeNativeUploadReleasesReservation
+--- PASS: TestReviewCanceledBeforeNativeUploadReleasesReservation (0.10s)
+=== RUN   TestSharePendingDeleteRestoreRequiresFreshConfirmation
+--- PASS: TestSharePendingDeleteRestoreRequiresFreshConfirmation (0.11s)
+=== RUN   TestSharePendingAccountReenableRequiresFreshConfirmation
+--- PASS: TestSharePendingAccountReenableRequiresFreshConfirmation (0.09s)
+=== RUN   TestShareApprovalExpiryCannotExpand
+--- PASS: TestShareApprovalExpiryCannotExpand (0.11s)
+=== RUN   TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant (0.17s)
+=== RUN   TestMaintenanceIdentitySyncDoesNotReviveShares
+--- PASS: TestMaintenanceIdentitySyncDoesNotReviveShares (0.10s)
+=== RUN   TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant (0.12s)
+=== RUN   TestSharedContentUsesAuthorizedFixedVersion
+--- PASS: TestSharedContentUsesAuthorizedFixedVersion (0.16s)
+=== RUN   TestObservedDisableNeverRevivesPublicShare
+--- PASS: TestObservedDisableNeverRevivesPublicShare (0.10s)
+=== RUN   TestStressReviewPlainTextMarkersCannotForgePagesOrAmplifyBlocks
+--- PASS: TestStressReviewPlainTextMarkersCannotForgePagesOrAmplifyBlocks (0.00s)
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_page
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_block
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/duplicate
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/overflow
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/too_many
+--- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_page (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_block (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/duplicate (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/overflow (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/too_many (0.00s)
+=== RUN   TestStressReviewBlankParagraphsDoNotAllocatePerSeparator
+--- PASS: TestStressReviewBlankParagraphsDoNotAllocatePerSeparator (0.00s)
+=== RUN   TestStressReviewLatePathSnapshotCannotOverwriteNewerMove
+--- PASS: TestStressReviewLatePathSnapshotCannotOverwriteNewerMove (0.10s)
+=== RUN   TestStressReviewMaintenanceWorksWithOnePoolConnection
+--- PASS: TestStressReviewMaintenanceWorksWithOnePoolConnection (0.10s)
+=== RUN   TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners
+--- PASS: TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners (0.11s)
+=== RUN   TestStressReviewLateDeleteCannotEraseRestoredSearch
+--- PASS: TestStressReviewLateDeleteCannotEraseRestoredSearch (0.11s)
+=== RUN   TestStressReviewIndexRebuildPersistsDetectedAccountDisable
+--- PASS: TestStressReviewIndexRebuildPersistsDetectedAccountDisable (0.10s)
+=== RUN   TestStressReviewOutboxWorkLongerThanLeaseCanFinish
+--- PASS: TestStressReviewOutboxWorkLongerThanLeaseCanFinish (4.11s)
+=== RUN   TestStressReviewStolenOutboxFenceCancelsInFlightIndex
+--- PASS: TestStressReviewStolenOutboxFenceCancelsInFlightIndex (1.10s)
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true
+--- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches (2.13s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false (0.92s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true (1.21s)
+=== RUN   TestEarlyFinalizePreservesResumableUpload
+--- PASS: TestEarlyFinalizePreservesResumableUpload (0.10s)
+=== RUN   TestUploadConcurrentOverwriteExcludesEntireTransfer
+--- PASS: TestUploadConcurrentOverwriteExcludesEntireTransfer (0.12s)
+=== RUN   TestUploadIdempotencyConflictAndDuplicateCommit
+--- PASS: TestUploadIdempotencyConflictAndDuplicateCommit (0.11s)
+=== RUN   TestUploadUnknownOutcomeKeepsReservation
+=== RUN   TestUploadUnknownOutcomeKeepsReservation/remote_mutation_outcome_unknown;_reconcile_before_retry
+=== RUN   TestUploadUnknownOutcomeKeepsReservation/transport_connection_reset_after_request_dispatch
+--- PASS: TestUploadUnknownOutcomeKeepsReservation (0.19s)
+    --- PASS: TestUploadUnknownOutcomeKeepsReservation/remote_mutation_outcome_unknown;_reconcile_before_retry (0.09s)
+    --- PASS: TestUploadUnknownOutcomeKeepsReservation/transport_connection_reset_after_request_dispatch (0.10s)
+=== RUN   TestUploadDefinitiveFailureFreesProvisionalPath
+--- PASS: TestUploadDefinitiveFailureFreesProvisionalPath (0.10s)
+=== RUN   TestUploadConcurrentSameKeyAdmitsOnce
+--- PASS: TestUploadConcurrentSameKeyAdmitsOnce (0.10s)
+=== RUN   TestUploadedTrashRetainsQuotaVersionsAndFeedback
+--- PASS: TestUploadedTrashRetainsQuotaVersionsAndFeedback (0.13s)
+=== RUN   TestDirectTextTruthfulness
+--- PASS: TestDirectTextTruthfulness (0.00s)
+=== RUN   TestPageProvenanceIsNotInvented
+--- PASS: TestPageProvenanceIsNotInvented (0.00s)
+=== RUN   TestConversionFailureClassification
+--- PASS: TestConversionFailureClassification (0.00s)
+=== RUN   TestWorkerLimitPreservesOriginal
+--- PASS: TestWorkerLimitPreservesOriginal (0.12s)
+=== RUN   TestWorkerPostgresNATSMeiliIntegration
+--- PASS: TestWorkerPostgresNATSMeiliIntegration (1.20s)
+=== RUN   TestManifestNeverContainsDelegation
+--- PASS: TestManifestNeverContainsDelegation (0.00s)
+=== RUN   TestMaintenancePathUpdatesRespectBatchLimit
+=== RUN   TestMaintenancePathUpdatesRespectBatchLimit/0
+=== RUN   TestMaintenancePathUpdatesRespectBatchLimit/1
+=== RUN   TestMaintenancePathUpdatesRespectBatchLimit/100
+=== RUN   TestMaintenancePathUpdatesRespectBatchLimit/101
+=== RUN   TestMaintenancePathUpdatesRespectBatchLimit/201
+--- PASS: TestMaintenancePathUpdatesRespectBatchLimit (0.00s)
+    --- PASS: TestMaintenancePathUpdatesRespectBatchLimit/0 (0.00s)
+    --- PASS: TestMaintenancePathUpdatesRespectBatchLimit/1 (0.00s)
+    --- PASS: TestMaintenancePathUpdatesRespectBatchLimit/100 (0.00s)
+    --- PASS: TestMaintenancePathUpdatesRespectBatchLimit/101 (0.00s)
+    --- PASS: TestMaintenancePathUpdatesRespectBatchLimit/201 (0.00s)
+=== RUN   TestMaintenancePathBatchFailureIsNotAcknowledged
+=== RUN   TestMaintenancePathBatchFailureIsNotAcknowledged/wait=false
+=== RUN   TestMaintenancePathBatchFailureIsNotAcknowledged/wait=true
+--- PASS: TestMaintenancePathBatchFailureIsNotAcknowledged (0.00s)
+    --- PASS: TestMaintenancePathBatchFailureIsNotAcknowledged/wait=false (0.00s)
+    --- PASS: TestMaintenancePathBatchFailureIsNotAcknowledged/wait=true (0.00s)
+=== RUN   TestMaintenanceDrainsBacklogWhileIdentityIsUnavailable
+--- PASS: TestMaintenanceDrainsBacklogWhileIdentityIsUnavailable (0.56s)
+=== RUN   TestMaintenanceIdentitySyncProgressesWhileOutboxIsStalled
+2026/10/23 17:00:36 WARN outbox retry scheduled event_id=f7955a29-3a5c-4167-8e89-58488e309407
+--- PASS: TestMaintenanceIdentitySyncProgressesWhileOutboxIsStalled (1.11s)
+=== RUN   TestMaintenanceSlowPrincipalDoesNotStarveLaterDisable
+--- PASS: TestMaintenanceSlowPrincipalDoesNotStarveLaterDisable (5.10s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	20.564s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/bootstrap	[no test files]
+=== RUN   TestDefaultsAndStorage
+--- PASS: TestDefaultsAndStorage (0.00s)
+=== RUN   TestSecretFile
+--- PASS: TestSecretFile (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/config	1.011s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/dbgen	[no test files]
+=== RUN   TestPaths
+--- PASS: TestPaths (0.00s)
+=== RUN   TestMoveAndRevision
+--- PASS: TestMoveAndRevision (0.00s)
+=== RUN   TestImmutableIdentities
+--- PASS: TestImmutableIdentities (0.00s)
+=== RUN   TestQuota
+--- PASS: TestQuota (0.00s)
+=== RUN   TestOperationTransitions
+--- PASS: TestOperationTransitions (0.00s)
+=== RUN   TestIdempotency
+--- PASS: TestIdempotency (0.00s)
+=== RUN   TestAuthorization
+=== RUN   TestAuthorization/disabled
+=== RUN   TestAuthorization/unverified
+=== RUN   TestAuthorization/missing_scope
+=== RUN   TestAuthorization/trashed
+=== RUN   TestAuthorization/ancestor_deleted
+=== RUN   TestAuthorization/agent_received_share
+=== RUN   TestAuthorization/agent_approval
+=== RUN   TestAuthorization/agent_audit
+=== RUN   TestAuthorization/admin_alone_not_audit
+=== RUN   TestAuthorization/unknown_action
+--- PASS: TestAuthorization (0.00s)
+    --- PASS: TestAuthorization/disabled (0.00s)
+    --- PASS: TestAuthorization/unverified (0.00s)
+    --- PASS: TestAuthorization/missing_scope (0.00s)
+    --- PASS: TestAuthorization/trashed (0.00s)
+    --- PASS: TestAuthorization/ancestor_deleted (0.00s)
+    --- PASS: TestAuthorization/agent_received_share (0.00s)
+    --- PASS: TestAuthorization/agent_approval (0.00s)
+    --- PASS: TestAuthorization/agent_audit (0.00s)
+    --- PASS: TestAuthorization/admin_alone_not_audit (0.00s)
+    --- PASS: TestAuthorization/unknown_action (0.00s)
+=== RUN   TestShareAuthorization
+=== RUN   TestShareAuthorization/past_version
+=== RUN   TestShareAuthorization/stale_artifact
+=== RUN   TestShareAuthorization/owner_disabled
+=== RUN   TestShareAuthorization/owner_unavailable
+=== RUN   TestShareAuthorization/grant_disabled
+=== RUN   TestShareAuthorization/expiration_exact
+=== RUN   TestShareAuthorization/wrong_recipient
+=== RUN   TestShareAuthorization/no_group_membership
+=== RUN   TestShareAuthorization/shared_search
+--- PASS: TestShareAuthorization (0.00s)
+    --- PASS: TestShareAuthorization/past_version (0.00s)
+    --- PASS: TestShareAuthorization/stale_artifact (0.00s)
+    --- PASS: TestShareAuthorization/owner_disabled (0.00s)
+    --- PASS: TestShareAuthorization/owner_unavailable (0.00s)
+    --- PASS: TestShareAuthorization/grant_disabled (0.00s)
+    --- PASS: TestShareAuthorization/expiration_exact (0.00s)
+    --- PASS: TestShareAuthorization/wrong_recipient (0.00s)
+    --- PASS: TestShareAuthorization/no_group_membership (0.00s)
+    --- PASS: TestShareAuthorization/shared_search (0.00s)
+=== RUN   TestShareConfirmation
+--- PASS: TestShareConfirmation (0.00s)
+=== RUN   TestConversionCompleteness
+--- PASS: TestConversionCompleteness (0.00s)
+=== RUN   TestPublicationFence
+=== RUN   TestPublicationFence/expired
+=== RUN   TestPublicationFence/old_token
+=== RUN   TestPublicationFence/old_attempt
+=== RUN   TestPublicationFence/queued_index
+=== RUN   TestPublicationFence/requested_replacement
+=== RUN   TestPublicationFence/newer_already_published
+=== RUN   TestPublicationFence/same_already_published
+=== RUN   TestPublicationFence/future_source
+--- PASS: TestPublicationFence (0.00s)
+    --- PASS: TestPublicationFence/expired (0.00s)
+    --- PASS: TestPublicationFence/old_token (0.00s)
+    --- PASS: TestPublicationFence/old_attempt (0.00s)
+    --- PASS: TestPublicationFence/queued_index (0.00s)
+    --- PASS: TestPublicationFence/requested_replacement (0.00s)
+    --- PASS: TestPublicationFence/newer_already_published (0.00s)
+    --- PASS: TestPublicationFence/same_already_published (0.00s)
+    --- PASS: TestPublicationFence/future_source (0.00s)
+=== RUN   TestBatchIndependence
+--- PASS: TestBatchIndependence (0.00s)
+=== RUN   FuzzNormalizePath
+=== RUN   FuzzNormalizePath/seed#0
+=== RUN   FuzzNormalizePath/seed#1
+=== RUN   FuzzNormalizePath/seed#2
+=== RUN   FuzzNormalizePath/seed#3
+=== RUN   FuzzNormalizePath/seed#4
+--- PASS: FuzzNormalizePath (0.00s)
+    --- PASS: FuzzNormalizePath/seed#0 (0.00s)
+    --- PASS: FuzzNormalizePath/seed#1 (0.00s)
+    --- PASS: FuzzNormalizePath/seed#2 (0.00s)
+    --- PASS: FuzzNormalizePath/seed#3 (0.00s)
+    --- PASS: FuzzNormalizePath/seed#4 (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/domain	1.016s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/migrate	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/ports	[no test files]
+=== RUN   TestSingleRange
+--- PASS: TestSingleRange (0.00s)
+=== RUN   TestNoForbiddenMCPTools
+--- PASS: TestNoForbiddenMCPTools (0.00s)
+=== RUN   TestExactOrigin
+--- PASS: TestExactOrigin (0.00s)
+=== RUN   TestMCPProtocolIntegration
+    mcp_test.go:229: official SDK initialized; 21 tools; scoped reads, missing-resource errors, no approval tool, feedback identity-write exclusion passed
+--- PASS: TestMCPProtocolIntegration (0.17s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/transport	1.252s
+Native runtime logs: /workspace/scratch/61a2b6386f06/dependency-runtime/runs/run.V14OJ6OS

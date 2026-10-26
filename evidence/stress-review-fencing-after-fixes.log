@@ -1,0 +1,66 @@
+waiting for server to start.... done
+server started
+PostgreSQL ready; NATS and Meilisearch startup delegated to caller.
+=== RUN   TestStressReviewLatePathSnapshotCannotOverwriteNewerMove
+--- PASS: TestStressReviewLatePathSnapshotCannotOverwriteNewerMove (0.23s)
+=== RUN   TestStressReviewMaintenanceWorksWithOnePoolConnection
+--- PASS: TestStressReviewMaintenanceWorksWithOnePoolConnection (0.27s)
+=== RUN   TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners
+--- PASS: TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners (0.18s)
+=== RUN   TestStressReviewLateDeleteCannotEraseRestoredSearch
+--- PASS: TestStressReviewLateDeleteCannotEraseRestoredSearch (0.21s)
+=== RUN   TestStressReviewIndexRebuildPersistsDetectedAccountDisable
+--- PASS: TestStressReviewIndexRebuildPersistsDetectedAccountDisable (0.27s)
+=== RUN   TestStressReviewOutboxWorkLongerThanLeaseCanFinish
+--- PASS: TestStressReviewOutboxWorkLongerThanLeaseCanFinish (4.18s)
+=== RUN   TestStressReviewStolenOutboxFenceCancelsInFlightIndex
+--- PASS: TestStressReviewStolenOutboxFenceCancelsInFlightIndex (1.22s)
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true
+--- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches (3.96s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false (1.83s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true (2.13s)
+=== RUN   TestStressReviewLatePathSnapshotCannotOverwriteNewerMove
+--- PASS: TestStressReviewLatePathSnapshotCannotOverwriteNewerMove (0.25s)
+=== RUN   TestStressReviewMaintenanceWorksWithOnePoolConnection
+--- PASS: TestStressReviewMaintenanceWorksWithOnePoolConnection (0.17s)
+=== RUN   TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners
+--- PASS: TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners (0.21s)
+=== RUN   TestStressReviewLateDeleteCannotEraseRestoredSearch
+--- PASS: TestStressReviewLateDeleteCannotEraseRestoredSearch (0.26s)
+=== RUN   TestStressReviewIndexRebuildPersistsDetectedAccountDisable
+--- PASS: TestStressReviewIndexRebuildPersistsDetectedAccountDisable (0.23s)
+=== RUN   TestStressReviewOutboxWorkLongerThanLeaseCanFinish
+--- PASS: TestStressReviewOutboxWorkLongerThanLeaseCanFinish (4.24s)
+=== RUN   TestStressReviewStolenOutboxFenceCancelsInFlightIndex
+--- PASS: TestStressReviewStolenOutboxFenceCancelsInFlightIndex (1.22s)
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true
+--- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches (3.90s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false (1.61s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true (2.29s)
+=== RUN   TestStressReviewLatePathSnapshotCannotOverwriteNewerMove
+--- PASS: TestStressReviewLatePathSnapshotCannotOverwriteNewerMove (0.30s)
+=== RUN   TestStressReviewMaintenanceWorksWithOnePoolConnection
+--- PASS: TestStressReviewMaintenanceWorksWithOnePoolConnection (0.21s)
+=== RUN   TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners
+--- PASS: TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners (0.21s)
+=== RUN   TestStressReviewLateDeleteCannotEraseRestoredSearch
+--- PASS: TestStressReviewLateDeleteCannotEraseRestoredSearch (0.25s)
+=== RUN   TestStressReviewIndexRebuildPersistsDetectedAccountDisable
+--- PASS: TestStressReviewIndexRebuildPersistsDetectedAccountDisable (0.22s)
+=== RUN   TestStressReviewOutboxWorkLongerThanLeaseCanFinish
+--- PASS: TestStressReviewOutboxWorkLongerThanLeaseCanFinish (4.23s)
+=== RUN   TestStressReviewStolenOutboxFenceCancelsInFlightIndex
+--- PASS: TestStressReviewStolenOutboxFenceCancelsInFlightIndex (1.24s)
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true
+--- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches (2.81s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false (1.26s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true (1.55s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	31.530s
+Native runtime logs: /workspace/scratch/61a2b6386f06/dependency-runtime/runs/run.j4rqjFtl

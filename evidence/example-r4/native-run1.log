@@ -1,0 +1,7 @@
+waiting for server to start.... done
+server started
+Native dependencies ready: PostgreSQL, NATS JetStream, Meilisearch.
+Prepared isolated synthetic realm and TLS-verified native configuration.
+Native Keycloak and oCIS ready (TLS verified).
+{"status": "failed", "phase": "preflight", "code": "native_revision_href_invalid"}
+Native runtime logs: /workspace/scratch/61a2b6386f06/dependency-runtime/runs/run.xLqyM9xn

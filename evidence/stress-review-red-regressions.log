@@ -1,0 +1,21 @@
+waiting for server to start.... done
+server started
+PostgreSQL ready; NATS and Meilisearch startup delegated to caller.
+=== RUN   TestStressReviewLatePathSnapshotCannotOverwriteNewerMove
+    stress_review_test.go:115: both events succeeded but the late snapshot left stale raw index path "/old"; want /new
+--- FAIL: TestStressReviewLatePathSnapshotCannotOverwriteNewerMove (0.31s)
+=== RUN   TestStressReviewLateDeleteCannotEraseRestoredSearch
+    stress_review_test.go:226: both events succeeded but a late delete erased restored search documents
+--- FAIL: TestStressReviewLateDeleteCannotEraseRestoredSearch (0.21s)
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false
+    stress_review_test.go:326: valid 3.1 MiB text cannot finish indexing: invalid input
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true
+    stress_review_test.go:317: expected second HTTP batch failure, got invalid input
+--- FAIL: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches (0.80s)
+    --- FAIL: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false (0.48s)
+    --- FAIL: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true (0.31s)
+FAIL
+FAIL	github.com/agentclouddrive/agent-clouddrive/internal/application	1.357s
+FAIL
+Native runtime logs: /workspace/scratch/61a2b6386f06/dependency-runtime/runs/run.yzJFPb68

@@ -1,0 +1,14 @@
+=== RUN   TestFeedbackLeavesNoIdentityActivityRecord
+--- PASS: TestFeedbackLeavesNoIdentityActivityRecord (0.14s)
+=== RUN   TestSharePendingDeleteRestoreRequiresFreshConfirmation
+--- PASS: TestSharePendingDeleteRestoreRequiresFreshConfirmation (0.14s)
+=== RUN   TestSharePendingAccountReenableRequiresFreshConfirmation
+--- PASS: TestSharePendingAccountReenableRequiresFreshConfirmation (0.14s)
+=== RUN   TestShareApprovalExpiryCannotExpand
+--- PASS: TestShareApprovalExpiryCannotExpand (0.13s)
+=== RUN   TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant (0.28s)
+=== RUN   TestMaintenanceIdentitySyncDoesNotReviveShares
+--- PASS: TestMaintenanceIdentitySyncDoesNotReviveShares (0.17s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	2.017s

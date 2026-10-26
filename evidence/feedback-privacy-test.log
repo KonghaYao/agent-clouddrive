@@ -1,0 +1,4 @@
+=== RUN   TestFeedbackLeavesNoIdentityActivityRecord
+--- PASS: TestFeedbackLeavesNoIdentityActivityRecord (0.20s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	1.216s

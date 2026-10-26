@@ -1,0 +1,21 @@
+waiting for server to start.... done
+server started
+PostgreSQL ready; NATS and Meilisearch startup delegated to caller.
+=== RUN   TestStressReviewLatePathSnapshotCannotOverwriteNewerMove
+    stress_review_test.go:115: both events succeeded but the late snapshot left stale raw index path "/old"; want /new
+--- FAIL: TestStressReviewLatePathSnapshotCannotOverwriteNewerMove (0.15s)
+=== RUN   TestStressReviewLateDeleteCannotEraseRestoredSearch
+    stress_review_test.go:226: both events succeeded but a late delete erased restored search documents
+--- FAIL: TestStressReviewLateDeleteCannotEraseRestoredSearch (0.19s)
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false
+    stress_review_test.go:285: ERROR: IMMUTABLE_VERSION: source versions cannot be changed (SQLSTATE 23514)
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true
+    stress_review_test.go:285: ERROR: IMMUTABLE_VERSION: source versions cannot be changed (SQLSTATE 23514)
+--- FAIL: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches (0.35s)
+    --- FAIL: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false (0.18s)
+    --- FAIL: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true (0.17s)
+FAIL
+FAIL	github.com/agentclouddrive/agent-clouddrive/internal/application	0.719s
+FAIL
+Native runtime logs: /workspace/scratch/61a2b6386f06/dependency-runtime/runs/run.hBRdOL7U

@@ -1,0 +1,8 @@
+waiting for server to start.... done
+server started
+Native dependencies ready: PostgreSQL, NATS JetStream, Meilisearch.
+Prepared isolated synthetic realm and TLS-verified native configuration.
+Native Keycloak and oCIS ready (TLS verified).
+{"status": "passed", "phase": "preflight", "checks": {"pkce": true, "confidential_exchange_openid": true, "personal_space": true, "tus_create": true, "tus_overwrite": true, "revision_read": true, "move_stable_id": true, "move_retained_history": true, "stale_admission_denied": true}, "browser_test": "not_run", "compose_runtime": "not_run"}
+/workspace/scratch/61a2b6386f06/example-runtime/run-demo-native.sh: line 22: DRIVE_CONVERTER_TOKEN_FILE: unbound variable
+Native runtime logs: /workspace/scratch/61a2b6386f06/dependency-runtime/runs/run.FVTV39jP

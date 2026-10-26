@@ -1,0 +1,7 @@
+{
+  "status": "pass",
+  "scope": "R3 production application, database, frontend, converter and deployment files unchanged in R4",
+  "files_compared": 177,
+  "r3_zip_sha256": "ad57cf17ae4a31b348d83ee86b3a357447feaed4f84644564011e2069300e492",
+  "modified_production_files": []
+}

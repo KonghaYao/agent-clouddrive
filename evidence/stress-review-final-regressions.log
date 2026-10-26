@@ -1,0 +1,114 @@
+waiting for server to start.... done
+server started
+PostgreSQL ready; NATS and Meilisearch startup delegated to caller.
+=== RUN   TestStressReviewPlainTextMarkersCannotForgePagesOrAmplifyBlocks
+--- PASS: TestStressReviewPlainTextMarkersCannotForgePagesOrAmplifyBlocks (0.00s)
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_page
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_block
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/duplicate
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/overflow
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/too_many
+--- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_page (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_block (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/duplicate (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/overflow (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/too_many (0.00s)
+=== RUN   TestStressReviewBlankParagraphsDoNotAllocatePerSeparator
+--- PASS: TestStressReviewBlankParagraphsDoNotAllocatePerSeparator (0.00s)
+=== RUN   TestStressReviewLatePathSnapshotCannotOverwriteNewerMove
+--- PASS: TestStressReviewLatePathSnapshotCannotOverwriteNewerMove (0.17s)
+=== RUN   TestStressReviewMaintenanceWorksWithOnePoolConnection
+--- PASS: TestStressReviewMaintenanceWorksWithOnePoolConnection (0.16s)
+=== RUN   TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners
+--- PASS: TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners (0.18s)
+=== RUN   TestStressReviewLateDeleteCannotEraseRestoredSearch
+--- PASS: TestStressReviewLateDeleteCannotEraseRestoredSearch (0.23s)
+=== RUN   TestStressReviewIndexRebuildPersistsDetectedAccountDisable
+--- PASS: TestStressReviewIndexRebuildPersistsDetectedAccountDisable (0.28s)
+=== RUN   TestStressReviewOutboxWorkLongerThanLeaseCanFinish
+--- PASS: TestStressReviewOutboxWorkLongerThanLeaseCanFinish (4.20s)
+=== RUN   TestStressReviewStolenOutboxFenceCancelsInFlightIndex
+--- PASS: TestStressReviewStolenOutboxFenceCancelsInFlightIndex (1.24s)
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true
+--- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches (4.06s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false (1.59s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true (2.47s)
+=== RUN   TestStressReviewPlainTextMarkersCannotForgePagesOrAmplifyBlocks
+--- PASS: TestStressReviewPlainTextMarkersCannotForgePagesOrAmplifyBlocks (0.00s)
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_block
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/duplicate
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/overflow
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/too_many
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_page
+--- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_block (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/duplicate (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/overflow (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/too_many (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_page (0.00s)
+=== RUN   TestStressReviewBlankParagraphsDoNotAllocatePerSeparator
+--- PASS: TestStressReviewBlankParagraphsDoNotAllocatePerSeparator (0.01s)
+=== RUN   TestStressReviewLatePathSnapshotCannotOverwriteNewerMove
+--- PASS: TestStressReviewLatePathSnapshotCannotOverwriteNewerMove (0.27s)
+=== RUN   TestStressReviewMaintenanceWorksWithOnePoolConnection
+--- PASS: TestStressReviewMaintenanceWorksWithOnePoolConnection (0.18s)
+=== RUN   TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners
+--- PASS: TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners (0.20s)
+=== RUN   TestStressReviewLateDeleteCannotEraseRestoredSearch
+--- PASS: TestStressReviewLateDeleteCannotEraseRestoredSearch (0.25s)
+=== RUN   TestStressReviewIndexRebuildPersistsDetectedAccountDisable
+--- PASS: TestStressReviewIndexRebuildPersistsDetectedAccountDisable (0.19s)
+=== RUN   TestStressReviewOutboxWorkLongerThanLeaseCanFinish
+--- PASS: TestStressReviewOutboxWorkLongerThanLeaseCanFinish (4.31s)
+=== RUN   TestStressReviewStolenOutboxFenceCancelsInFlightIndex
+--- PASS: TestStressReviewStolenOutboxFenceCancelsInFlightIndex (1.20s)
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true
+--- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches (3.61s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false (1.58s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true (2.04s)
+=== RUN   TestStressReviewPlainTextMarkersCannotForgePagesOrAmplifyBlocks
+--- PASS: TestStressReviewPlainTextMarkersCannotForgePagesOrAmplifyBlocks (0.00s)
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/overflow
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/too_many
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_page
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_block
+=== RUN   TestStressReviewConvertedMarkersMustMatchBoundedManifest/duplicate
+--- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest (0.01s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/overflow (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/too_many (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_page (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/unknown_block (0.00s)
+    --- PASS: TestStressReviewConvertedMarkersMustMatchBoundedManifest/duplicate (0.00s)
+=== RUN   TestStressReviewBlankParagraphsDoNotAllocatePerSeparator
+--- PASS: TestStressReviewBlankParagraphsDoNotAllocatePerSeparator (0.01s)
+=== RUN   TestStressReviewLatePathSnapshotCannotOverwriteNewerMove
+--- PASS: TestStressReviewLatePathSnapshotCannotOverwriteNewerMove (0.18s)
+=== RUN   TestStressReviewMaintenanceWorksWithOnePoolConnection
+--- PASS: TestStressReviewMaintenanceWorksWithOnePoolConnection (0.20s)
+=== RUN   TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners
+--- PASS: TestStressReviewBlockedOwnerDoesNotSerializeOtherOwners (0.21s)
+=== RUN   TestStressReviewLateDeleteCannotEraseRestoredSearch
+--- PASS: TestStressReviewLateDeleteCannotEraseRestoredSearch (0.63s)
+=== RUN   TestStressReviewIndexRebuildPersistsDetectedAccountDisable
+--- PASS: TestStressReviewIndexRebuildPersistsDetectedAccountDisable (0.24s)
+=== RUN   TestStressReviewOutboxWorkLongerThanLeaseCanFinish
+--- PASS: TestStressReviewOutboxWorkLongerThanLeaseCanFinish (4.35s)
+=== RUN   TestStressReviewStolenOutboxFenceCancelsInFlightIndex
+--- PASS: TestStressReviewStolenOutboxFenceCancelsInFlightIndex (1.20s)
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false
+=== RUN   TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true
+--- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches (3.94s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=false (1.90s)
+    --- PASS: TestStressReviewLargeArtifactIndexesAndRebuildsInBoundedBatches/second_batch_failure=true (2.04s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	32.770s
+Native runtime logs: /workspace/scratch/61a2b6386f06/dependency-runtime/runs/run.X3naOkYr

@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "suite": "bounded-deployed-api-pressure",
+  "execution": "finished",
+  "status": "fail",
+  "started_at": "2026-10-23T14:03:53.055332+00:00",
+  "stages": [],
+  "invariants": {
+    "status": "not_verified"
+  },
+  "limitations": [
+    "Only explicitly configured disposable verified-loopback services and one synthetic owner are tested.",
+    "HTTP latency and scenario latency are separate; expected recognized 409s are not unexpected errors.",
+    "Process RSS covers deduplicated descendants of named native root PIDs plus the driver; absent native PIDs means native RSS not_checked, not zero.",
+    "PostgreSQL backlog is the conversion/index pipeline; it is not a direct Meilisearch internal-queue measurement.",
+    "Fixture reservation includes 8x payload or 64KiB per upload attempt, plus directory allowance; opaque service WAL/log/storage amplification is not measured as fixture bytes.",
+    "No browser, Docker, production, 10 GiB upload, fault injection or release-readiness claim.",
+    "Failed reports and all synthetic fixtures are retained; no automatic purge, cleanup or mutation replay after uncertain outcomes."
+  ],
+  "configuration": "valid",
+  "reason": "preexisting_pipeline_backlog",
+  "elapsed_seconds": 0.2211395409999568,
+  "budgets": {
+    "new_original_bytes_reserved_upper_bound": 0,
+    "max_new_original_bytes": 536870912,
+    "conservative_fixture_allocation_reserved_bytes": 0,
+    "new_work_items_reserved": 0,
+    "max_new_work_items": 5000,
+    "max_seconds": 600,
+    "maximum_scheduled_concurrency": 16
+  },
+  "http": {
+    "count": 1,
+    "throughput_per_second": 4.52203163431634,
+    "p50_seconds": 0.021288671000093018,
+    "p95_seconds": 0.021288671000093018,
+    "p99_seconds": 0.021288671000093018,
+    "unexpected_errors": 0,
+    "unexpected_error_ratio": 0.0,
+    "expected_409": 0,
+    "expected_409_ratio": 0.0,
+    "status_counts": {
+      "200": 1
+    }
+  },
+  "scenarios": {
+    "count": 0,
+    "throughput_per_second": 0.0,
+    "p50_seconds": null,
+    "p95_seconds": null,
+    "p99_seconds": null,
+    "unexpected_errors": 0,
+    "unexpected_error_ratio": null,
+    "expected_409": 0,
+    "expected_409_ratio": null
+  },
+  "resource_samples": [
+    {
+      "elapsed_seconds": 0.019307567999931052,
+      "available_ram_bytes": 7950966784,
+      "free_disk_bytes": 27298521088,
+      "sampled_rss_bytes": 398155776,
+      "rss_by_pid": {
+        "271": 18272256,
+        "275": 70115328,
+        "302": 32784384,
+        "303": 18579456,
+        "304": 17940480,
+        "42": 786432,
+        "244": 181039104,
+        "27": 19148800,
+        "270": 39489536
+      },
+      "process_identities": {
+        "271": {
+          "root": "nats",
+          "start_ticks": "318331"
+        },
+        "275": {
+          "root": "meili",
+          "start_ticks": "318331"
+        },
+        "302": {
+          "root": "api",
+          "start_ticks": "318372"
+        },
+        "303": {
+          "root": "worker",
+          "start_ticks": "318373"
+        },
+        "304": {
+          "root": "maintenance",
+          "start_ticks": "318373"
+        },
+        "42": {
+          "root": "keycloak",
+          "start_ticks": "316502"
+        },
+        "244": {
+          "root": "ocis",
+          "start_ticks": "317917"
+        },
+        "27": {
+          "root": "postgres",
+          "start_ticks": "316478"
+        },
+        "270": {
+          "root": "pressure_driver",
+          "start_ticks": "318132"
+        }
+      },
+      "exited_descendants": [],
+      "metrics_complete": true,
+      "native_rss_scope": "configured_pids",
+      "conversion_pending": 0,
+      "index_pending": 0,
+      "outbox_pending": 5,
+      "active_connections": 1,
+      "waiting_locks": 0
+    },
+    {
+      "elapsed_seconds": 0.22082856399993034,
+      "available_ram_bytes": 7950159872,
+      "free_disk_bytes": 27298521088,
+      "sampled_rss_bytes": 398155776,
+      "rss_by_pid": {
+        "271": 18272256,
+        "275": 70115328,
+        "302": 32784384,
+        "303": 18579456,
+        "304": 17940480,
+        "42": 786432,
+        "244": 181039104,
+        "27": 19148800,
+        "270": 39489536
+      },
+      "process_identities": {
+        "271": {
+          "root": "nats",
+          "start_ticks": "318331"
+        },
+        "275": {
+          "root": "meili",
+          "start_ticks": "318331"
+        },
+        "302": {
+          "root": "api",
+          "start_ticks": "318372"
+        },
+        "303": {
+          "root": "worker",
+          "start_ticks": "318373"
+        },
+        "304": {
+          "root": "maintenance",
+          "start_ticks": "318373"
+        },
+        "42": {
+          "root": "keycloak",
+          "start_ticks": "316502"
+        },
+        "244": {
+          "root": "ocis",
+          "start_ticks": "317917"
+        },
+        "27": {
+          "root": "postgres",
+          "start_ticks": "316478"
+        },
+        "270": {
+          "root": "pressure_driver",
+          "start_ticks": "318132"
+        }
+      },
+      "exited_descendants": [],
+      "metrics_complete": true,
+      "native_rss_scope": "configured_pids",
+      "conversion_pending": 0,
+      "index_pending": 0,
+      "outbox_pending": 5,
+      "active_connections": 1,
+      "waiting_locks": 0
+    }
+  ],
+  "resource_sampling_errors": [],
+  "backlog_observed": false,
+  "fixture_manifest": [],
+  "finished_at": "2026-10-23T14:03:53.277824+00:00"
+}

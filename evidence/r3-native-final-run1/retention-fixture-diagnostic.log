@@ -1,0 +1,2 @@
+{"retention_states" : ["outcome_unknown"], "mapped_native_retention_roots" : 0, "delete_operations" : 0, "historical_versions" : 10}
+{"probe": "existing_native_retention_directory_read_only", "status": "failed"}

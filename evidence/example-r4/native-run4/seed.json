@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "phase": "seed",
+  "checks": {
+    "pkce_profile_and_web_session": "passed",
+    "real_tus_upload": "passed",
+    "immutable_two_versions": "passed",
+    "current_source_search_ready": "passed",
+    "controlled_pdf_png": "passed",
+    "reader_private_isolation": "passed"
+  },
+  "browser_test": "not_run",
+  "compose_runtime": "not_run"
+}

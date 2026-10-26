@@ -1,0 +1,40 @@
+{
+  "scope": "Disposable local component services and source checks; not deployed-stack acceptance.",
+  "python": "Python 3.12.14",
+  "node": "v24.19.0",
+  "npm": "11.9.0",
+  "go": "go version go1.25.3 linux/amd64",
+  "sqlc": "v1.29.0",
+  "compose": "Docker Compose version v2.39.4",
+  "rustfs": "rustfs 1.0.3\nbuild time   : 2026-10-17 13:41:59 +00:00\nbuild profile: release\nbuild os     : linux-x86_64\nbuild target : x86_64-unknown-linux-gnu\nrust version : rustc 1.99.1 (58cf8f9c3 2026-10-13)\nrust channel : stable-x86_64-unknown-linux-gnu\ngit branch   : \ngit commit   : 331fb896285a7686f927baf8d9d4dc2d3d3a10a9\ngit tag      : 1.0.3\ngit status   :",
+  "ocr_model_lock_sha256": "e01cdb67ad05659f292bd6cefeadf6c953bbf799ef39e545133738147c59f750",
+  "model_runtime_files_verified_against_source_lock": true,
+  "official_downloads": [
+    {
+      "url": "https://github.com/rustfs/rustfs/releases/download/1.0.3/rustfs-linux-x86_64-gnu-v1.0.3.zip",
+      "sha256": "0cb0924df93734d14f708004eff4b0e48a147fbdc074756ca0d6b8ec919629b8",
+      "verified_upstream_sha256": true
+    },
+    {
+      "url": "https://github.com/docker/compose/releases/download/v2.39.4/docker-compose-linux-x86_64",
+      "sha256": "7af95166a730b87e172d4fc9aefea8725d3c6c7327d59149267b452114ddb7d4",
+      "verified_upstream_sha256": true
+    },
+    [
+      {
+        "url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_det_infer.tar",
+        "sha256": "50446e5d01ac2a73d5319c89513281f6578414c888c602f9af13f93feefffc58"
+      },
+      {
+        "url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_rec_infer.tar",
+        "sha256": "566b9512b34e34a9f0db54d87b51fa5a0b9ed2cf1ab7e49728cc0b8b5a64f414"
+      }
+    ]
+  ],
+  "native_service_versions": {
+    "postgresql": "postgres (PostgreSQL) 17.11 (Debian 17.11-0+deb13u1)",
+    "nats-server": "nats-server: v2.15.1",
+    "meilisearch": "meilisearch 1.55.0",
+    "rustfs": "1.0.3 (full build details recorded above)"
+  }
+}

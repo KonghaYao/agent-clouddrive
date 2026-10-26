@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "phase": "edit",
+  "checks": {
+    "actual_user_style_metadata_edit": "passed"
+  },
+  "browser_test": "not_run",
+  "compose_runtime": "not_run"
+}

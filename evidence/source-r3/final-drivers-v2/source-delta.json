@@ -1,0 +1,26 @@
+{
+  "comparison": "aggregate input snapshot vs latest offline-driver snapshot",
+  "changed_files": {
+    "tests/integration/STRESS_ACCEPTANCE.md": {
+      "aggregate_sha256": "676af6acdabbaa5e0990433db00285a7089b692279a833fe0813362ae9f449fc",
+      "latest_sha256": "c8bad1e76cbff77244f45a2ceed11cd2bc32a1a6aa3eb59d0ba36d7b8ee1276b"
+    },
+    "tests/integration/native_load_runner.py": {
+      "aggregate_sha256": "6ad60efcd42cd9914ea81ac2e676a7eaa99142dae12bd439115743e2e752dbe4",
+      "latest_sha256": "4bb4e006d5ed010c1c3e97e0c7af8b220c6012723a10ee0ede6c315762b986f7"
+    },
+    "tests/integration/stress_acceptance.py": {
+      "aggregate_sha256": "32943080de2d77ea03c78121a4d5a8f128808b0a2c6805eab2b0d2c7923e9afa",
+      "latest_sha256": "3a01a0a80ef254a8c2ee9c7bb4548312ceed97048ba60e4ec927272c0d27c1ef"
+    },
+    "tests/integration/test_native_load_runner.py": {
+      "aggregate_sha256": "5e3de0dc1bf8568eda61a01dc8dd0fedbe723247e465cc2bb8fd2aebead739e5",
+      "latest_sha256": "e0782c8bab0bea2de4ec55c809355cfc1c29dd20f3ba34b7b8b8159a63b98c58"
+    },
+    "tests/integration/test_stress_acceptance.py": {
+      "aggregate_sha256": "6763f29e5e4dc6aea3a68fee435e1acc65c955236e4b2cac9a73cd31ea2fdd73",
+      "latest_sha256": "372ce223a2c4692db4af2d32b42bfbcc0750ce4ade98173fae5ccd85f7948913"
+    }
+  },
+  "all_changed_files_are_integration_driver_guard_or_documentation": true
+}

@@ -1,0 +1,24 @@
+# Published upstream 5.0.3 application image was not present in the queried
+# registry. Build the security release from checksum-pinned source with one
+# documented spreadsheet-PDF patch; this is not an official application image.
+FROM maven:3.9.11-eclipse-temurin-21@sha256:6fdc855a6ed81d288ca7ca37ac6ff5e9308b612485c0801d70b25a858c83d237 AS build
+WORKDIR /src
+ADD --checksum=sha256:49ac85cd98e28df60fe2dd42cbd9cadc2a6461a29a5259ce186e24da3c45be74 https://codeload.github.com/kekingcn/kkFileView/tar.gz/refs/tags/v5.0.3 /tmp/source.tar.gz
+COPY deploy/compose/kkfileview-force-pdf.sh /tmp/force-pdf.sh
+RUN tar -xzf /tmp/source.tar.gz --strip-components=1 -C /src \
+ && sh /tmp/force-pdf.sh /src \
+ && mvn -B -ntp -DskipTests -Dassembly.skipAssembly=true package
+
+FROM eclipse-temurin:21.0.9_10-jre-jammy@sha256:cc11c035bb25cc709d7b1e3f43cbff15d69e06e2dba23eec431b64627d27e705
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libreoffice-writer libreoffice-calc libreoffice-impress libreoffice-draw fonts-noto-cjk fonts-dejavu curl \
+ && rm -rf /var/lib/apt/lists/* \
+ && useradd --uid 10001 --create-home preview \
+ && mkdir -p /app/bin /app/config /data/previews && chown -R preview:preview /app /data
+COPY --from=build /src/server/target/kkFileView-5.0.3.jar /app/kkfileview.jar
+COPY --from=build /src/server/src/main/config/application.properties /app/upstream.properties
+COPY deploy/compose/kkfileview-entrypoint.sh /app/entrypoint.sh
+ENV KK_OFFICE_HOME=/usr/lib/libreoffice KK_FILE_DIR=/data/previews/ KKFILEVIEW_BIN_FOLDER=/app/bin
+USER 10001:10001
+EXPOSE 8012
+ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]

@@ -1,0 +1,10 @@
+=== RUN   TestReviewUploadCannotEnterPendingMoveTarget
+--- PASS: TestReviewUploadCannotEnterPendingMoveTarget (0.16s)
+=== RUN   TestReviewAnonymousFixedShareSelectsAuthorizedSource
+--- PASS: TestReviewAnonymousFixedShareSelectsAuthorizedSource (0.14s)
+=== RUN   TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata
+--- PASS: TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata (0.13s)
+=== RUN   TestReviewPinnedMarkdownSurvivesBusinessTrash
+--- PASS: TestReviewPinnedMarkdownSurvivesBusinessTrash (0.14s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	1.579s

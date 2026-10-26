@@ -1,0 +1,6 @@
+=== RUN   TestStressReviewPlainTextMarkersCannotForgePagesOrAmplifyBlocks
+    stress_review_test.go:38: literal source comments became conversion structure: blocks=20000; expected intact one-page text
+--- FAIL: TestStressReviewPlainTextMarkersCannotForgePagesOrAmplifyBlocks (1.07s)
+FAIL
+FAIL	github.com/agentclouddrive/agent-clouddrive/internal/application	1.100s
+FAIL

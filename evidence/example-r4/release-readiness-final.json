@@ -1,0 +1,195 @@
+{
+  "ready": false,
+  "counts": {
+    "blocked": 4,
+    "partial": 22,
+    "pass": 11
+  },
+  "incomplete": [
+    {
+      "id": "G01",
+      "status": "partial",
+      "remaining": [
+        "仍需真实账号停用/重新启用的完整访问与分享传播证据。"
+      ]
+    },
+    {
+      "id": "G02",
+      "status": "blocked",
+      "remaining": [
+        "缺少真实 Peri 客户端；未执行 Peri 授权发现、刷新/重授权与 Streamable HTTP 联调。"
+      ]
+    },
+    {
+      "id": "G06",
+      "status": "partial",
+      "remaining": [
+        "小样本没有执行 multipart；10 GiB 默认 S3 与完整应用 S3 闭环未完成。"
+      ]
+    },
+    {
+      "id": "G07",
+      "status": "partial",
+      "remaining": [
+        "真实外部视觉模型未配置；200 页真实 OCR 五页失败的完整读取/检索场景未执行；未测格式不扩大宣称。"
+      ]
+    },
+    {
+      "id": "G08",
+      "status": "partial",
+      "remaining": [
+        "仍需在真实部署证明原生配额不先行拒绝业务允许的覆盖/历史保留，及运行清理配置核验。"
+      ]
+    },
+    {
+      "id": "G09",
+      "status": "partial",
+      "remaining": [
+        "实际匿名完整资源请求链、撤销/换版后所有预览资源即时失效仍需端到端证据。"
+      ]
+    },
+    {
+      "id": "G10",
+      "status": "partial",
+      "remaining": [
+        "尚未运行完整网关/应用/MCP/APM/消息部署并全面检查持久日志与来源关联。"
+      ]
+    },
+    {
+      "id": "A01",
+      "status": "partial",
+      "remaining": [
+        "仍需真实双用户覆盖正文片段、路径、图片、预览、下载和计数所有入口的完整隔离场景。"
+      ]
+    },
+    {
+      "id": "A03",
+      "status": "partial",
+      "remaining": [
+        "实际网页接收者操作及 Agent 搜索/正文/下载全部入口的联合场景仍需记录；HTTP 协议探测不能称为 Peri 联调。"
+      ]
+    },
+    {
+      "id": "A06",
+      "status": "partial",
+      "remaining": [
+        "需记录真实应用新版处理中检索旧内容的响应，含返回旧版本和新版状态。"
+      ]
+    },
+    {
+      "id": "A07",
+      "status": "partial",
+      "remaining": [
+        "需要实际匿名/内部预览在新版处理中只访问当前原件的端到端记录。"
+      ]
+    },
+    {
+      "id": "A08",
+      "status": "partial",
+      "remaining": [
+        "五页故障注入不能替代 200 页实际 OCR 后成功页读取、搜索和精确五页失败的完整验收。"
+      ]
+    },
+    {
+      "id": "A09",
+      "status": "partial",
+      "remaining": [
+        "真实配置的视觉服务失败/恢复场景及描述语义质量尚未验收。"
+      ]
+    },
+    {
+      "id": "A10",
+      "status": "partial",
+      "remaining": [
+        "需记录真实应用修改配置后手动重试成功的完整场景。"
+      ]
+    },
+    {
+      "id": "A11",
+      "status": "partial",
+      "remaining": [
+        "需实际升级配方、手动重转并同时读取旧引用和新代次的联合证据。"
+      ]
+    },
+    {
+      "id": "A13",
+      "status": "partial",
+      "remaining": [
+        "真实已分享文件从应用删除到受控历史审核读取的联合场景待记录。"
+      ]
+    },
+    {
+      "id": "A18",
+      "status": "partial",
+      "remaining": [
+        "实际 Agent 发起请求到网页人工确认前后访问状态的完整链路仍需记录。"
+      ]
+    },
+    {
+      "id": "A19",
+      "status": "partial",
+      "remaining": [
+        "真实 IdP 停用并重新启用用户后所有访问与分享的联合场景待验证。"
+      ]
+    },
+    {
+      "id": "A20",
+      "status": "partial",
+      "remaining": [
+        "真实组撤销及公开撤销后图片、预览、Range 和下载各入口联合验证未完成。"
+      ]
+    },
+    {
+      "id": "A21",
+      "status": "partial",
+      "remaining": [
+        "真实匿名浏览器完整请求链、没有原件或内部 URL 泄露、撤销后资源拒绝仍需验证。"
+      ]
+    },
+    {
+      "id": "A22",
+      "status": "partial",
+      "remaining": [
+        "完整部署的网关/APM/消息日志扫描与 Agent 正文/搜索排除联合场景仍待验收。"
+      ]
+    },
+    {
+      "id": "A23",
+      "status": "partial",
+      "remaining": [
+        "真实native MOVE成功但响应丢失的联合对账仍未执行；无原生ID的未知MKCOL保持门禁，不能盲目重试。"
+      ]
+    },
+    {
+      "id": "A24",
+      "status": "partial",
+      "remaining": [
+        "完整应用 S3 模式闭环与默认 S3 10 GiB 专项仍未完成。"
+      ]
+    },
+    {
+      "id": "D01_COMPOSE_RUNTIME",
+      "status": "blocked",
+      "remaining": [
+        "执行环境无可用 Docker/Podman/daemon；未完成交付 Compose 的实际整栈运行。"
+      ]
+    },
+    {
+      "id": "D02_UPPY_10_GIB",
+      "status": "blocked",
+      "remaining": [
+        "Chromium 在页面创建前被宿主限制阻止。",
+        "没有可用 Docker 整栈。",
+        "未实际传输/下载 10 GiB、记录断网 offset 和 SHA256 对照。"
+      ]
+    },
+    {
+      "id": "D03_EXTERNAL_VISION",
+      "status": "blocked",
+      "remaining": [
+        "没有实际视觉模型 endpoint/模型与授权凭据；没有语义描述与搜索接受记录。"
+      ]
+    }
+  ],
+  "errors": []
+}

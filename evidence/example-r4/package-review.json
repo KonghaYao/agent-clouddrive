@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-10-24T00:17:04.386091+00:00",
+  "status": "frozen_source_policy_review_pass_final_archive_pending",
+  "scope": "Independent source packaging policy and README command review. No Docker Engine or browser execution is claimed. Final immutable ZIP is verified separately after it is produced.",
+  "checks": {
+    "packaging_and_source_digest_exclusion_sets_synchronized": true,
+    "preflight_result_runtime_output_excluded": true,
+    "isolated_packaging_policy_regression_pass": true,
+    "excluded_synthetic_fixture_paths": 87,
+    "synthetic_source_files_delivered": 5,
+    "excluded_runtime_files_do_not_change_source_digest": true,
+    "synthetic_manifest_hashes_and_zip_crc_valid": true,
+    "existing_archive_overwrite_refused": true,
+    "embedded_private_key_marker_refused": true,
+    "release_readiness_unit_tests_passed": 21,
+    "source_secret_shape_scan_findings": 0,
+    "readme_example_start_command_parses": true,
+    "example_runtime_required_outside_source": true,
+    "docker_build_context_excludes_example_and_evidence": true,
+    "known_demo_credentials_absent_from_selected_files": true,
+    "readme_relative_links_resolve": true,
+    "frozen_source_digest_matches_acceptance": true,
+    "r3_input_archive_unchanged": true
+  },
+  "generic_secret_scan_scope": [
+    "private-key headers",
+    "GitHub token shapes",
+    "AWS access-key ID shapes",
+    "OpenAI token shapes",
+    "Slack token shapes",
+    "JWT shapes"
+  ],
+  "generic_secret_scan_caveat": "Pattern scanning is defense in depth, not proof that arbitrary secret text cannot exist. Exact known private demo credential comparison is a separate step if authorized inputs are supplied.",
+  "policy_sha256": {
+    "scripts/package.py": "a9e55219f2e8243f4c7685e2aca2991d02c0b4dfee9e58a30e2f14595bbe94af",
+    "scripts/release-readiness.py": "af0c45823bc2a4715c121ff221c959e20a3935f2e404247582c8e8b20eb507c1",
+    ".dockerignore": "8580d1b23f0b306508c8761df74bc7bd4457c0dcee70616a6508697be5385ce1"
+  },
+  "r3_input_archive_sha256": "ad57cf17ae4a31b348d83ee86b3a357447feaed4f84644564011e2069300e492",
+  "pending_final_archive_checks": [
+    "Every SHA256SUMS.json entry and exact archive membership",
+    "No runtime secrets, journals, caches, build outputs or symlink entries",
+    "Extracted delivered source_digest equals docs/acceptance.json",
+    "Release readiness is not ready with errors empty and 11 pass, 22 partial, 4 blocked",
+    "README relative links resolve in final archive",
+    "R3 input archive hash remains unchanged"
+  ],
+  "known_demo_credential_comparison": {
+    "checked_explicit_credential_paths": 7,
+    "existing_credential_files": 7,
+    "missing_credential_files": 0,
+    "compose_config_directories": 2,
+    "distinct_sensitive_values_compared": 14,
+    "candidate_files_scanned": 406,
+    "matches": [],
+    "secret_values_written_or_printed": false
+  },
+  "frozen_source_tree_sha256": "245b212c2405b3f177284c17e48e3094ac5e392dbf3d2dbf278274cdd351d1b2",
+  "source_review_snapshot_file_count": 406,
+  "release_readiness_snapshot": {
+    "exit_code": 1,
+    "ready": false,
+    "counts": {
+      "blocked": 4,
+      "partial": 22,
+      "pass": 11
+    },
+    "errors": []
+  }
+}

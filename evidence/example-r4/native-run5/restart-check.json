@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "phase": "restart-check",
+  "checks": {
+    "live_ready_after_app_restart": "passed",
+    "user_rename_preserved": "passed",
+    "same_current_version": "passed",
+    "seed_journal_unchanged": "passed",
+    "all_original_history_bytes_retained": "passed"
+  },
+  "browser_test": "not_run",
+  "compose_runtime": "not_run"
+}

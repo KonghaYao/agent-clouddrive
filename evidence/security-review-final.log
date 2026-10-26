@@ -1,0 +1,62 @@
+=== RUN   TestFeedbackLeavesNoIdentityActivityRecord
+--- PASS: TestFeedbackLeavesNoIdentityActivityRecord (0.12s)
+=== RUN   TestReviewUploadCannotEnterPendingMoveTarget
+--- PASS: TestReviewUploadCannotEnterPendingMoveTarget (0.13s)
+=== RUN   TestReviewAnonymousFixedShareSelectsAuthorizedSource
+--- PASS: TestReviewAnonymousFixedShareSelectsAuthorizedSource (0.13s)
+=== RUN   TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata
+--- PASS: TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata (0.13s)
+=== RUN   TestReviewPinnedMarkdownSurvivesBusinessTrash
+--- PASS: TestReviewPinnedMarkdownSurvivesBusinessTrash (0.11s)
+=== RUN   TestReviewAuditRequiresSpecificActiveHumanGrant
+--- PASS: TestReviewAuditRequiresSpecificActiveHumanGrant (0.13s)
+=== RUN   TestReviewUploadReloadsParentAfterSpaceSerialization
+--- PASS: TestReviewUploadReloadsParentAfterSpaceSerialization (0.14s)
+=== RUN   TestReviewCanceledBeforeNativeUploadReleasesReservation
+--- PASS: TestReviewCanceledBeforeNativeUploadReleasesReservation (0.13s)
+=== RUN   TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant (0.17s)
+=== RUN   TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant (0.18s)
+=== RUN   TestFeedbackLeavesNoIdentityActivityRecord
+--- PASS: TestFeedbackLeavesNoIdentityActivityRecord (0.16s)
+=== RUN   TestReviewUploadCannotEnterPendingMoveTarget
+--- PASS: TestReviewUploadCannotEnterPendingMoveTarget (0.13s)
+=== RUN   TestReviewAnonymousFixedShareSelectsAuthorizedSource
+--- PASS: TestReviewAnonymousFixedShareSelectsAuthorizedSource (0.12s)
+=== RUN   TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata
+--- PASS: TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata (0.12s)
+=== RUN   TestReviewPinnedMarkdownSurvivesBusinessTrash
+--- PASS: TestReviewPinnedMarkdownSurvivesBusinessTrash (0.11s)
+=== RUN   TestReviewAuditRequiresSpecificActiveHumanGrant
+--- PASS: TestReviewAuditRequiresSpecificActiveHumanGrant (0.14s)
+=== RUN   TestReviewUploadReloadsParentAfterSpaceSerialization
+--- PASS: TestReviewUploadReloadsParentAfterSpaceSerialization (0.17s)
+=== RUN   TestReviewCanceledBeforeNativeUploadReleasesReservation
+--- PASS: TestReviewCanceledBeforeNativeUploadReleasesReservation (0.14s)
+=== RUN   TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant (0.24s)
+=== RUN   TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant (0.19s)
+=== RUN   TestFeedbackLeavesNoIdentityActivityRecord
+--- PASS: TestFeedbackLeavesNoIdentityActivityRecord (0.13s)
+=== RUN   TestReviewUploadCannotEnterPendingMoveTarget
+--- PASS: TestReviewUploadCannotEnterPendingMoveTarget (0.14s)
+=== RUN   TestReviewAnonymousFixedShareSelectsAuthorizedSource
+--- PASS: TestReviewAnonymousFixedShareSelectsAuthorizedSource (0.14s)
+=== RUN   TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata
+--- PASS: TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata (0.13s)
+=== RUN   TestReviewPinnedMarkdownSurvivesBusinessTrash
+--- PASS: TestReviewPinnedMarkdownSurvivesBusinessTrash (0.12s)
+=== RUN   TestReviewAuditRequiresSpecificActiveHumanGrant
+--- PASS: TestReviewAuditRequiresSpecificActiveHumanGrant (0.17s)
+=== RUN   TestReviewUploadReloadsParentAfterSpaceSerialization
+--- PASS: TestReviewUploadReloadsParentAfterSpaceSerialization (0.18s)
+=== RUN   TestReviewCanceledBeforeNativeUploadReleasesReservation
+--- PASS: TestReviewCanceledBeforeNativeUploadReleasesReservation (0.13s)
+=== RUN   TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant (0.23s)
+=== RUN   TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant (0.17s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	5.466s

@@ -1,0 +1,7 @@
+=== RUN   TestCipherAuthenticatesOwnerAndTampering
+--- PASS: TestCipherAuthenticatesOwnerAndTampering (0.00s)
+=== RUN   TestVaultPostgresIntegration
+    vault_test.go:200: real PostgreSQL + mock IdP: encrypted persistence, concurrent refresh rotation, owner/source checks, live disable, lifecycle rejection and revoke passed
+--- PASS: TestVaultPostgresIntegration (0.15s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/delegation	1.170s

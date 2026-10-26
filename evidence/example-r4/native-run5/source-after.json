@@ -1,0 +1,6 @@
+{
+  "examples/local-demo/demo.py": "dd5baf9d35ec7a1eb572256d8e8ee5b17ef4b96e8681a625e9ac8020c552203c",
+  "examples/local-demo/demo_support.py": "467d7fa76a22dac98e2521ec991d312237c99d4272643d311de07d04178f4f0d",
+  "examples/local-demo/preflight.py": "8a007d2ece0d23e962d8c3faa47143421a8e78fb91ed681c2ef44fd6d588614c",
+  "examples/local-demo/seed.py": "02952d6d7c2eebc2345e54f876bbbcaf4c260d9a346c01e5ffa0650d140f029d"
+}

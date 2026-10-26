@@ -1,0 +1,396 @@
+name: agent-clouddrive
+
+x-app: &app
+  image: agent-clouddrive/app:1.0.0
+  build:
+    context: ../..
+    dockerfile: Dockerfile
+    target: app
+    args:
+      GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+  init: true
+  restart: unless-stopped
+  networks: [backend]
+  env_file: .env
+  environment: &app-env
+    DRIVE_DATABASE_URL_FILE: /run/secrets/drive_database_url
+    DRIVE_NATS_URL_FILE: /run/secrets/drive_nats_url
+    DRIVE_MEILI_API_KEY_FILE: /run/secrets/meili_master_key
+    DRIVE_CONVERTER_TOKEN_FILE: /run/secrets/converter_token
+    DRIVE_DELEGATION_KEY_FILE: /run/secrets/delegation_key
+    DRIVE_IDENTITY_SERVICE_CREDENTIAL_FILE: /run/secrets/identity_service_credential
+    DRIVE_S3_ACCESS_KEY_FILE: /run/secrets/s3_access_key
+    DRIVE_S3_SECRET_KEY_FILE: /run/secrets/s3_secret_key
+    DRIVE_ARTIFACT_LOCAL_ROOT: /data/artifacts
+    DRIVE_ANYDOC_URL: http://anydoc:8090
+    DRIVE_OCR_URL: http://paddleocr:8090
+    DRIVE_PREVIEW_INTERNAL_URL: http://preview:8090
+    # Opt-in by design upstream; the demo enables it so failed transfers always
+    # leave upload_id/method/status/code in `docker logs` without any secrets.
+    DRIVE_TUS_DIAGNOSTIC: "1"
+  secrets: [drive_database_url, drive_nats_url, meili_master_key, converter_token, identity_service_credential, delegation_key, s3_access_key, s3_secret_key]
+  volumes: [artifacts:/data/artifacts]
+  read_only: true
+  tmpfs:
+    - /tmp:size=128m,mode=1777
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+
+x-converter: &converter
+  image: agent-clouddrive/converter:1.0.0
+  build: {context: ../.., dockerfile: converters/Dockerfile, target: base}
+  init: true
+  restart: unless-stopped
+  networks: [backend]
+  read_only: true
+  tmpfs:
+    - /tmp:size=768m,mode=1777
+  mem_limit: 2g
+  cpus: 2
+  pids_limit: 128
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  secrets: [converter_token]
+  environment: &converter-env
+    PORT: "8090"
+    ADAPTER_TOKEN_FILE: /run/secrets/converter_token
+    ADAPTER_SOURCE_URL_PREFIXES: http://api:8080/internal/conversion-input/
+    ADAPTER_MAX_INPUT_BYTES: "104857600"
+    ADAPTER_MAX_OUTPUT_BYTES: "67108864"
+    ADAPTER_MAX_PAGES: "500"
+    ADAPTER_TIMEOUT_SECONDS: "600"
+    ADAPTER_CONCURRENCY: "1"
+    ADAPTER_MEMORY_MB: "1536"
+
+services:
+  gateway:
+    image: agent-clouddrive/gateway:1.0.0
+    build: {context: ../.., dockerfile: Dockerfile, target: gateway}
+    restart: unless-stopped
+    ports: ["${DRIVE_BIND_ADDRESS:-127.0.0.1}:${DRIVE_PORT:-8080}:${DRIVE_TARGET_PORT:-8080}"]
+    networks:
+      edge: {}
+      backend:
+        aliases: ["${DRIVE_HOSTNAME:-drive.localhost}"]
+    volumes:
+      - ./generated/config.json:/usr/share/nginx/html/config.json:ro
+      - ./generated/nginx.conf:/etc/nginx/nginx.conf:ro
+    secrets: [tls_certificate, tls_private_key]
+    depends_on:
+      api: {condition: service_healthy}
+      keycloak: {condition: service_started}
+    security_opt: [no-new-privileges:true]
+
+  api:
+    <<: *app
+    command: [/app/api]
+    depends_on:
+      postgres: {condition: service_healthy}
+      nats: {condition: service_healthy}
+      meilisearch: {condition: service_healthy}
+      init-volumes: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/healthz]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  worker:
+    <<: *app
+    command: [/app/worker]
+    depends_on:
+      postgres: {condition: service_healthy}
+      nats: {condition: service_healthy}
+      anydoc: {condition: service_healthy}
+      init-volumes: {condition: service_completed_successfully}
+
+  maintenance:
+    <<: *app
+    command: [/app/maintenance]
+    depends_on:
+      postgres: {condition: service_healthy}
+      nats: {condition: service_healthy}
+      init-volumes: {condition: service_completed_successfully}
+
+  postgres:
+    image: postgres:17.11-alpine@sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb
+    restart: unless-stopped
+    networks: [backend]
+    environment:
+      POSTGRES_DB: clouddrive
+      POSTGRES_USER: clouddrive
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password, keycloak_db_password]
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./postgres-init.sh:/docker-entrypoint-initdb.d/10-keycloak.sh:ro
+    command: [postgres, -c, log_statement=none, -c, log_min_error_statement=panic, -c, log_parameter_max_length=0, -c, log_parameter_max_length_on_error=0]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U clouddrive -d clouddrive]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  nats:
+    image: nats:2.15.1-alpine@sha256:7ae34c25dfd6fe2e01c6483eabef20d796690fdcac6c4d94ca780a6cf9877fde
+    restart: unless-stopped
+    networks: [backend]
+    entrypoint: [/bin/sh, -ec]
+    command: ['export NATS_TOKEN="$$(cat /run/secrets/nats_token)"; exec nats-server -c /etc/nats/nats.conf']
+    secrets: [nats_token]
+    volumes: [nats:/data, ./nats.conf:/etc/nats/nats.conf:ro]
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8222/healthz]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.55.0@sha256:ff546679970126f8822e15d1b6a06bfbff1f2ce2e43f810cfb5258012f92de5c
+    restart: unless-stopped
+    networks: [backend]
+    entrypoint: [/bin/sh, -ec]
+    command: ['export MEILI_MASTER_KEY="$$(cat /run/secrets/meili_master_key)"; exec /bin/meilisearch']
+    environment: {MEILI_ENV: production, MEILI_NO_ANALYTICS: "true", MEILI_DB_PATH: /meili_data, MEILI_LOG_LEVEL: WARN}
+    secrets: [meili_master_key]
+    volumes: [meili:/meili_data]
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:7700/health]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  rustfs:
+    image: rustfs/rustfs:1.0.3@sha256:9ca9559533b537d10482fe923288b676ad08f92a7069d9a17327fbae3cab688b
+    restart: unless-stopped
+    networks: [backend]
+    entrypoint: [/bin/sh, -ec]
+    command: ['export RUSTFS_ACCESS_KEY="$$(cat /run/secrets/s3_access_key)"; export RUSTFS_SECRET_KEY="$$(cat /run/secrets/s3_secret_key)"; exec /usr/bin/rustfs /data']
+    environment:
+      RUSTFS_ADDRESS: :9000
+      RUSTFS_CONSOLE_ENABLE: "false"
+      RUSTFS_OBS_LOGGER_LEVEL: error
+      RUSTFS_OBS_LOG_DIRECTORY: /logs
+    secrets: [s3_access_key, s3_secret_key]
+    volumes: [rustfs:/data, rustfs-logs:/logs]
+    depends_on:
+      init-volumes: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, curl, -fsS, http://127.0.0.1:9000/health]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  s3-init:
+    image: python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
+    restart: "no"
+    networks: [backend]
+    entrypoint: [python, /init.py]
+    environment: {DRIVE_S3_ENDPOINT: "http://rustfs:9000", DRIVE_S3_REGION: us-east-1}
+    volumes: [./init_buckets.py:/init.py:ro]
+    secrets: [s3_access_key, s3_secret_key]
+    depends_on:
+      rustfs: {condition: service_healthy}
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.1@sha256:79c623a22abacf3fe6c00a5fb30f5b7843d717b234033b80995891c06116d244
+    restart: unless-stopped
+    networks: [backend]
+    entrypoint: [/bin/sh, /config/entrypoint.sh]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_BOOTSTRAP_ADMIN_USERNAME: bootstrap-admin
+      KC_HOSTNAME: ${DRIVE_PUBLIC_URL:-http://drive.localhost:8080}/identity
+      KC_HTTP_RELATIVE_PATH: /identity
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "false"
+      KC_LOG_LEVEL: warn
+      KC_HTTP_ACCESS_LOG_ENABLED: "false"
+    secrets: [keycloak_db_password, keycloak_admin_password]
+    volumes:
+      - ./keycloak-entrypoint.sh:/config/entrypoint.sh:ro
+      - ./generated/clouddrive-realm.json:/opt/keycloak/data/import/clouddrive-realm.json:ro
+    depends_on:
+      postgres: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, /bin/bash, -ec, "exec 3<>/dev/tcp/127.0.0.1/9000; printf 'GET /identity/health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3; grep -q '200 OK' <&3"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  ocis:
+    image: owncloud/ocis:8.2.2@sha256:9d23fef10e2ee883b73e7c67698da70a62124128e49245396718e94a4cfd7a02
+    restart: unless-stopped
+    networks: [backend]
+    entrypoint: [/bin/sh, /config/entrypoint.sh]
+    environment:
+      OCIS_URL: http://ocis:9200
+      OCIS_LOG_LEVEL: error
+      OCIS_LOG_COLOR: "false"
+      OCIS_INSECURE: "false"
+      PROXY_TLS: "false"
+      OCIS_OIDC_ISSUER: ${DRIVE_OIDC_ISSUER:-http://drive.localhost:8080/identity/realms/clouddrive}
+      OCIS_EXCLUDE_RUN_SERVICES: idp
+      PROXY_OIDC_REWRITE_WELLKNOWN: "true"
+      PROXY_AUTOPROVISION_ACCOUNTS: "true"
+      PROXY_AUTOPROVISION_CLAIM_USERNAME: sub
+      PROXY_USER_OIDC_CLAIM: sub
+      PROXY_USER_CS3_CLAIM: username
+      PROXY_ROLE_ASSIGNMENT_DRIVER: oidc
+      GRAPH_LDAP_SERVER_WRITE_ENABLED: "true"
+      GRAPH_ASSIGN_DEFAULT_USER_ROLE: "false"
+      GRAPH_USERNAME_MATCH: none
+      WEB_OIDC_CLIENT_ID: ocis
+      OCIS_DISABLE_VERSIONING: "false"
+      OCIS_SPACES_MAX_QUOTA: "0"
+      STORAGE_USERS_DRIVER: ${STORAGE_USERS_DRIVER:-s3ng}
+      STORAGE_USERS_OCIS_ROOT: /var/lib/ocis-originals
+      STORAGE_USERS_S3NG_ROOT: /var/lib/ocis-metadata
+      STORAGE_USERS_S3NG_ENDPOINT: http://rustfs:9000
+      STORAGE_USERS_S3NG_REGION: us-east-1
+      STORAGE_USERS_S3NG_BUCKET: clouddrive-originals
+      STORAGE_USERS_S3NG_PUT_OBJECT_DISABLE_MULTIPART: "false"
+      STORAGE_USERS_S3NG_PUT_OBJECT_PART_SIZE: "16777216"
+      STORAGE_USERS_UPLOAD_EXPIRATION: "86400"
+      FRONTEND_UPLOAD_MAX_CHUNK_SIZE: "104857600"
+      STORAGE_USERS_PURGE_TRASH_BIN_PERSONAL_DELETE_BEFORE: "0"
+      STORAGE_USERS_PURGE_TRASH_BIN_PROJECT_DELETE_BEFORE: "0"
+    secrets: [ocis_admin_password, s3_access_key, s3_secret_key]
+    volumes:
+      - ./ocis-entrypoint.sh:/config/entrypoint.sh:ro
+      - ocis-config:/etc/ocis
+      - ocis-data:/var/lib/ocis
+      - ocis-originals:/var/lib/ocis-originals
+      - ocis-metadata:/var/lib/ocis-metadata
+    depends_on:
+      s3-init: {condition: service_completed_successfully}
+      init-volumes: {condition: service_completed_successfully}
+      gateway: {condition: service_started}
+    healthcheck:
+      test: [CMD, ocis, proxy, health]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  anydoc:
+    <<: *converter
+    environment:
+      <<: *converter-env
+      ADAPTER_MODE: anydoc
+      DRIVE_OCR_URL: http://paddleocr:8090
+      DRIVE_VISION_BASE_URL: ${DRIVE_VISION_BASE_URL:-}
+      DRIVE_VISION_MODEL: ${DRIVE_VISION_MODEL:-}
+      DRIVE_VISION_API_KEY_FILE: /run/secrets/vision_api_key
+      DRIVE_VISION_ALLOW_EXTERNAL: ${DRIVE_VISION_ALLOW_EXTERNAL:-false}
+    secrets: [converter_token, vision_api_key]
+    # External vision also needs explicit outbound network configuration. This
+    # internal-only network intentionally prevents accidental model exfiltration.
+
+  paddleocr:
+    <<: *converter
+    image: agent-clouddrive/paddleocr:1.0.0
+    build: {context: ../.., dockerfile: converters/Dockerfile, target: paddleocr}
+    mem_limit: 5g
+    volumes: [paddle-models:/models:ro]
+    environment:
+      <<: *converter-env
+      ADAPTER_MODE: paddleocr
+      ADAPTER_MEMORY_MB: "4096"
+      PADDLE_MODELS_DIR: /models
+      PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK: "True"
+      PADDLE_CPU_THREADS: "2"
+
+  prepare-models:
+    image: agent-clouddrive/paddleocr:1.0.0
+    build: {context: ../.., dockerfile: converters/Dockerfile, target: paddleocr}
+    profiles: [setup]
+    restart: "no"
+    networks: [edge]
+    entrypoint: [python, /app/prepare_models.py]
+    volumes: [paddle-models:/models]
+    depends_on:
+      init-volumes: {condition: service_completed_successfully}
+
+  preview:
+    <<: *converter
+    environment:
+      <<: *converter-env
+      ADAPTER_MODE: preview
+      KKFILEVIEW_URL: http://kkfileview:8012
+      PREVIEW_INTERNAL_URL: http://preview:8090
+      PREVIEW_SOURCE_DIR: /tmp/preview-sources
+    depends_on:
+      kkfileview: {condition: service_healthy}
+
+  kkfileview:
+    image: agent-clouddrive/kkfileview:5.0.3-pdf1
+    build: {context: ../.., dockerfile: deploy/compose/Dockerfile.kkfileview}
+    restart: unless-stopped
+    networks: [backend]
+    environment:
+      KK_FILE_DIR: /data/previews
+      KK_TRUST_HOST: preview
+      KK_OFFICE_PREVIEW_TYPE: pdf
+      KK_OFFICE_TYPE_WEB: image
+      KK_CACHE_TYPE: jdk
+    volumes: [preview-cache:/data/previews, ./kkfileview.properties:/config/security.properties:ro]
+    depends_on:
+      init-volumes: {condition: service_completed_successfully}
+    mem_limit: 3g
+    cpus: 2
+    pids_limit: 256
+    healthcheck:
+      test: [CMD-SHELL, "curl -fsS http://127.0.0.1:8012/actuator/health >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  init-volumes:
+    image: busybox:1.37.0@sha256:bdf57e528e45e4433820e045b29b4597825a1c9e38353532d90a01445013f82e
+    restart: "no"
+    network_mode: none
+    user: "0:0"
+    command: [sh, -ec, "chown 10001:10001 /artifacts /models /rustfs /rustfs-logs /previews; chown 1000:1000 /ocis-config /ocis-data /ocis-originals /ocis-metadata"]
+    volumes: [artifacts:/artifacts, paddle-models:/models, rustfs:/rustfs, rustfs-logs:/rustfs-logs, preview-cache:/previews, ocis-config:/ocis-config, ocis-data:/ocis-data, ocis-originals:/ocis-originals, ocis-metadata:/ocis-metadata]
+
+networks:
+  backend: {internal: true}
+  edge: {}
+volumes:
+  postgres: {}
+  nats: {}
+  meili: {}
+  rustfs: {}
+  rustfs-logs: {}
+  ocis-config: {}
+  ocis-data: {}
+  ocis-originals: {}
+  ocis-metadata: {}
+  artifacts: {}
+  paddle-models: {}
+  preview-cache: {}
+secrets:
+  postgres_password: {file: ./secrets/postgres_password}
+  keycloak_db_password: {file: ./secrets/keycloak_db_password}
+  keycloak_admin_password: {file: ./secrets/keycloak_admin_password}
+  meili_master_key: {file: ./secrets/meili_master_key}
+  nats_token: {file: ./secrets/nats_token}
+  s3_access_key: {file: ./secrets/s3_access_key}
+  s3_secret_key: {file: ./secrets/s3_secret_key}
+  converter_token: {file: ./secrets/converter_token}
+  identity_service_credential: {file: ./secrets/identity_service_credential.json}
+  ocis_admin_password: {file: ./secrets/ocis_admin_password}
+  drive_database_url: {file: ./secrets/drive_database_url}
+  drive_nats_url: {file: ./secrets/drive_nats_url}
+  vision_api_key: {file: ./secrets/vision_api_key}
+  tls_certificate: {file: ./secrets/tls_certificate}
+  tls_private_key: {file: ./secrets/tls_private_key}
+  delegation_key: {file: ./secrets/delegation_key}

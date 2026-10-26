@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-10-23T14:44:10.110178+00:00",
+  "status": "preflight_clean_final_resources_run_and_zip_pending",
+  "scope": "Exact package.py selected source plus finished combined evidence. Approved synthetic fixture secrets compared in memory only. No unrelated credentials opened. This does not certify full-spec acceptance.",
+  "package_script_sha256": "7edd1f1be61f19d4d9361c34f76a0244adf74baf54354de31876944c5b2b05f6",
+  "selected_file_count": 346,
+  "selected_bytes": 13077051,
+  "per_file_limit_bytes": 10485760,
+  "largest_selected_files": [
+    {
+      "path": "evidence/r3-native-final-run2/stress.json",
+      "bytes": 6423161
+    },
+    {
+      "path": "evidence/r3-native-stress-run1/stress.json",
+      "bytes": 3192125
+    },
+    {
+      "path": "web/package-lock.json",
+      "bytes": 194441
+    },
+    {
+      "path": "docs/openapi.json",
+      "bytes": 152154
+    },
+    {
+      "path": "docs/engineering-handoff.md",
+      "bytes": 66832
+    },
+    {
+      "path": "evidence/source-r3/aggregate/source-checks.log",
+      "bytes": 64857
+    },
+    {
+      "path": "tests/integration/stress_acceptance.py",
+      "bytes": 63265
+    },
+    {
+      "path": "docs/mcp-tools.json",
+      "bytes": 54799
+    },
+    {
+      "path": "evidence/selftest-candidate/source-checks.log",
+      "bytes": 50080
+    },
+    {
+      "path": "internal/application/worker.go",
+      "bytes": 43539
+    }
+  ],
+  "over_limit_files": [],
+  "known_synthetic_secret_match_fields": [],
+  "generic_sensitive_patterns": [],
+  "suspicious_runtime_or_credential_files": [],
+  "reviewed_examples": [
+    {
+      "path": "deploy/compose/.env.example",
+      "active_credential_fields": []
+    },
+    {
+      "path": "web/.env.example",
+      "active_credential_fields": []
+    }
+  ],
+  "source_tree_sha256": "909c46e59be2b0e43bd87c7b52b2e7529fa0eeced9b6fb973b5233de5a91187b",
+  "matches_expected_frozen_source": true,
+  "completed_combined_reports": [
+    {
+      "path": "evidence/r3-native-final-run2/fault.json",
+      "bytes": 11541,
+      "sha256": "b1ca9d8a4dba0c42082b4ecb0c008ced48e6ee28ce8b37b177cf244f0d79b6d3",
+      "status": "partial",
+      "finished_at": "2026-10-23T14:34:34.316105+00:00"
+    },
+    {
+      "path": "evidence/r3-native-final-run2/joint.json",
+      "bytes": 21471,
+      "sha256": "0cf11e51f0d92ab35662617b84a4b62c155840bb85b69c496e57dba6c745e7dd",
+      "status": "pass",
+      "finished_at": "2026-10-23T14:30:15.327013+00:00"
+    },
+    {
+      "path": "evidence/r3-native-final-run2/stress.json",
+      "bytes": 6423161,
+      "sha256": "0c9937d3d633e4dba210e462aec3f858b6ad37139e905fd1f09a09e87d5a5f0a",
+      "status": "pass",
+      "finished_at": "2026-10-23T14:34:22.102609+00:00"
+    },
+    {
+      "path": "evidence/r3-native-final-run2/supervisor.json",
+      "bytes": 3323,
+      "sha256": "7f473d20f34a0009f142a1a0a3e58132c09cb003ba44f46f69fe8083d433c4a5",
+      "status": "partial",
+      "finished_at": "2026-10-23T14:34:35.034873+00:00"
+    }
+  ],
+  "release_readiness": {
+    "exit_code": 1,
+    "ready": false,
+    "counts": {
+      "blocked": 4,
+      "partial": 22,
+      "pass": 11
+    },
+    "incomplete_count": 26,
+    "errors": []
+  },
+  "r2_sha256": "b9ef224f8f5ce33a6a1429dd54133ea3d01df06a300247ae3d110f35a2162387",
+  "r2_unchanged": true,
+  "final_resource_attribution_run": "pending_not_counted_as_pass",
+  "zip_verification": "pending_parent_artifact_path"
+}

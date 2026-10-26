@@ -1,0 +1,963 @@
+{
+  "schema_version": 1,
+  "project": "Agent CloudDrive v1",
+  "specification": {
+    "title": "Agent CloudDrive 一期工程交接报告",
+    "version": "v1.0",
+    "date": "2026-10-23"
+  },
+  "updated_at": "2026-10-24T00:16:00Z",
+  "release_decision": "not_ready",
+  "source_verification": {
+    "status": "pass",
+    "evidence": [
+      "r4_source_aggregate",
+      "r4_source_binding",
+      "r4_native_example"
+    ],
+    "note": "R4当前源码聚合检查通过，包含新example；真实native演示通过，未运行Docker/browser等仍明确不晋级。",
+    "tree_hash_scope": "scripts/release-readiness.py SOURCE_PATHS, excluding caches and build outputs",
+    "last_passed_tree_sha256": "909c46e59be2b0e43bd87c7b52b2e7529fa0eeced9b6fb973b5233de5a91187b",
+    "tree_sha256": "245b212c2405b3f177284c17e48e3094ac5e392dbf3d2dbf278274cdd351d1b2"
+  },
+  "evidence": {
+    "native_core": {
+      "path": "docs/evidence/native-application-loop.md",
+      "level": "native_end_to_end",
+      "scope": "Actual Keycloak/oCIS/PostgreSQL/NATS/Meilisearch application loop, local artifact store and direct UTF-8 text; no identity/original/message/search mocks.",
+      "sha256": "3cf4aedb811801df4388894d43cb279003068705a54cfeba9c3d9d3f2c489e7e"
+    },
+    "native_identity": {
+      "path": "docs/evidence/keycloak-native-m0.md",
+      "level": "native_component",
+      "scope": "Actual PKCE, consent, token exchange and offline refresh observations; documented limitations remain.",
+      "sha256": "411a63abf3598fb1ee13605683101757e981f2165b8a6b77e70bc16c489181f8"
+    },
+    "native_ocis": {
+      "path": "docs/evidence/ocis-native-m0.md",
+      "level": "native_component",
+      "scope": "Actual local and s3ng small-file protocol probes, historical reads and MOVE; proves native precondition counterexamples, not final tus CAS or multipart.",
+      "sha256": "f86ab25925ecde07b6d1398245d66256d0e8042a80f413c27894a7d6584bc9c4"
+    },
+    "ocis_adapter": {
+      "path": "evidence/ocis-adapter-real-integration.txt",
+      "level": "native_component",
+      "scope": "Actual oCIS Go adapter create/resume, fixed ETag-gated reads, Range, MOVE/restore with history.",
+      "sha256": "662869a2276027c4524e47dc658d90174cf6ae078cd5fccd10425a2e3c64042b"
+    },
+    "native_artifact_search": {
+      "path": "evidence/adapters-real-integration.txt",
+      "level": "native_component",
+      "scope": "Actual S3 and Meilisearch component operations; not the complete S3 application loop.",
+      "sha256": "e4ad5e9dbfe0806b6b2c40794ca635e9b4ceb4950fd9c433f0326252c6f6ee78"
+    },
+    "postgres_app": {
+      "path": "evidence/domain-mutations-upload-tests.log",
+      "level": "real_database_contract",
+      "scope": "Real PostgreSQL and race detector; identity/original-store contract fixtures are not native identity/oCIS acceptance.",
+      "sha256": "7869677d18f86c330f8d4ac9f7239040e39ff1476eaa9778073c12ef9c0ee1a6"
+    },
+    "worker_native": {
+      "path": "evidence/application-postgres-nats-meili-test.log",
+      "level": "native_component",
+      "scope": "Real PostgreSQL/NATS/Meilisearch/local artifacts; identity and original-store fixtures remain explicit contracts.",
+      "sha256": "f042cd56c156140d1209c23c00c12eeb577f142fce39d769250a2276e49721ea"
+    },
+    "sql_invariants": {
+      "path": "evidence/postgresql-invariants-test.log",
+      "level": "real_database",
+      "scope": "Actual PostgreSQL invariants, not service/browser behavior.",
+      "sha256": "294686bd6d5aaca179c95a4a9279979e956898ffb402c6b6e7f8fc40ff5f82c8"
+    },
+    "share_races": {
+      "path": "evidence/share-privacy-status-regression.log",
+      "level": "real_database_contract",
+      "scope": "Actual DB approval/delete/account-disable serialization; identity/native content fixtures.",
+      "sha256": "d8f3b9cff1dc722bb7f6c96f149f131a82a8bd7f1427ad817191a58d093a43c2"
+    },
+    "feedback": {
+      "path": "evidence/feedback-privacy-test.log",
+      "level": "real_database_contract",
+      "scope": "Actual DB no principal activity write/outbox correlation; does not inspect deployed gateway/APM logs.",
+      "sha256": "e588b71437a5f4f0fc8f9c144d51d78bf36737b1a3ebf44df3679eacd66057e1"
+    },
+    "mcp_contract": {
+      "path": "evidence/mcp-shared-version-postgres.txt",
+      "level": "protocol_contract",
+      "scope": "Official MCP SDK/HTTP protocol and real PostgreSQL; not the Peri application or real browser identity flow.",
+      "sha256": "7e456c983bfbcca97475515306b32c345e827997f2320df25ee54271fba18b5b"
+    },
+    "source_selftest": {
+      "path": "evidence/selftest/source-checks.log",
+      "level": "source_test",
+      "scope": "Executed Go race/vet, sqlc drift, real DB invariants, frontend build/tests, converters and deployment generation; explicit native/browser skips.",
+      "sha256": "334c8473f1a5c09286e099548f80e6e22711cf4867b9c9a76c4832c401f2834d"
+    },
+    "conversion_matrix": {
+      "path": "docs/conversion.md",
+      "level": "native_component_report",
+      "scope": "Actual sample-format and local CPU OCR report; 200-page injected failure accounting is not full real OCR acceptance; external vision unavailable.",
+      "sha256": "007e256f99a7095599522999bf646bf39b4169c39512f7e2e054fd97279aed34"
+    },
+    "browser_blocker": {
+      "path": "web/README.md",
+      "level": "blocker_record",
+      "scope": "Chromium launch failed before page creation; no browser smoke screenshot or 10 GiB upload accepted.",
+      "sha256": "1e528b48e8bf19f4c606c5408e5bf5e1f817c503fdcd07bdcda6c4b977ee4c54"
+    },
+    "runtime_blocker": {
+      "path": "docs/evidence/native-dependency-setup.md",
+      "level": "blocker_record",
+      "scope": "Native dependencies started without Docker/Podman; no complete Compose runtime acceptance.",
+      "sha256": "14ba9ab96b03781440c9a46692af256be5e833dc7eaad3ef2dfd852c1baff36a"
+    },
+    "deployment_config": {
+      "path": "docs/deployment.md",
+      "level": "source_static",
+      "scope": "Configuration and operator instructions only; not evidence that containers ran.",
+      "sha256": "83f382bc885f870704baead4129e605fd3c066ca1377d0f874972a713606ebad"
+    },
+    "target_race_initial": {
+      "path": "evidence/security-review-target-race-initial.log",
+      "level": "regression_failure",
+      "scope": "Initial failing target-path race reproduction, retained as historical evidence and superseded by security_review_fixed.",
+      "sha256": "f43e7304a7c0f98bf380707346977897c7850f20b41b65022192bdcadae4a641"
+    },
+    "security_review_fixed": {
+      "path": "evidence/security-review-final.log",
+      "level": "real_database_contract",
+      "scope": "Ten focused security regressions repeated three times with real PostgreSQL and race detector; native identity/original calls remain labeled contracts. Includes target-path race, stale parent reload, cancellation cleanup, retained audit and share isolation.",
+      "sha256": "bb609c9d8960b4ceeefad40c12afbe12460441d9355561a016913939cbfdf3e3"
+    },
+    "native_application_expanded": {
+      "path": "evidence/native-full-application-final.log",
+      "level": "native_end_to_end",
+      "scope": "Actual two-user HTTP application, Keycloak, oCIS, PostgreSQL, NATS and Meilisearch: exclusive overwrite admission, fixed history, trash/restore, private isolation, scoped denial, confirmed REST sharing and MCP received-share exclusion. Does not prove every entry point or Peri/browser use.",
+      "sha256": "781c6ea57e429648184459a228f7a9806b5e5faf455e780131d75413639d866a"
+    },
+    "native_conversion": {
+      "path": "evidence/converters-native-35-tests.log",
+      "level": "native_component",
+      "scope": "35 actual converter tests, including native AnyDoc, PaddleOCR CPU HTTP/scanned-PDF recovery, and patched kkFileView DOCX/XLSX/PPTX to PDF to PNG. No real external vision or 200-page OCR throughput acceptance.",
+      "sha256": "caeb8c3fe4ef92b04ceab45e5d8a871985448b5b3606b0c5a41c49669e608f23"
+    },
+    "native_deployment_setup": {
+      "path": "evidence/deployment-native-5-tests.log",
+      "level": "native_component",
+      "scope": "Five setup/configuration tests, including actual signed RustFS bucket creation twice. Standalone Compose configuration validation is not Docker Engine or Compose startup.",
+      "sha256": "87a81cc599dbfe2b4b368d5ed5a6058c968893c65b37023a8ef67014ee59feb5"
+    },
+    "preview_build_provenance": {
+      "path": "evidence/converter-deployment-native.md",
+      "level": "native_component_report",
+      "scope": "Pinned official-source kkFileView project build, explicit spreadsheet PDF patch, native test scope, upstream Maven tests skipped, no Docker runtime or vision provider.",
+      "sha256": "331b57533ffff0a313656bf024cbdf79840eca8f9601224287337807e7584a5a"
+    },
+    "native_portable_final": {
+      "path": "evidence/native-portable-acceptance-final.log",
+      "level": "native_end_to_end",
+      "scope": "Frozen-source shipped HTTP probe against actual Keycloak/oCIS/PostgreSQL/NATS/Meilisearch: exact-file core loop, concurrent admission denial, stale second reader after first commit rejected, same idempotency key returns same upload ID, duplicate finalization returns same source version, retained originals/trash/restore, two-user isolation and actual MCP 2026-07-28. Not Peri, browser, full S3 or 10 GiB.",
+      "sha256": "af85d8c9a0a800f54a1259d734bde9e1a61fd76402f7e47481ed814d1369a6d8"
+    },
+    "native_joint_candidate": {
+      "path": "evidence/deployed-api-candidate-run1.json",
+      "level": "native_end_to_end",
+      "scope": "Actual native real Keycloak/oCIS/PostgreSQL application API: five new scenarios, 178 assertions. Ten retained versions/quota, subtree lifecycle, restore collision/share reconfirmation, 100-item batch replay, all39 unauthenticated bearer routes plus Range. Not browser, audit grants, search-path convergence, Compose, or10GiB.",
+      "sha256": "c7636bf328c438f3aabb72448ed9940207b84934a39ec1ab3368152d889e6a59"
+    },
+    "native_joint_provenance": {
+      "path": "evidence/deployed-api-candidate-provenance.json",
+      "level": "native_component_report",
+      "scope": "Native binary identities, dependency fixture versions and explicitly post-run source/result snapshot hashes for the new actual API run; no atomic launch-time script attestation, browser, Compose or10GiB assertion.",
+      "sha256": "c32703c5227283bf3528501743bf408661c2fbd4b6adcd8529abfe7952bb3899"
+    },
+    "native_joint_final": {
+      "path": "evidence/deployed-api-candidate-run2.json",
+      "level": "native_end_to_end",
+      "scope": "Frozen rebuilt candidate actual Keycloak/oCIS/PG/NATS/Meili five joint scenarios and186assertions, including raw search source_path convergence; not browser/Compose/10GiB.",
+      "sha256": "ee14b85bc5ab0e18fed1cb4e976a8d716c565a5c77b6ad04d713563b922f4c62"
+    },
+    "native_joint_final_provenance": {
+      "path": "evidence/deployed-api-candidate-run2-provenance.json",
+      "level": "native_end_to_end",
+      "scope": "Prelaunch hashes of tested source tree, drivers and actual application binaries, verified unchanged after actual native run.",
+      "sha256": "68dd17612423db1ff798d39a5ed86a2b3dace51a502822c9f1146f1988578919"
+    },
+    "maintenance_regression": {
+      "path": "evidence/maintenance-scheduling-regression.log",
+      "level": "real_database_contract",
+      "scope": "Real PostgreSQL+raced maintenance fairness/backlog/large-subtree batching, explicit identity/search/NATS contract implementations.",
+      "sha256": "c4f1f2e07d26af032f3d0e73af5442d0d59b122ada569fcc8b6d951bf4e0b504"
+    },
+    "acceptance_driver_checks": {
+      "path": "evidence/security-review-driver-checks-final.log",
+      "level": "source_test",
+      "scope": "100Python+37Node offline driver guards/syntax/source contracts; no browser or10GiB execution.",
+      "sha256": "232e87e53438c21cf3290581587d9d9692adbfc7f71da86e62eeb23d5aba863c"
+    },
+    "candidate_source_selftest": {
+      "path": "evidence/selftest-candidate/source-checks.log",
+      "level": "source_test",
+      "scope": "Frozen second delivery complete source race/vet/sqlc/realPG/NATS/Meili/frontend/converter realOCR+Office/deployment realRustFS/driver guard suite; explicit browser/Compose/Peri/10GiB skips.",
+      "sha256": "d85bf8c531b4dc27aecafd2c10b44140e07e691dcacde870ea377f117949cce8"
+    },
+    "r3_source_aggregate": {
+      "path": "evidence/source-r3/aggregate/source-checks.log",
+      "level": "source_test",
+      "scope": "R3 frozen production aggregate: Go race/vet/sqlc/PG/NATS/Meili/RustFS/frontend50/build/converters34 passed plus1 explicit kkFileView skip/deployment5. Not full acceptance.",
+      "sha256": "a49fa87437c2b9770596a9da0881f18a5e174830588b09d4c0d932c75fcf063f"
+    },
+    "r3_source_binding": {
+      "path": "evidence/source-r3/README.md",
+      "level": "source_test",
+      "scope": "Aggregate and final v6 source delta/manifests bind unchanged production and separately rechecked integration drivers; all historical failures/skips remain explicit.",
+      "sha256": "b91f920bc9a904b9dc135069403998d427114a33768c233cd1223585063bb7ef"
+    },
+    "r3_driver_final": {
+      "path": "evidence/source-r3/final-drivers-v6/acceptance-driver-preparation.log",
+      "level": "source_test",
+      "scope": "221 Python and37 Node offline guards, no source drift. Preparation only; not deployed/browser acceptance.",
+      "sha256": "66405919e34561606e719c0f7a7940507a17191d8aadf133edbd8fdb3c5e0de1"
+    },
+    "r3_deterministic_regressions": {
+      "path": "evidence/stress-review-final-regressions.log",
+      "level": "real_database_contract",
+      "scope": "48 repeated leaf scenarios under race detector and real PostgreSQL: stale index ordering/delete-restore, batch limits/failure recovery, fencing, pool-one, security persistence and allocation/page-provenance bounds. Search/identity/native contracts explicitly controlled.",
+      "sha256": "afb69a799493f1c826c964c41484d86d8bd66ca71076e4e6fd70aa8b3c73ac60"
+    },
+    "r3_joint_final": {
+      "path": "evidence/r3-native-final-run2/joint.json",
+      "level": "native_end_to_end",
+      "scope": "Actual R3 Keycloak/oCIS/PG/NATS/Meili five joint scenarios and186 assertions, local artifacts/direct UTF-8; not browser/Compose/10GiB.",
+      "sha256": "0cf11e51f0d92ab35662617b84a4b62c155840bb85b69c496e57dba6c745e7dd"
+    },
+    "r3_stress_combined": {
+      "path": "evidence/r3-native-final-run2/stress.json",
+      "level": "native_end_to_end",
+      "scope": "Actual1/4/8/16/32/64 concurrency ten-workload native pressure,9725HTTP/654expected409/0unexpected,420files426versions; global RSS and queues only,1KiB synthetic text,not capacity ceiling.",
+      "sha256": "0c9937d3d633e4dba210e462aec3f858b6ad37139e905fd1f09a09e87d5a5f0a"
+    },
+    "r3_fault_final": {
+      "path": "evidence/r3-native-final-run2/fault.json",
+      "level": "native_end_to_end",
+      "scope": "Four actual recoverable scenarios77checks: owned worker/NATS/Meili graceful interruption and actual lost finalize response. Selected pass, full partial; native MOVE loss not run.",
+      "sha256": "b1ca9d8a4dba0c42082b4ecb0c008ced48e6ee28ce8b37b177cf244f0d79b6d3"
+    },
+    "r3_combined_provenance": {
+      "path": "evidence/r3-native-final-run2/supervisor.json",
+      "level": "native_end_to_end",
+      "scope": "Combined295.725seconds, actual binary hashes, unchanged start/end source, baseline resource/drain and graceful cleanup; deliberately partial due unsupported native MOVE loss.",
+      "sha256": "7f473d20f34a0009f142a1a0a3e58132c09cb003ba44f46f69fe8083d433c4a5"
+    },
+    "r3_stress_report": {
+      "path": "docs/stress-and-fault-r3.md",
+      "level": "native_component_report",
+      "scope": "Bounded pressure/fault interpretation, preserved failures, deterministic defect fixes and strict remaining exclusions.",
+      "sha256": "69c66e8d5d7652ea625eab565744d0f604b78f5437dc63c43b779692895c8e18"
+    },
+    "r3_stress_resources_final": {
+      "path": "evidence/r3-native-resources-final/stress.json",
+      "level": "native_end_to_end",
+      "scope": "Final source-bound native1/4/8/16/32/64 pressure:11266HTTP/726expected409/0unexpected,492files498versions; per-stage sampled RSS/queues with raw timestamp windows.1KiB small-text and local artifact mode,not production capacity.",
+      "sha256": "51c3f3bff29053d488213ac736bc485e84decc5b576ee2f63573bb0993695c87"
+    },
+    "r3_stress_resources_provenance": {
+      "path": "evidence/r3-native-resources-final/supervisor.json",
+      "level": "native_end_to_end",
+      "scope": "Final source909c46e unchanged before/after, actual binary hashes,266.840second supervisor budget and graceful child cleanup; stress-only,not full fault gate.",
+      "sha256": "672b976899846ad8720917e3cdda73e6cae80fd311e5ca8d873fabbe1ee72ce1"
+    },
+    "r3_independent_review": {
+      "path": "docs/stress-security-review-r3.md",
+      "level": "native_component_report",
+      "scope": "Independent review of six defect classes, real-PG/race48scenario checks, offline174driver guards, combined native186/77checks and final six-stage resources; explicit unexecuted limits remain.",
+      "sha256": "ad7cdb7bba8a7879a26014e28fbd25b1396395203ef164d7f15c12c713663302"
+    },
+    "r4_source_aggregate": {
+      "path": "evidence/example-r4/aggregate/source-checks.log",
+      "level": "source_test",
+      "scope": "Current frozen R4 source aggregate: real PG/NATS/Meili Go race/vet, sqlc/SQL, frontend, Python/example and offline driver checks. Explicit native/OCR/Office/browser skips remain.",
+      "sha256": "a37f6cb454171aec60c92ac7f0b9dccde704607fc9a82104476441a263f437ed"
+    },
+    "r4_native_example": {
+      "path": "evidence/example-r4/native-run5.log",
+      "level": "native_end_to_end",
+      "scope": "Actual native R4 preflight/seed/check/metadata edit and application-process restart preserving user edits and historical bytes; local storage, test HTTP proxy, not Docker Engine/browser.",
+      "sha256": "459549eafb4088794d7084bb77e9685ae4ef489298f8960c17519885151ad561"
+    },
+    "r4_example_review": {
+      "path": "docs/local-demo-security-review-r4.md",
+      "level": "source_static",
+      "scope": "Independent example safety review and checked live scoped evidence; not full deployment acceptance.",
+      "sha256": "840d302fd5bbf19803dee22b684b9d8a17077de5791557f030a7608483ac0452"
+    },
+    "r4_verification": {
+      "path": "docs/example-r4-verification.md",
+      "level": "native_component_report",
+      "scope": "Explicit R4 execution provenance, retained failures, full aggregate skips, and Docker/browser limits.",
+      "sha256": "7e6cc19d73140a5ae44524ab51e9db7738f5235d4104e6c01c1750dca665e9bf"
+    },
+    "r4_compose_config": {
+      "path": "evidence/example-r4/compose-config-final.json",
+      "level": "source_static",
+      "scope": "Actual standalone Compose configuration parsing only, no Docker engine.",
+      "sha256": "e131e6e583b4e8d1e31a529387a2666eacdf4d629f063e9e10c48e7397a2a0f1"
+    },
+    "r4_source_binding": {
+      "path": "evidence/example-r4/source-binding.json",
+      "level": "source_test",
+      "scope": "Final R4 source digest bound to current passing aggregate and frozen native example script hashes.",
+      "sha256": "59ea4a618b2a6c573378ee713e0f202e5125ea53250d4385bac472a33f53077e"
+    }
+  },
+  "gates": [
+    {
+      "id": "G01",
+      "section": "M0 integration",
+      "title": "官方 oCIS 用户、空间、后端凭据与 Keycloak",
+      "requirement": "业务主体映射稳定；后台可合法读取授权源版本；停用可被执行",
+      "status": "partial",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "native_core",
+        "native_identity",
+        "native_application_expanded",
+        "native_portable_final"
+      ],
+      "verified_scope": "真实主体/个人空间、PKCE、离线委托读取与核心闭环通过；两名真实 IdP 测试用户的原件/搜索隔离也已验证。",
+      "remaining": [
+        "仍需真实账号停用/重新启用的完整访问与分享传播证据。"
+      ]
+    },
+    {
+      "id": "G02",
+      "section": "M0 integration",
+      "title": "Peri + MCP OAuth",
+      "requirement": "授权发现、PKCE、audience、scope、刷新/重授权、Streamable HTTP 真实可用",
+      "status": "blocked",
+      "verification_level": "native_component",
+      "evidence": [
+        "mcp_contract",
+        "native_identity",
+        "native_application_expanded",
+        "native_portable_final"
+      ],
+      "verified_scope": "实际 HTTP MCP 2026-07-28 discovery/list/call 与独立 2025-11-25 初始化通过；实际 Keycloak PKCE 通过。它们不是 Peri 客户端联调。",
+      "remaining": [
+        "缺少真实 Peri 客户端；未执行 Peri 授权发现、刷新/重授权与 Streamable HTTP 联调。"
+      ]
+    },
+    {
+      "id": "G03",
+      "section": "M0 integration",
+      "title": "tus 覆盖与最终条件提交",
+      "requirement": "冲突写入无法覆盖先提交版本；重试不重复生成版本",
+      "status": "pass",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "postgres_app",
+        "native_ocis",
+        "target_race_initial",
+        "security_review_fixed",
+        "native_application_expanded",
+        "native_portable_final",
+        "r3_joint_final"
+      ],
+      "verified_scope": "真实应用/oCIS 在上传期间排他拒绝竞争者；首个提交后旧期望版本再次请求返回 VERSION_CONFLICT，当前字节和历史不变；重复同键返回同一上传 ID，重复 finalize 返回同一源版本。目标路径竞争修复有 DB race 回归。依赖业务门禁，不宣称原生 tus 自带最终 CAS。",
+      "remaining": []
+    },
+    {
+      "id": "G04",
+      "section": "M0 integration",
+      "title": "原生版本固定读取",
+      "requirement": "旧任务在新版本上传后仍读取原来的字节；重命名不改变引用",
+      "status": "pass",
+      "verification_level": "native_component",
+      "evidence": [
+        "native_ocis",
+        "ocis_adapter",
+        "native_application_expanded",
+        "native_portable_final"
+      ],
+      "verified_scope": "原生覆盖后旧 ETag/版本映射仍读取原字节；重命名/MOVE 后固定引用可读。",
+      "remaining": []
+    },
+    {
+      "id": "G05",
+      "section": "M0 integration",
+      "title": "MOVE 业务回收站",
+      "requirement": "移入/移出保留目录后资源身份、所有原生版本与审核读取保留",
+      "status": "pass",
+      "verification_level": "native_component",
+      "evidence": [
+        "native_ocis",
+        "ocis_adapter",
+        "native_application_expanded",
+        "native_portable_final"
+      ],
+      "verified_scope": "真实单文件原生保留目录 MOVE/移回和应用删除/恢复均通过，资源身份、当前内容及生成的历史修订保持。",
+      "remaining": []
+    },
+    {
+      "id": "G06",
+      "section": "M0 integration",
+      "title": "RustFS 与 oCIS S3",
+      "requirement": "基本 CRUD、Range、multipart、原生修订读写兼容",
+      "status": "partial",
+      "verification_level": "native_component",
+      "evidence": [
+        "native_ocis",
+        "native_artifact_search",
+        "native_deployment_setup"
+      ],
+      "verified_scope": "RustFS/S3 产物 CRUD、Range、不可变发布，以及 oCIS s3ng 小文件修订/MOVE 通过。",
+      "remaining": [
+        "小样本没有执行 multipart；10 GiB 默认 S3 与完整应用 S3 闭环未完成。"
+      ]
+    },
+    {
+      "id": "G07",
+      "section": "M0 integration",
+      "title": "AnyDoc/PDF/OCR/图片资产",
+      "requirement": "样本格式矩阵与页码映射清晰；部分失败可被真实表示",
+      "status": "partial",
+      "verification_level": "native_component",
+      "evidence": [
+        "conversion_matrix",
+        "source_selftest",
+        "native_conversion",
+        "preview_build_provenance"
+      ],
+      "verified_scope": "真实 AnyDoc 样本、PDF 提取/渲染、CPU OCR、扫描 PDF 恢复、持久图片与缺页报告通过；私有 kkFileView 三种 Office 样本输出 PNG 通过。",
+      "remaining": [
+        "真实外部视觉模型未配置；200 页真实 OCR 五页失败的完整读取/检索场景未执行；未测格式不扩大宣称。"
+      ]
+    },
+    {
+      "id": "G08",
+      "section": "M0 integration",
+      "title": "原生配额与清理",
+      "requirement": "业务配额允许的写入可完成；无后台任务清除审核历史",
+      "status": "partial",
+      "verification_level": "real_database",
+      "evidence": [
+        "sql_invariants",
+        "deployment_config",
+        "native_ocis"
+      ],
+      "verified_scope": "业务配额和保留约束有数据库测试；原生自动清理禁用按配置落实。",
+      "remaining": [
+        "仍需在真实部署证明原生配额不先行拒绝业务允许的覆盖/历史保留，及运行清理配置核验。"
+      ]
+    },
+    {
+      "id": "G09",
+      "section": "M0 integration",
+      "title": "受控预览",
+      "requirement": "匿名链接不能获得原件下载接口；撤销、换版后资源请求失效",
+      "status": "partial",
+      "verification_level": "native_component",
+      "evidence": [
+        "share_races",
+        "mcp_contract",
+        "conversion_matrix",
+        "native_conversion",
+        "preview_build_provenance"
+      ],
+      "verified_scope": "分享实时门禁、固定/当前版本访问已有回归；实际 kkFileView DOCX/XLSX/PPTX 经明确 PDF 补丁转换为 PNG，PDF/SVG 安全栅格化通过。",
+      "remaining": [
+        "实际匿名完整资源请求链、撤销/换版后所有预览资源即时失效仍需端到端证据。"
+      ]
+    },
+    {
+      "id": "G10",
+      "section": "M0 integration",
+      "title": "匿名链路",
+      "requirement": "DB、网关、应用、MCP、APM 与消息中无法关联提交身份",
+      "status": "partial",
+      "verification_level": "real_database_contract",
+      "evidence": [
+        "feedback",
+        "mcp_contract",
+        "deployment_config"
+      ],
+      "verified_scope": "匿名反馈不写主体活动/关联 outbox，MCP 专用无来源路径已有回归。",
+      "remaining": [
+        "尚未运行完整网关/应用/MCP/APM/消息部署并全面检查持久日志与来源关联。"
+      ]
+    },
+    {
+      "id": "A01",
+      "section": "Functional acceptance",
+      "title": "用户 A 上传私有文件，用户 B 搜索/猜测 ID",
+      "requirement": "B 无正文、摘要、路径、图片、下载或计数泄露",
+      "status": "partial",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "source_selftest",
+        "mcp_contract",
+        "native_application_expanded",
+        "native_portable_final"
+      ],
+      "verified_scope": "实际两个 Keycloak 用户中，B stat/下载 A 私有文件均 404，搜索不返回该文件；域/SDK 权限过滤与无未授权计数有回归。",
+      "remaining": [
+        "仍需真实双用户覆盖正文片段、路径、图片、预览、下载和计数所有入口的完整隔离场景。"
+      ]
+    },
+    {
+      "id": "A02",
+      "section": "Functional acceptance",
+      "title": "Agent 获得部分 scopes",
+      "requirement": "越权操作被拒绝；文件范围仍为整个自有个人空间",
+      "status": "pass",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "postgres_app",
+        "mcp_contract",
+        "native_application_expanded",
+        "native_portable_final"
+      ],
+      "verified_scope": "部分 scopes 的服务端拒绝和 Agent 自有空间限制通过域/官方 SDK 回归；实际 read-only token 创建目录返回 403。",
+      "remaining": []
+    },
+    {
+      "id": "A03",
+      "section": "Functional acceptance",
+      "title": "用户收到他人只读分享",
+      "requirement": "网页可按授权访问；Agent 搜索、读取与下载均拒绝",
+      "status": "partial",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "mcp_contract",
+        "postgres_app",
+        "native_application_expanded",
+        "native_portable_final"
+      ],
+      "verified_scope": "实际确认后接收者 REST 下载成功，同接收者 MCP 查询该文件被拒绝；固定历史分享与 Agent 自有空间限制有真实 DB/协议回归。",
+      "remaining": [
+        "实际网页接收者操作及 Agent 搜索/正文/下载全部入口的联合场景仍需记录；HTTP 协议探测不能称为 Peri 联调。"
+      ]
+    },
+    {
+      "id": "A04",
+      "section": "Functional acceptance",
+      "title": "两 Agent 读同版后覆盖",
+      "requirement": "A 成功，B 冲突；A 内容和历史保留",
+      "status": "pass",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "postgres_app",
+        "native_ocis",
+        "target_race_initial",
+        "security_review_fixed",
+        "native_application_expanded",
+        "native_portable_final"
+      ],
+      "verified_scope": "使用共同原期望版本的两方请求，第二方在首个上传期间被拒；首个完成后第二方用旧期望版本再次写入仍 409。随后精确读回首个新正文和原历史正文。真实 HTTP/应用/oCIS 流程，不冒充 Peri 客户端。",
+      "remaining": []
+    },
+    {
+      "id": "A05",
+      "section": "Functional acceptance",
+      "title": "相同幂等请求重复发送",
+      "requirement": "返回同一操作/版本，不重复扣配额或创建版本",
+      "status": "pass",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "postgres_app",
+        "native_portable_final"
+      ],
+      "verified_scope": "真实应用/oCIS 的相同幂等请求返回同一上传 ID，重复 finalize 返回同一源版本；实际数据库并发与配额测试证明不重复预留/计费，异体同键冲突。",
+      "remaining": []
+    },
+    {
+      "id": "A06",
+      "section": "Functional acceptance",
+      "title": "新版转换未完成",
+      "requirement": "所有者检索旧内容，明确旧版本和新版处理状态",
+      "status": "partial",
+      "verification_level": "native_component",
+      "evidence": [
+        "worker_native",
+        "sql_invariants"
+      ],
+      "verified_scope": "当前源版本与已发布搜索代次分离、版本优先级和真实索引发布分别通过。",
+      "remaining": [
+        "需记录真实应用新版处理中检索旧内容的响应，含返回旧版本和新版状态。"
+      ]
+    },
+    {
+      "id": "A07",
+      "section": "Functional acceptance",
+      "title": "最新版分享遇到新版处理中",
+      "requirement": "可预览当前原件；无权读取旧版转换或旧原件",
+      "status": "partial",
+      "verification_level": "real_database_contract",
+      "evidence": [
+        "mcp_contract",
+        "postgres_app"
+      ],
+      "verified_scope": "最新版分享拒绝旧版原件/旧产物，固定历史授权不会被替换成当前版本。",
+      "remaining": [
+        "需要实际匿名/内部预览在新版处理中只访问当前原件的端到端记录。"
+      ]
+    },
+    {
+      "id": "A08",
+      "section": "Functional acceptance",
+      "title": "200 页样本有 5 页 OCR 失败",
+      "requirement": "成功页可读可搜，精确列出 5 页及不完整状态",
+      "status": "partial",
+      "verification_level": "native_component_report",
+      "evidence": [
+        "conversion_matrix",
+        "source_selftest"
+      ],
+      "verified_scope": "200 页真实 PDF 的五页缺失映射测试通过；小型扫描件真实 CPU OCR 通过。",
+      "remaining": [
+        "五页故障注入不能替代 200 页实际 OCR 后成功页读取、搜索和精确五页失败的完整验收。"
+      ]
+    },
+    {
+      "id": "A09",
+      "section": "Functional acceptance",
+      "title": "仅视觉描述失败",
+      "requirement": "文本成功可用；描述缺失明确，不能标完整",
+      "status": "partial",
+      "verification_level": "native_component_report",
+      "evidence": [
+        "conversion_matrix",
+        "source_selftest",
+        "native_conversion"
+      ],
+      "verified_scope": "文本提取成功、视觉服务缺失时返回 partial，并明确缺失描述，不伪报完整。",
+      "remaining": [
+        "真实配置的视觉服务失败/恢复场景及描述语义质量尚未验收。"
+      ]
+    },
+    {
+      "id": "A10",
+      "section": "Functional acceptance",
+      "title": "超过自动转换上限",
+      "requirement": "原件成功保存，显示未转换；调参后可重试",
+      "status": "partial",
+      "verification_level": "native_component",
+      "evidence": [
+        "worker_native",
+        "conversion_matrix"
+      ],
+      "verified_scope": "超过限制仍保留原件且 worker 标记未转换的真实 DB 测试通过。",
+      "remaining": [
+        "需记录真实应用修改配置后手动重试成功的完整场景。"
+      ]
+    },
+    {
+      "id": "A11",
+      "section": "Functional acceptance",
+      "title": "转换器升级、手动重转旧文件",
+      "requirement": "新代次发布；旧引用仍返回旧源版本/旧代次",
+      "status": "partial",
+      "verification_level": "native_component",
+      "evidence": [
+        "sql_invariants",
+        "native_ocis",
+        "worker_native"
+      ],
+      "verified_scope": "不可变源版本/产物、多代次优先级与旧原件固定读通过。",
+      "remaining": [
+        "需实际升级配方、手动重转并同时读取旧引用和新代次的联合证据。"
+      ]
+    },
+    {
+      "id": "A12",
+      "section": "Functional acceptance",
+      "title": "旧 Worker 或索引任务晚到",
+      "requirement": "不能覆盖较新代次；消息重投不重复发布",
+      "status": "pass",
+      "verification_level": "native_component",
+      "evidence": [
+        "sql_invariants",
+        "worker_native"
+      ],
+      "verified_scope": "过期 lease/fencing token、旧版本/旧代次发布被数据库拒绝；真实 JetStream/Meilisearch 异步完成与持久消费回归通过。",
+      "remaining": []
+    },
+    {
+      "id": "A13",
+      "section": "Functional acceptance",
+      "title": "删除已分享文件",
+      "requirement": "立即隐藏并停用分享；原生 MOVE 后历史可审核",
+      "status": "partial",
+      "verification_level": "native_component",
+      "evidence": [
+        "share_races",
+        "ocis_adapter",
+        "postgres_app"
+      ],
+      "verified_scope": "数据库删除立即失效分享与祖先门禁通过，真实原生 MOVE 保留历史独立通过。",
+      "remaining": [
+        "真实已分享文件从应用删除到受控历史审核读取的联合场景待记录。"
+      ]
+    },
+    {
+      "id": "A14",
+      "section": "Functional acceptance",
+      "title": "恢复目标同名",
+      "requirement": "返回路径冲突；指定新目标后恢复；分享不自动恢复",
+      "status": "pass",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "postgres_app",
+        "share_races",
+        "native_application_expanded",
+        "native_portable_final",
+        "native_joint_candidate",
+        "native_joint_provenance",
+        "native_joint_final",
+        "native_joint_final_provenance",
+        "r3_joint_final"
+      ],
+      "verified_scope": "真实 Keycloak 双用户与应用/oCIS 联合通过：同名占位恢复409且占位原件不变；改名恢复保留ID/历史/配额；旧分享仍拒绝当前/历史/Range读取，新CSRF确认后才可访问。",
+      "remaining": []
+    },
+    {
+      "id": "A15",
+      "section": "Functional acceptance",
+      "title": "删除/移动整个目录",
+      "requirement": "子项门禁正确，ID 与历史不变，路径标签更新",
+      "status": "pass",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "postgres_app",
+        "worker_native",
+        "native_joint_candidate",
+        "native_joint_provenance",
+        "native_joint_final",
+        "native_joint_final_provenance",
+        "maintenance_regression",
+        "r3_joint_final"
+      ],
+      "verified_scope": "真实两层子树MOVE、删除、恢复55项断言通过：ID/父子关系/两个文件各两版字节保留，删除时当前入口和公开搜索立即拒绝；真实Meilisearch原始source_path在MOVE/恢复后收敛，version/artifact均不变。修复维护积压及>100子树分块并通过PG/race回归。",
+      "remaining": []
+    },
+    {
+      "id": "A16",
+      "section": "Functional acceptance",
+      "title": "十个版本后删除",
+      "requirement": "配额仅计最新大小；删除后额度不变",
+      "status": "pass",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "postgres_app",
+        "sql_invariants",
+        "native_joint_candidate",
+        "native_joint_provenance",
+        "native_joint_final",
+        "native_joint_final_provenance",
+        "r3_joint_final"
+      ],
+      "verified_scope": "真实应用/oCIS依次上传十个不同源版本，每次配额仅计最新大小；十个版本在删除前、回收期间及恢复后逐字节读取一致；删除额度不变、恢复不重复收费。",
+      "remaining": []
+    },
+    {
+      "id": "A17",
+      "section": "Functional acceptance",
+      "title": "100 项批处理有一项冲突",
+      "requirement": "独立项继续，逐项结果清晰，重试不重复成功项",
+      "status": "pass",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "postgres_app",
+        "native_joint_candidate",
+        "native_joint_provenance",
+        "native_joint_final",
+        "native_joint_final_provenance",
+        "r3_joint_final"
+      ],
+      "verified_scope": "真实应用/oCIS执行100个独立目录创建项，99成功1个PATH_CONFLICT；同批次和新批次相同逐项键重试复用99个操作/文件ID，最终恰好100个目录含原占位项。",
+      "remaining": []
+    },
+    {
+      "id": "A18",
+      "section": "Functional acceptance",
+      "title": "Agent 请求分享",
+      "requirement": "用户确认前不可访问；Agent 不能调用批准接口",
+      "status": "partial",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "postgres_app",
+        "mcp_contract",
+        "share_races",
+        "native_application_expanded",
+        "native_portable_final"
+      ],
+      "verified_scope": "Agent 无批准工具/能力，确认哈希不可变；实际 REST 批准缺少交互 CSRF 返回 403，正确会话+CSRF 批准后接收者可下载。",
+      "remaining": [
+        "实际 Agent 发起请求到网页人工确认前后访问状态的完整链路仍需记录。"
+      ]
+    },
+    {
+      "id": "A19",
+      "section": "Functional acceptance",
+      "title": "账号停用再启用",
+      "requirement": "所有访问与分享停用；启用后分享仍需确认",
+      "status": "partial",
+      "verification_level": "real_database_contract",
+      "evidence": [
+        "share_races",
+        "native_identity",
+        "mcp_contract"
+      ],
+      "verified_scope": "真实 DB 停用/启用不恢复分享、维护同步、公开请求观察停用的回归通过。",
+      "remaining": [
+        "真实 IdP 停用并重新启用用户后所有访问与分享的联合场景待验证。"
+      ]
+    },
+    {
+      "id": "A20",
+      "section": "Functional acceptance",
+      "title": "撤销组成员或公开分享",
+      "requirement": "后续预览、图片、Range/下载请求无法绕过",
+      "status": "partial",
+      "verification_level": "real_database_contract",
+      "evidence": [
+        "postgres_app",
+        "share_races",
+        "mcp_contract"
+      ],
+      "verified_scope": "实时组成员/分享状态/源版本检查的代码与组件拒绝测试存在。",
+      "remaining": [
+        "真实组撤销及公开撤销后图片、预览、Range 和下载各入口联合验证未完成。"
+      ]
+    },
+    {
+      "id": "A21",
+      "section": "Functional acceptance",
+      "title": "匿名链接预览 PDF/Office/SVG",
+      "requirement": "不下发原件下载地址；SVG 无主动脚本执行",
+      "status": "partial",
+      "verification_level": "native_component",
+      "evidence": [
+        "conversion_matrix",
+        "source_selftest",
+        "native_conversion",
+        "preview_build_provenance"
+      ],
+      "verified_scope": "PDF/SVG 安全栅格化通过；实际私有 kkFileView DOCX/XLSX/PPTX → PDF → PNG 输出、临时源清理通过。原生 Office 使用明确的 PDF-only 源码补丁。",
+      "remaining": [
+        "真实匿名浏览器完整请求链、没有原件或内部 URL 泄露、撤销后资源拒绝仍需验证。"
+      ]
+    },
+    {
+      "id": "A22",
+      "section": "Functional acceptance",
+      "title": "提交反馈后检查持久数据与日志",
+      "requirement": "无来源关联；反馈不出现在 Agent 读取与搜索",
+      "status": "partial",
+      "verification_level": "real_database_contract",
+      "evidence": [
+        "feedback",
+        "mcp_contract",
+        "deployment_config"
+      ],
+      "verified_scope": "反馈独立表、无主体活动/outbox 来源记录、MCP 反馈回归通过。",
+      "remaining": [
+        "完整部署的网关/APM/消息日志扫描与 Agent 正文/搜索排除联合场景仍待验收。"
+      ]
+    },
+    {
+      "id": "A23",
+      "section": "Functional acceptance",
+      "title": "远端操作成功但业务响应丢失",
+      "requirement": "重试/对账得到原结果，不产生错误覆盖或重复版本",
+      "status": "partial",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "postgres_app",
+        "sql_invariants",
+        "r3_fault_final",
+        "r3_combined_provenance",
+        "r3_deterministic_regressions"
+      ],
+      "verified_scope": "真实成功finalize响应被代理丢弃后同键重试保持原上传/文件/源版本，未重复配额或提交；本地worker/NATS/Meili停机恢复也通过。MOVE丢响应由真实数据库合同对账验证，不冒充native端到端。",
+      "remaining": [
+        "真实native MOVE成功但响应丢失的联合对账仍未执行；无原生ID的未知MKCOL保持门禁，不能盲目重试。"
+      ]
+    },
+    {
+      "id": "A24",
+      "section": "Functional acceptance",
+      "title": "local 与 S3 模式最小文件闭环",
+      "requirement": "两种配置均可保存、读取、转换；专项大文件只测默认 S3",
+      "status": "partial",
+      "verification_level": "native_end_to_end",
+      "evidence": [
+        "native_core",
+        "native_ocis",
+        "native_artifact_search",
+        "native_portable_final"
+      ],
+      "verified_scope": "local 模式真实应用小文件保存、下载、后台转换/索引闭环通过；S3/oCIS 原生组件独立通过。",
+      "remaining": [
+        "完整应用 S3 模式闭环与默认 S3 10 GiB 专项仍未完成。"
+      ]
+    },
+    {
+      "id": "D01_COMPOSE_RUNTIME",
+      "section": "Delivery requirement",
+      "title": "单机 Docker Compose 实际启动与整栈联通",
+      "requirement": "通过交付 Compose 启动完整依赖及应用，并记录健康与端到端功能，而不仅是 compose config。",
+      "status": "blocked",
+      "verification_level": "source_static",
+      "evidence": [
+        "runtime_blocker",
+        "deployment_config",
+        "native_deployment_setup"
+      ],
+      "verified_scope": "local/S3 配置生成、独立 Compose 语法检查、真实 RustFS 签名建桶及 native 服务启动分别通过，但没有 Docker Engine 运行。",
+      "remaining": [
+        "执行环境无可用 Docker/Podman/daemon；未完成交付 Compose 的实际整栈运行。"
+      ]
+    },
+    {
+      "id": "D02_UPPY_10_GIB",
+      "section": "Section 18.2",
+      "title": "一次真实 Uppy+tus 10 GiB 断网续传",
+      "requirement": "默认 S3 Compose 环境，真实浏览器 Uppy，10,737,418,240 字节，断网后同会话 offset 续传，单次源版本/正确配额，并从正式下载入口验证完整 SHA256。",
+      "status": "blocked",
+      "verification_level": "blocker_record",
+      "evidence": [
+        "browser_blocker",
+        "runtime_blocker",
+        "native_ocis"
+      ],
+      "verified_scope": "小文件原生 tus 分块续传存在真实证据；不替代此专项。",
+      "remaining": [
+        "Chromium 在页面创建前被宿主限制阻止。",
+        "没有可用 Docker 整栈。",
+        "未实际传输/下载 10 GiB、记录断网 offset 和 SHA256 对照。"
+      ]
+    },
+    {
+      "id": "D03_EXTERNAL_VISION",
+      "section": "Confirmed conversion requirement",
+      "title": "真实配置的图片/图表视觉描述服务",
+      "requirement": "实际视觉模型为图片/图表生成描述并进入保留产物与检索；网络是否外发服从后端配置。",
+      "status": "blocked",
+      "verification_level": "source_static",
+      "evidence": [
+        "conversion_matrix"
+      ],
+      "verified_scope": "适配器合约、可控外网配置、缺失服务的 partial/blocked 行为已实现并测试。",
+      "remaining": [
+        "没有实际视觉模型 endpoint/模型与授权凭据；没有语义描述与搜索接受记录。"
+      ]
+    }
+  ],
+  "notes": [
+    "A passing unit, contract, or native-component check is not silently promoted to full Compose/Peri/browser acceptance.",
+    "Only exact supplied requirements are assessed. No product requirements were waived.",
+    "Readiness validation checks this declared evidence inventory; it does not run tests or replace review of the underlying evidence.",
+    "R3新增有界1/4/8/16/32/64压力与四项可恢复故障实跑；1KiB输入、短时窗口和停止预算不等于生产容量上限或大文件/长期稳定性验收。原失败和R2证据保留。"
+  ]
+}

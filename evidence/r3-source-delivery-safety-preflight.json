@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-10-23T14:33:23.643384+00:00",
+  "status": "preflight_only_final_run_and_zip_pending",
+  "scope": "Exact package.py source selection; approved synthetic fixture credentials read only in memory; no unrelated credentials opened; no credential values recorded.",
+  "package_script_sha256": "7edd1f1be61f19d4d9361c34f76a0244adf74baf54354de31876944c5b2b05f6",
+  "selected_file_count": 335,
+  "selected_bytes": 6519293,
+  "excluded_file_count": 27,
+  "excluded_symlink_paths": [],
+  "largest_selected_files": [
+    {
+      "path": "evidence/r3-native-stress-run1/stress.json",
+      "bytes": 3192125
+    },
+    {
+      "path": "web/package-lock.json",
+      "bytes": 194441
+    },
+    {
+      "path": "docs/openapi.json",
+      "bytes": 152154
+    },
+    {
+      "path": "docs/engineering-handoff.md",
+      "bytes": 66832
+    },
+    {
+      "path": "evidence/source-r3/aggregate/source-checks.log",
+      "bytes": 64857
+    },
+    {
+      "path": "tests/integration/stress_acceptance.py",
+      "bytes": 58631
+    },
+    {
+      "path": "docs/mcp-tools.json",
+      "bytes": 54799
+    },
+    {
+      "path": "evidence/selftest-candidate/source-checks.log",
+      "bytes": 50080
+    },
+    {
+      "path": "internal/application/worker.go",
+      "bytes": 43539
+    },
+    {
+      "path": "docs/acceptance.json",
+      "bytes": 38740
+    }
+  ],
+  "per_file_limit_bytes": 10485760,
+  "over_limit_files": [],
+  "known_synthetic_secret_match_fields": [],
+  "generic_sensitive_patterns": [],
+  "suspicious_runtime_or_credential_files": [],
+  "source_tree_sha256": "3b191bad86ad81401b6f997cc46e7292a5d7949eb403736d1f332ca87c5b71ef",
+  "r2_sha256": "b9ef224f8f5ce33a6a1429dd54133ea3d01df06a300247ae3d110f35a2162387",
+  "r2_unchanged": true,
+  "bounded_stress_report_pending": true,
+  "zip_verification": "pending_parent_artifact_path",
+  "reviewed_example_configuration_files": [
+    {
+      "path": "deploy/compose/.env.example",
+      "review": "no active credential-like assignments; source template only",
+      "credential_like_fields": []
+    },
+    {
+      "path": "web/.env.example",
+      "review": "no active credential-like assignments; source template only",
+      "credential_like_fields": []
+    }
+  ]
+}

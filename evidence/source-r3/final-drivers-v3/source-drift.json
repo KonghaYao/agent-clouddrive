@@ -1,0 +1,5 @@
+{
+  "changed_during_final_driver_run": [
+    "tests/integration/test_stress_acceptance.py"
+  ]
+}

@@ -1,0 +1,1 @@
+{"probe": "existing_native_retention_directory_read_only", "status": 207, "dav_multistatus": true, "scope": "TLS-verified native Graph and PROPFIND only; no mutation"}

@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "scope": "Frozen candidate real native joint API repeat including raw Meilisearch paths before MOVE and after MOVE/restore; no browser, Compose, Peri or10GiB claim.",
+  "execution": "executed",
+  "started_at": "2026-10-23T11:46:36.859033+00:00",
+  "finished_at": "2026-10-23T11:47:02.684972+00:00",
+  "case_count": 5,
+  "assertion_count": 186,
+  "source_unchanged_from_prelaunch": true,
+  "prelaunch": {
+    "source_tree_sha256": "814000c69a89eebd8cc3366f50718df1e6501ae1f2cad9ba1fd3da04fb956f02",
+    "files": {
+      "tests/integration/deployed_api_acceptance.py": "da990d804f66e705b488ff9765cca28051590fc39dd2aab91aba15381fbd8e27",
+      "tests/integration/deployed_api_harness.py": "45ed31f65731dca331c24329e6909d847e18fa0d5e2e303d18e4c7e381663ddf",
+      "internal/application/worker.go": "efb126ed0263e4cdce8ace94329f3a74332dfa2e8a086595a6fdab08176e971f",
+      "internal/application/worker_test.go": "a77678931a669fabdac19c358fd8012dbf8971b8f4eed203774e4950a1b8ceb3"
+    },
+    "native_binaries": {
+      "native-api": "6e867df3723e1f5ad0f86d193234e6b8954abb78247dca9ca6df5eca01fc1c33",
+      "native-worker": "8c5e62d03bbe497a8604533140f21ba270d4201b0c24de436b8b8ce0e0426ae2",
+      "native-maintenance": "0a89104ab43a9771483f3f1ae5d5122f169a6f1bbf8b0ca095e877ff133c2d63"
+    }
+  },
+  "report_sha256": "ee14b85bc5ab0e18fed1cb4e976a8d716c565a5c77b6ad04d713563b922f4c62",
+  "dependency_fixture_versions": {
+    "Keycloak": "26.8.1",
+    "oCIS": "8.2.2",
+    "PostgreSQL": "17.11",
+    "NATS": "2.15.1",
+    "Meilisearch": "1.55.0"
+  },
+  "storage_mode": "local",
+  "test_data": "Synthetic disposable fixture accounts, files, grants and history only; retained, no purge.",
+  "previous_regression": "deployed-api-subtree-search-run1.json intentionally retained as failed.",
+  "limitations": [
+    "Native processes in one execution namespace, not Docker Compose.",
+    "No browser or10GiB execution.",
+    "Owner retained history only, not an explicit nonowner audit-grant scenario.",
+    "Unauthenticated REST routes only, not full authenticated scope/group matrix."
+  ]
+}

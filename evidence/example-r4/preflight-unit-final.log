@@ -1,0 +1,28 @@
+test_concurrent_preflight_cannot_dispatch_or_replace_marker (test_local_demo_preflight.PreflightTests.test_concurrent_preflight_cannot_dispatch_or_replace_marker) ... ok
+test_current_get_stale_ifmatch_denied_does_not_claim_native_cas (test_local_demo_preflight.PreflightTests.test_current_get_stale_ifmatch_denied_does_not_claim_native_cas) ... ok
+test_current_get_stale_ifmatch_ignored_is_observed_not_required (test_local_demo_preflight.PreflightTests.test_current_get_stale_ifmatch_ignored_is_observed_not_required) ... ok
+test_dispatched_but_unacknowledged_journal_blocks_before_network (test_local_demo_preflight.PreflightTests.test_dispatched_but_unacknowledged_journal_blocks_before_network) ... ok
+test_foreign_revision_href_is_not_read_or_trusted (test_local_demo_preflight.PreflightTests.test_foreign_revision_href_is_not_read_or_trusted) ... ok
+test_foreign_signed_location_never_receives_token_or_patch (test_local_demo_preflight.PreflightTests.test_foreign_signed_location_never_receives_token_or_patch) ... ok
+test_missing_old_revision_after_move_fails_gate (test_local_demo_preflight.PreflightTests.test_missing_old_revision_after_move_fails_gate) ... ok
+test_move_identity_change_fails_gate (test_local_demo_preflight.PreflightTests.test_move_identity_change_fails_gate) ... ok
+test_native_same_resource_meta_self_collection_is_accepted (test_local_demo_preflight.PreflightTests.test_native_same_resource_meta_self_collection_is_accepted) ... ok
+test_native_server_failure_is_unknown (test_local_demo_preflight.PreflightTests.test_native_server_failure_is_unknown) ... ok
+test_previous_success_marker_invalidated_on_failed_live_recheck (test_local_demo_preflight.PreflightTests.test_previous_success_marker_invalidated_on_failed_live_recheck) ... ok
+test_reject_native_url_escape (test_local_demo_preflight.PreflightTests.test_reject_native_url_escape) ... ok
+test_response_loss_blocks_without_replaying_mutation (test_local_demo_preflight.PreflightTests.test_response_loss_blocks_without_replaying_mutation) ... ok
+test_stale_admission_acceptance_cannot_enable_gate (test_local_demo_preflight.PreflightTests.test_stale_admission_acceptance_cannot_enable_gate) ... ok
+test_successful_rerun_only_reads (test_local_demo_preflight.PreflightTests.test_successful_rerun_only_reads) ... ok
+test_symlink_lock_is_rejected (test_local_demo_preflight.PreflightTests.test_symlink_lock_is_rejected) ... ok
+test_synthetic_happy_contract_only (test_local_demo_preflight.PreflightTests.test_synthetic_happy_contract_only) ... ok
+test_unrelated_meta_collection_is_not_silently_skipped (test_local_demo_preflight.PreflightTests.test_unrelated_meta_collection_is_not_silently_skipped) ... ok
+test_unverified_token_claims_alone_cannot_pass (test_local_demo_preflight.PreflightTests.test_unverified_token_claims_alone_cannot_pass) ... ok
+test_weak_etag_rejected (test_local_demo_preflight.PreflightTests.test_weak_etag_rejected) ... ok
+test_wrong_runtime_journal_never_replayed (test_local_demo_preflight.PreflightTests.test_wrong_runtime_journal_never_replayed) ... ok
+test_xml_dtd_is_rejected (test_local_demo_preflight.PreflightTests.test_xml_dtd_is_rejected) ... ok
+test_xml_ignores_failed_propstats (test_local_demo_preflight.PreflightTests.test_xml_ignores_failed_propstats) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 0.098s
+
+OK

@@ -1,0 +1,40 @@
+{
+  "comparison": "aggregate input snapshot vs v6 observability-driver snapshot",
+  "changed_files": {
+    "tests/integration/STRESS_ACCEPTANCE.md": {
+      "aggregate_sha256": "676af6acdabbaa5e0990433db00285a7089b692279a833fe0813362ae9f449fc",
+      "latest_sha256": "ec28928e52bcb5d04a42881335a2914d0ba6380f123766296ade38a33d5f710b"
+    },
+    "tests/integration/native_load_runner.py": {
+      "aggregate_sha256": "6ad60efcd42cd9914ea81ac2e676a7eaa99142dae12bd439115743e2e752dbe4",
+      "latest_sha256": "7aa132e46e20d8e36fd6b6c6b17f71b73340ea06e663cef23fb8aefef51b1d12"
+    },
+    "tests/integration/stress_acceptance.py": {
+      "aggregate_sha256": "32943080de2d77ea03c78121a4d5a8f128808b0a2c6805eab2b0d2c7923e9afa",
+      "latest_sha256": "ecdaf4fc83f79001902d7954abb98b0937cd863e2d6de7c88591d7aab10803ba"
+    },
+    "tests/integration/test_native_load_runner.py": {
+      "aggregate_sha256": "5e3de0dc1bf8568eda61a01dc8dd0fedbe723247e465cc2bb8fd2aebead739e5",
+      "latest_sha256": "dea318df47c30e3111082addca484f6b4022a7c3d64f29554d24dc278fdb95cf"
+    },
+    "tests/integration/test_stress_acceptance.py": {
+      "aggregate_sha256": "6763f29e5e4dc6aea3a68fee435e1acc65c955236e4b2cac9a73cd31ea2fdd73",
+      "latest_sha256": "190f1a9bb59a71e49b29d35c273e420f3be3fda89d697c3cc17f33ecd0aa2e7b"
+    }
+  },
+  "changed_since_v5": {
+    "tests/integration/STRESS_ACCEPTANCE.md": {
+      "v5_sha256": "b42169439b858b226b43885ce64fe767409b45a058fe215f69acaa7e6887c86f",
+      "v6_sha256": "ec28928e52bcb5d04a42881335a2914d0ba6380f123766296ade38a33d5f710b"
+    },
+    "tests/integration/stress_acceptance.py": {
+      "v5_sha256": "7d0c3c95d517fc9b7c503b4892515123b31872191ee809c57e0a33fa10d623d2",
+      "v6_sha256": "ecdaf4fc83f79001902d7954abb98b0937cd863e2d6de7c88591d7aab10803ba"
+    },
+    "tests/integration/test_stress_acceptance.py": {
+      "v5_sha256": "9d23e59417c03bb82bd730fe99ede77959c44f6319581c0ee711aa4f7300d447",
+      "v6_sha256": "190f1a9bb59a71e49b29d35c273e420f3be3fda89d697c3cc17f33ecd0aa2e7b"
+    }
+  },
+  "all_changed_files_are_integration_driver_guard_or_documentation": true
+}

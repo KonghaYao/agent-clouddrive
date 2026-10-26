@@ -1,0 +1,123 @@
+{
+  "resolved_at": "2026-10-23T06:42:49.393993+00:00",
+  "images": [
+    {
+      "image": "postgres:17.11-alpine",
+      "digest": "sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb",
+      "pinned": "postgres:17.11-alpine@sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "nats:2.15.1-alpine",
+      "digest": "sha256:7ae34c25dfd6fe2e01c6483eabef20d796690fdcac6c4d94ca780a6cf9877fde",
+      "pinned": "nats:2.15.1-alpine@sha256:7ae34c25dfd6fe2e01c6483eabef20d796690fdcac6c4d94ca780a6cf9877fde",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "getmeili/meilisearch:v1.55.0",
+      "digest": "sha256:ff546679970126f8822e15d1b6a06bfbff1f2ce2e43f810cfb5258012f92de5c",
+      "pinned": "getmeili/meilisearch:v1.55.0@sha256:ff546679970126f8822e15d1b6a06bfbff1f2ce2e43f810cfb5258012f92de5c",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "owncloud/ocis:8.2.2",
+      "digest": "sha256:9d23fef10e2ee883b73e7c67698da70a62124128e49245396718e94a4cfd7a02",
+      "pinned": "owncloud/ocis:8.2.2@sha256:9d23fef10e2ee883b73e7c67698da70a62124128e49245396718e94a4cfd7a02",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "rustfs/rustfs:1.0.3",
+      "digest": "sha256:9ca9559533b537d10482fe923288b676ad08f92a7069d9a17327fbae3cab688b",
+      "pinned": "rustfs/rustfs:1.0.3@sha256:9ca9559533b537d10482fe923288b676ad08f92a7069d9a17327fbae3cab688b",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "quay.io/keycloak/keycloak:26.8.1",
+      "digest": "sha256:79c623a22abacf3fe6c00a5fb30f5b7843d717b234033b80995891c06116d244",
+      "pinned": "quay.io/keycloak/keycloak:26.8.1@sha256:79c623a22abacf3fe6c00a5fb30f5b7843d717b234033b80995891c06116d244",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "keking/kkfileview:5.0.3",
+      "status": "lookup_failed",
+      "error_type": "HTTPError",
+      "runtime_tested": false
+    },
+    {
+      "image": "busybox:1.37.0",
+      "digest": "sha256:bdf57e528e45e4433820e045b29b4597825a1c9e38353532d90a01445013f82e",
+      "pinned": "busybox:1.37.0@sha256:bdf57e528e45e4433820e045b29b4597825a1c9e38353532d90a01445013f82e",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "python:3.12.12-slim-bookworm",
+      "digest": "sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c",
+      "pinned": "python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "golang:1.25.0-bookworm",
+      "digest": "sha256:81dc45d05a7444ead8c92a389621fafabc8e40f8fd1a19d7e5df14e61e98bc1a",
+      "pinned": "golang:1.25.0-bookworm@sha256:81dc45d05a7444ead8c92a389621fafabc8e40f8fd1a19d7e5df14e61e98bc1a",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "node:22.14.0-alpine3.21",
+      "digest": "sha256:9bef0ef1e268f60627da9ba7d7605e8831d5b56ad07487d24d1aa386336d1944",
+      "pinned": "node:22.14.0-alpine3.21@sha256:9bef0ef1e268f60627da9ba7d7605e8831d5b56ad07487d24d1aa386336d1944",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "nginx:1.28.0-alpine",
+      "digest": "sha256:30f1c0d78e0ad60901648be663a710bdadf19e4c10ac6782c235200619158284",
+      "pinned": "nginx:1.28.0-alpine@sha256:30f1c0d78e0ad60901648be663a710bdadf19e4c10ac6782c235200619158284",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "alpine:3.21.3",
+      "digest": "sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c",
+      "pinned": "alpine:3.21.3@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "maven:3.9.11-eclipse-temurin-21",
+      "digest": "sha256:6fdc855a6ed81d288ca7ca37ac6ff5e9308b612485c0801d70b25a858c83d237",
+      "pinned": "maven:3.9.11-eclipse-temurin-21@sha256:6fdc855a6ed81d288ca7ca37ac6ff5e9308b612485c0801d70b25a858c83d237",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    },
+    {
+      "image": "eclipse-temurin:21.0.9_10-jre-jammy",
+      "digest": "sha256:cc11c035bb25cc709d7b1e3f43cbff15d69e06e2dba23eec431b64627d27e705",
+      "pinned": "eclipse-temurin:21.0.9_10-jre-jammy@sha256:cc11c035bb25cc709d7b1e3f43cbff15d69e06e2dba23eec431b64627d27e705",
+      "media_type": "application/vnd.oci.image.index.v1+json",
+      "status": "registry_manifest_resolved",
+      "runtime_tested": false
+    }
+  ]
+}

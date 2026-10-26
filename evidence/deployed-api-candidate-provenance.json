@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "scope": "New actual native deployed API scenarios, no browser/Compose/Peri/10 GiB claim",
+  "execution": "executed",
+  "status": "pass",
+  "ended_at": "2026-10-23T11:19:54.854776+00:00",
+  "case_count": 5,
+  "assertion_count": 178,
+  "native_binaries": {
+    "native-api": "b7877ff44ca052d2711073e1df0fb282c0cd7a3ef76ffa04f52b40e4069e4833",
+    "native-worker": "bf33d363449405d7dbf9d99dc278a251e5acb62be3a02665fee8356bf3bf4e30",
+    "native-maintenance": "47e3fac08f1c9e97140e9616fd3441d3f19483434934d311e2360d3651ea0367"
+  },
+  "dependency_fixture_versions": {
+    "Keycloak": "26.8.1",
+    "oCIS": "8.2.2",
+    "PostgreSQL": "17.11",
+    "NATS": "2.15.1",
+    "Meilisearch": "1.55.0"
+  },
+  "storage_mode": "local",
+  "limitations": [
+    "Native same-exec processes, not delivered Docker Compose",
+    "No browser or 10 GiB test executed",
+    "Separate audit-grant authorization and search path eventual convergence not asserted",
+    "Synthetic files/history/directories and approved fixture-only shares retained; no permanent cleanup"
+  ],
+  "hash_capture_note": "Hashes were captured shortly AFTER the completed native run, not atomically at process launch. They identify the then-current inspection snapshot. The candidate driver later received output-writer hardening and added subtree search assertions; old results are not rebound to newer code. Native application binaries were not rebuilt or edited during this run.",
+  "post_run_snapshot_sha256": {
+    "tests/integration/deployed_api_acceptance.py": "d83461b95b280b54177efaef23d762e32ea7865e69df3f5b77ee226ad554307f",
+    "tests/integration/deployed_api_harness.py": "ba085098024684883325ecbd0d1bc6f07d0355c827a5cf7bbc7fa88f1d3e7d95",
+    "evidence/deployed-api-candidate-run1.json": "c7636bf328c438f3aabb72448ed9940207b84934a39ec1ab3368152d889e6a59"
+  },
+  "post_run_scenario_snapshot_sha256": {
+    "retained_versions": "3af35ea3061e1d4fcd685f4c829fadc93a282af8fc1909fa4489bef1c25f2848",
+    "subtree": "09f704b6359439f14ccc22cdca16a222ca2fb75ba4fb287e03ae8f0895451143",
+    "restore_conflict": "dfeac005cdb07cad0607e41aeeb84510ec4255efcb22d5ec543956eb5f2e2d34",
+    "batch100": "82b0907d0fc09ad6f327d3c972f0d72f5652c8c74a0a8e27dced9783a3a1c0a3",
+    "unauthorized": "ac93d1db53feb5f064e647ef128b425754c609f9d8d1b152280cb0069020ff58"
+  }
+}

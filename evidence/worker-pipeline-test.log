@@ -1,0 +1,14 @@
+=== RUN   TestDirectTextTruthfulness
+--- PASS: TestDirectTextTruthfulness (0.00s)
+=== RUN   TestPageProvenanceIsNotInvented
+--- PASS: TestPageProvenanceIsNotInvented (0.00s)
+=== RUN   TestConversionFailureClassification
+--- PASS: TestConversionFailureClassification (0.00s)
+=== RUN   TestWorkerLimitPreservesOriginal
+--- PASS: TestWorkerLimitPreservesOriginal (0.15s)
+=== RUN   TestWorkerPostgresNATSMeiliIntegration
+--- PASS: TestWorkerPostgresNATSMeiliIntegration (1.22s)
+=== RUN   TestManifestNeverContainsDelegation
+--- PASS: TestManifestNeverContainsDelegation (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	2.383s

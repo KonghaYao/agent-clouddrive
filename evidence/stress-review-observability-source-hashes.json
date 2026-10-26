@@ -1,0 +1,14 @@
+{
+  "scope": "Post-test snapshot after max64, watchdog, retention-isolation and per-stage resource reporting corrections; not prelaunch attestation.",
+  "timestamp": "2026-10-23T14:40:55.017077+00:00",
+  "sha256": {
+    "internal/application/worker.go": "b5eb5a19c79269ed67c3bc2307cd1e8ee3028132c964377dd1e221d27f5f05db",
+    "internal/application/stress_review_test.go": "cc4d6f4b287810069f2b410666cea41e7784219b6ba76d25b128d79d98036312",
+    "internal/adapters/search/chunk.go": "32466476b225a6df8034678444af558b7bded77cc02264ee788215618f533cfc",
+    "db/queries/outbox.sql": "4c6ca3dbc45bca3549cbe55187643a6763f69cbf31d7abea8feb4942c7831651",
+    "internal/dbgen/outbox.sql.go": "81823a6c2dbb89d754292caa9a12dafbce090828371bf0bf67ed5c1c1956082c",
+    "tests/integration/stress_acceptance.py": "ecdaf4fc83f79001902d7954abb98b0937cd863e2d6de7c88591d7aab10803ba",
+    "tests/integration/fault_acceptance.py": "b7c1cb88ba0659f6e3ec9e281af1fd0407c733e19dc1ba7002a309fc81d70f47",
+    "tests/integration/native_load_runner.py": "7aa132e46e20d8e36fd6b6c6b17f71b73340ea06e663cef23fb8aefef51b1d12"
+  }
+}

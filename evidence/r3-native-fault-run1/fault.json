@@ -1,0 +1,399 @@
+{
+  "schema_version": 1,
+  "suite": "bounded-local-faults",
+  "execution": "executed",
+  "status": "partial",
+  "full_fault_acceptance": "partial",
+  "selected_status": "pass",
+  "started_at": "2026-10-23T14:06:26.887645+00:00",
+  "metric_definitions": {
+    "injected_downtime_seconds": "Process stop invocation to confirmed restarted process liveness; not dependency health or API availability.",
+    "recovery_seconds": "Restarted process liveness to confirmed durable job/outbox drain and exact search visibility.",
+    "availability_errors_during_injected_downtime": "API request errors inside the intentionally injected process-stop window.",
+    "unexpected_availability_errors": "API request errors outside that injected window, including recovery checks.",
+    "injected_response_losses": "Successful real upstream finalize responses deliberately dropped before any client response bytes."
+  },
+  "cases": [
+    {
+      "scenario": "worker_restart",
+      "status": "pass",
+      "checks": [
+        {
+          "name": "isolated_fixture_has_no_pending_quota",
+          "status": "pass"
+        },
+        {
+          "name": "real_native_upload_bytes_acknowledged",
+          "status": "pass"
+        },
+        {
+          "name": "original_commit_confirmed",
+          "status": "pass"
+        },
+        {
+          "name": "single_original_version_upload_and_quota_settlement",
+          "status": "pass"
+        },
+        {
+          "name": "exact_latest_original_quota",
+          "status": "pass"
+        },
+        {
+          "name": "no_false_ready_while_dependency_absent",
+          "status": "pass"
+        },
+        {
+          "name": "test_owned_service_exit_observed",
+          "status": "pass"
+        },
+        {
+          "name": "test_owned_process_restarted_within_10_seconds",
+          "status": "pass"
+        },
+        {
+          "name": "recovery_within_120_seconds",
+          "status": "pass"
+        },
+        {
+          "name": "single_original_version_upload_and_quota_settlement",
+          "status": "pass"
+        },
+        {
+          "name": "durable_job_and_outbox_drained_once",
+          "status": "pass"
+        },
+        {
+          "name": "exact_latest_original_quota",
+          "status": "pass"
+        },
+        {
+          "name": "no_false_completed_file_state",
+          "status": "pass"
+        },
+        {
+          "name": "search_artifact_matches_published_file_pointer",
+          "status": "pass"
+        },
+        {
+          "name": "exact_retained_version_identity",
+          "status": "pass"
+        },
+        {
+          "name": "current_original_bytes_retained",
+          "status": "pass"
+        },
+        {
+          "name": "pinned_original_bytes_retained",
+          "status": "pass"
+        },
+        {
+          "name": "search_exact_file_version_artifact_ids_and_single_hit",
+          "status": "pass"
+        },
+        {
+          "name": "no_unexpected_api_availability_errors",
+          "status": "pass"
+        }
+      ],
+      "metrics": {
+        "injected_downtime_seconds": 0.6173,
+        "injected_response_losses": 0,
+        "availability_errors_during_injected_downtime": 0,
+        "unexpected_availability_errors": 0,
+        "recovery_seconds": 2.1963
+      }
+    },
+    {
+      "scenario": "nats_recovery",
+      "status": "pass",
+      "checks": [
+        {
+          "name": "isolated_fixture_has_no_pending_quota",
+          "status": "pass"
+        },
+        {
+          "name": "real_native_upload_bytes_acknowledged",
+          "status": "pass"
+        },
+        {
+          "name": "original_commit_confirmed",
+          "status": "pass"
+        },
+        {
+          "name": "durable_work_attempt_observed_during_dependency_absence",
+          "status": "pass"
+        },
+        {
+          "name": "single_original_version_upload_and_quota_settlement",
+          "status": "pass"
+        },
+        {
+          "name": "exact_latest_original_quota",
+          "status": "pass"
+        },
+        {
+          "name": "committed_outbox_pending_during_nats_absence",
+          "status": "pass"
+        },
+        {
+          "name": "test_owned_service_exit_observed",
+          "status": "pass"
+        },
+        {
+          "name": "test_owned_process_restarted_within_10_seconds",
+          "status": "pass"
+        },
+        {
+          "name": "recovery_within_120_seconds",
+          "status": "pass"
+        },
+        {
+          "name": "single_original_version_upload_and_quota_settlement",
+          "status": "pass"
+        },
+        {
+          "name": "durable_job_and_outbox_drained_once",
+          "status": "pass"
+        },
+        {
+          "name": "exact_latest_original_quota",
+          "status": "pass"
+        },
+        {
+          "name": "no_false_completed_file_state",
+          "status": "pass"
+        },
+        {
+          "name": "search_artifact_matches_published_file_pointer",
+          "status": "pass"
+        },
+        {
+          "name": "exact_retained_version_identity",
+          "status": "pass"
+        },
+        {
+          "name": "current_original_bytes_retained",
+          "status": "pass"
+        },
+        {
+          "name": "pinned_original_bytes_retained",
+          "status": "pass"
+        },
+        {
+          "name": "search_exact_file_version_artifact_ids_and_single_hit",
+          "status": "pass"
+        },
+        {
+          "name": "no_unexpected_api_availability_errors",
+          "status": "pass"
+        }
+      ],
+      "metrics": {
+        "injected_downtime_seconds": 0.9509,
+        "injected_response_losses": 0,
+        "availability_errors_during_injected_downtime": 0,
+        "unexpected_availability_errors": 0,
+        "recovery_seconds": 1.4832
+      }
+    },
+    {
+      "scenario": "meili_recovery",
+      "status": "pass",
+      "checks": [
+        {
+          "name": "isolated_fixture_has_no_pending_quota",
+          "status": "pass"
+        },
+        {
+          "name": "real_native_upload_bytes_acknowledged",
+          "status": "pass"
+        },
+        {
+          "name": "original_commit_confirmed",
+          "status": "pass"
+        },
+        {
+          "name": "durable_work_attempt_observed_during_dependency_absence",
+          "status": "pass"
+        },
+        {
+          "name": "single_original_version_upload_and_quota_settlement",
+          "status": "pass"
+        },
+        {
+          "name": "exact_latest_original_quota",
+          "status": "pass"
+        },
+        {
+          "name": "no_false_ready_while_dependency_absent",
+          "status": "pass"
+        },
+        {
+          "name": "test_owned_service_exit_observed",
+          "status": "pass"
+        },
+        {
+          "name": "test_owned_process_restarted_within_10_seconds",
+          "status": "pass"
+        },
+        {
+          "name": "recovery_within_120_seconds",
+          "status": "pass"
+        },
+        {
+          "name": "single_original_version_upload_and_quota_settlement",
+          "status": "pass"
+        },
+        {
+          "name": "durable_job_and_outbox_drained_once",
+          "status": "pass"
+        },
+        {
+          "name": "exact_latest_original_quota",
+          "status": "pass"
+        },
+        {
+          "name": "no_false_completed_file_state",
+          "status": "pass"
+        },
+        {
+          "name": "search_artifact_matches_published_file_pointer",
+          "status": "pass"
+        },
+        {
+          "name": "exact_retained_version_identity",
+          "status": "pass"
+        },
+        {
+          "name": "current_original_bytes_retained",
+          "status": "pass"
+        },
+        {
+          "name": "pinned_original_bytes_retained",
+          "status": "pass"
+        },
+        {
+          "name": "search_exact_file_version_artifact_ids_and_single_hit",
+          "status": "pass"
+        },
+        {
+          "name": "no_unexpected_api_availability_errors",
+          "status": "pass"
+        }
+      ],
+      "metrics": {
+        "injected_downtime_seconds": 0.575,
+        "injected_response_losses": 0,
+        "availability_errors_during_injected_downtime": 0,
+        "unexpected_availability_errors": 0,
+        "recovery_seconds": 3.9062
+      }
+    },
+    {
+      "scenario": "lost_finalize_response",
+      "status": "pass",
+      "checks": [
+        {
+          "name": "isolated_fixture_has_no_pending_quota",
+          "status": "pass"
+        },
+        {
+          "name": "real_native_upload_bytes_acknowledged",
+          "status": "pass"
+        },
+        {
+          "name": "actual_committed_finalize_response_dropped_before_client_bytes",
+          "status": "pass"
+        },
+        {
+          "name": "lost_response_preserves_original_file_identity",
+          "status": "pass"
+        },
+        {
+          "name": "same_idempotency_key_reuses_original_upload",
+          "status": "pass"
+        },
+        {
+          "name": "lost_response_replay_reuses_committed_version",
+          "status": "pass"
+        },
+        {
+          "name": "replay_creates_no_original_version_or_quota_duplicate",
+          "status": "pass"
+        },
+        {
+          "name": "recovery_within_120_seconds",
+          "status": "pass"
+        },
+        {
+          "name": "single_original_version_upload_and_quota_settlement",
+          "status": "pass"
+        },
+        {
+          "name": "durable_job_and_outbox_drained_once",
+          "status": "pass"
+        },
+        {
+          "name": "exact_latest_original_quota",
+          "status": "pass"
+        },
+        {
+          "name": "no_false_completed_file_state",
+          "status": "pass"
+        },
+        {
+          "name": "search_artifact_matches_published_file_pointer",
+          "status": "pass"
+        },
+        {
+          "name": "exact_retained_version_identity",
+          "status": "pass"
+        },
+        {
+          "name": "current_original_bytes_retained",
+          "status": "pass"
+        },
+        {
+          "name": "pinned_original_bytes_retained",
+          "status": "pass"
+        },
+        {
+          "name": "search_exact_file_version_artifact_ids_and_single_hit",
+          "status": "pass"
+        },
+        {
+          "name": "no_unexpected_api_availability_errors",
+          "status": "pass"
+        }
+      ],
+      "metrics": {
+        "injected_downtime_seconds": 0,
+        "injected_response_losses": 1,
+        "availability_errors_during_injected_downtime": 0,
+        "unexpected_availability_errors": 0,
+        "recovery_seconds": 1.6893
+      }
+    },
+    {
+      "scenario": "native_move_response_loss",
+      "status": "not_run",
+      "reason": "not_selected",
+      "checks": [],
+      "metrics": {
+        "injected_downtime_seconds": 0,
+        "injected_response_losses": 0,
+        "availability_errors_during_injected_downtime": 0,
+        "unexpected_availability_errors": 0,
+        "recovery_seconds": 0
+      }
+    }
+  ],
+  "limitations": [
+    "Synthetic originals and history are retained; no purge or cleanup deletion.",
+    "Graceful worker exit before commit and pending-job restart, not SIGKILL, OOM, or an in-flight crash.",
+    "Native MOVE requires a pre-provisioned stable logical gateway and independent native identity/history proof; not implemented by these process hooks.",
+    "No browser, Docker/Compose, Peri, 10 GiB, multi-host, or full release acceptance claim."
+  ],
+  "configuration": "valid",
+  "finished_at": "2026-10-23T14:06:45.363288+00:00"
+}

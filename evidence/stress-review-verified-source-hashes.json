@@ -1,0 +1,14 @@
+{
+  "recorded_at": "2026-10-23T14:01:25.371139+00:00",
+  "scope": "Post-test reviewed file hashes; independent regression/driver checks, not prelaunch native-stack attestation.",
+  "files": {
+    "internal/application/worker.go": "b5eb5a19c79269ed67c3bc2307cd1e8ee3028132c964377dd1e221d27f5f05db",
+    "internal/application/stress_review_test.go": "cc4d6f4b287810069f2b410666cea41e7784219b6ba76d25b128d79d98036312",
+    "internal/adapters/search/chunk.go": "32466476b225a6df8034678444af558b7bded77cc02264ee788215618f533cfc",
+    "db/queries/outbox.sql": "4c6ca3dbc45bca3549cbe55187643a6763f69cbf31d7abea8feb4942c7831651",
+    "internal/dbgen/outbox.sql.go": "81823a6c2dbb89d754292caa9a12dafbce090828371bf0bf67ed5c1c1956082c",
+    "tests/integration/stress_acceptance.py": "32943080de2d77ea03c78121a4d5a8f128808b0a2c6805eab2b0d2c7923e9afa",
+    "tests/integration/fault_acceptance.py": "b7c1cb88ba0659f6e3ec9e281af1fd0407c733e19dc1ba7002a309fc81d70f47",
+    "tests/integration/native_load_runner.py": "d5b29c0cef30e07c0793c38a241b1bdb9b3589480c8a146e6c3539d97a730322"
+  }
+}

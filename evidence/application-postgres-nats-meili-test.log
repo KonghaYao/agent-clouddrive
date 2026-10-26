@@ -1,0 +1,58 @@
+=== RUN   TestMutationMkdirRenameAndIdempotence
+--- PASS: TestMutationMkdirRenameAndIdempotence (0.17s)
+=== RUN   TestMutationUnknownOutcomeBlocksAndRetains
+--- PASS: TestMutationUnknownOutcomeBlocksAndRetains (0.16s)
+=== RUN   TestMutationDeleteRestoreAndQuota
+--- PASS: TestMutationDeleteRestoreAndQuota (0.20s)
+=== RUN   TestBatchIndependentAndDependencyBlocked
+--- PASS: TestBatchIndependentAndDependencyBlocked (0.20s)
+=== RUN   TestMkdirDefinitiveFailureReleasesPath
+--- PASS: TestMkdirDefinitiveFailureReleasesPath (0.17s)
+=== RUN   TestMutationReconcilesLostMoveResponse
+--- PASS: TestMutationReconcilesLostMoveResponse (0.16s)
+=== RUN   TestFeedbackLeavesNoIdentityActivityRecord
+--- PASS: TestFeedbackLeavesNoIdentityActivityRecord (0.16s)
+=== RUN   TestOfflineVerifierEncryptionBoundToPrincipal
+--- PASS: TestOfflineVerifierEncryptionBoundToPrincipal (0.00s)
+=== RUN   TestSharePendingDeleteRestoreRequiresFreshConfirmation
+--- PASS: TestSharePendingDeleteRestoreRequiresFreshConfirmation (0.15s)
+=== RUN   TestSharePendingAccountReenableRequiresFreshConfirmation
+--- PASS: TestSharePendingAccountReenableRequiresFreshConfirmation (0.16s)
+=== RUN   TestShareApprovalExpiryCannotExpand
+--- PASS: TestShareApprovalExpiryCannotExpand (0.16s)
+=== RUN   TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant (0.24s)
+=== RUN   TestMaintenanceIdentitySyncDoesNotReviveShares
+--- PASS: TestMaintenanceIdentitySyncDoesNotReviveShares (0.16s)
+=== RUN   TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant (0.23s)
+=== RUN   TestUploadConcurrentOverwriteExcludesEntireTransfer
+--- PASS: TestUploadConcurrentOverwriteExcludesEntireTransfer (0.17s)
+=== RUN   TestUploadIdempotencyConflictAndDuplicateCommit
+--- PASS: TestUploadIdempotencyConflictAndDuplicateCommit (0.13s)
+=== RUN   TestUploadUnknownOutcomeKeepsReservation
+=== RUN   TestUploadUnknownOutcomeKeepsReservation/remote_mutation_outcome_unknown;_reconcile_before_retry
+=== RUN   TestUploadUnknownOutcomeKeepsReservation/transport_connection_reset_after_request_dispatch
+--- PASS: TestUploadUnknownOutcomeKeepsReservation (0.25s)
+    --- PASS: TestUploadUnknownOutcomeKeepsReservation/remote_mutation_outcome_unknown;_reconcile_before_retry (0.13s)
+    --- PASS: TestUploadUnknownOutcomeKeepsReservation/transport_connection_reset_after_request_dispatch (0.12s)
+=== RUN   TestUploadDefinitiveFailureFreesProvisionalPath
+--- PASS: TestUploadDefinitiveFailureFreesProvisionalPath (0.14s)
+=== RUN   TestUploadConcurrentSameKeyAdmitsOnce
+--- PASS: TestUploadConcurrentSameKeyAdmitsOnce (0.13s)
+=== RUN   TestUploadedTrashRetainsQuotaVersionsAndFeedback
+--- PASS: TestUploadedTrashRetainsQuotaVersionsAndFeedback (0.17s)
+=== RUN   TestDirectTextTruthfulness
+--- PASS: TestDirectTextTruthfulness (0.00s)
+=== RUN   TestPageProvenanceIsNotInvented
+--- PASS: TestPageProvenanceIsNotInvented (0.00s)
+=== RUN   TestConversionFailureClassification
+--- PASS: TestConversionFailureClassification (0.00s)
+=== RUN   TestWorkerLimitPreservesOriginal
+--- PASS: TestWorkerLimitPreservesOriginal (0.12s)
+=== RUN   TestWorkerPostgresNATSMeiliIntegration
+--- PASS: TestWorkerPostgresNATSMeiliIntegration (1.25s)
+=== RUN   TestManifestNeverContainsDelegation
+--- PASS: TestManifestNeverContainsDelegation (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	5.697s

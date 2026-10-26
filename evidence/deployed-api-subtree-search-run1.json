@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "suite": "deployed-api",
+  "execution": "executed",
+  "status": "fail",
+  "started_at": "2026-10-23T11:32:08.428631+00:00",
+  "cases": [
+    {
+      "id": "subtree",
+      "acceptance_gate": "A15",
+      "scenario": "subtree",
+      "status": "fail",
+      "checks": [
+        {
+          "name": "subtree_current_versions_really_converted_and_indexed",
+          "status": "pass"
+        },
+        {
+          "name": "raw_index_initial_versions_artifacts_and_source_paths",
+          "status": "pass"
+        },
+        {
+          "name": "move_preserves_directory_id",
+          "status": "pass"
+        },
+        {
+          "name": "root_path_updated",
+          "status": "pass"
+        },
+        {
+          "name": "nested_identity_and_path_updated",
+          "status": "pass"
+        },
+        {
+          "name": "moved_child_identity_path_direct.txt",
+          "status": "pass"
+        },
+        {
+          "name": "move_creates_no_versions_direct.txt",
+          "status": "pass"
+        },
+        {
+          "name": "moved_history_direct.txt0",
+          "status": "pass"
+        },
+        {
+          "name": "moved_history_direct.txt1",
+          "status": "pass"
+        },
+        {
+          "name": "moved_child_identity_path_deep.txt",
+          "status": "pass"
+        },
+        {
+          "name": "move_creates_no_versions_deep.txt",
+          "status": "pass"
+        },
+        {
+          "name": "moved_history_deep.txt0",
+          "status": "pass"
+        },
+        {
+          "name": "moved_history_deep.txt1",
+          "status": "pass"
+        },
+        {
+          "name": "moved_search_preserves_versions_artifacts_and_updates_paths",
+          "status": "pass"
+        },
+        {
+          "name": "raw_index_move_source_paths_converged_without_reconversion",
+          "status": "fail"
+        }
+      ],
+      "raw_index_scope": "pending",
+      "reason": "assertion_failed"
+    }
+  ],
+  "limitations": [
+    "Prepared driver execution is not a historical acceptance result or a release-readiness decision.",
+    "Uses real configured Keycloak PKCE and API only; no browser, Peri, Compose provenance or 10 GiB claim.",
+    "No operator-provisioned audit grants: owner history is read before, during and after deletion; separate auditor-grant routes are not exercised.",
+    "Subtree raw index source_path is checked only when TEST_MEILI_URL is explicitly configured; otherwise raw_index_scope is not_checked.",
+    "Authorization case checks every bearer-protected REST route without credentials, not every authenticated scope/role permutation or MCP.",
+    "Does not disable real identities, change groups, inspect private gateway logs, or inject network/storage failures.",
+    "Synthetic fixture data, versions, share records and explicit offline grants are intentionally retained; no purge or account deletion."
+  ],
+  "configuration": "valid",
+  "fixture_prefix": "api-accept-c7225b6992537b57",
+  "reason": "assertion_failed",
+  "finished_at": "2026-10-23T11:34:16.054861+00:00"
+}

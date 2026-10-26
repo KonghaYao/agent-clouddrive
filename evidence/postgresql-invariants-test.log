@@ -1,0 +1,8 @@
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+psql:/workspace/scratch/61a2b6386f06/agent-clouddrive/db/tests/invariants.sql:128: NOTICE:  PASS: quota, unknown-outcome safeguards, idempotency, immutability, version and generation priority, stale workers, share approval, disable/re-enable, anonymous feedback, ancestor gates
+DO
+ROLLBACK

@@ -1,0 +1,112 @@
+=== RUN   TestMutationMkdirRenameAndIdempotence
+--- PASS: TestMutationMkdirRenameAndIdempotence (0.14s)
+=== RUN   TestMutationUnknownOutcomeBlocksAndRetains
+--- PASS: TestMutationUnknownOutcomeBlocksAndRetains (0.12s)
+=== RUN   TestMutationDeleteRestoreAndQuota
+--- PASS: TestMutationDeleteRestoreAndQuota (0.15s)
+=== RUN   TestBatchIndependentAndDependencyBlocked
+--- PASS: TestBatchIndependentAndDependencyBlocked (0.13s)
+=== RUN   TestMkdirDefinitiveFailureReleasesPath
+--- PASS: TestMkdirDefinitiveFailureReleasesPath (0.11s)
+=== RUN   TestMutationReconcilesLostMoveResponse
+--- PASS: TestMutationReconcilesLostMoveResponse (0.12s)
+=== RUN   TestFeedbackLeavesNoIdentityActivityRecord
+--- PASS: TestFeedbackLeavesNoIdentityActivityRecord (0.12s)
+=== RUN   TestUploadConcurrentOverwriteExcludesEntireTransfer
+--- PASS: TestUploadConcurrentOverwriteExcludesEntireTransfer (0.15s)
+=== RUN   TestUploadIdempotencyConflictAndDuplicateCommit
+--- PASS: TestUploadIdempotencyConflictAndDuplicateCommit (0.11s)
+=== RUN   TestUploadUnknownOutcomeKeepsReservation
+=== RUN   TestUploadUnknownOutcomeKeepsReservation/remote_mutation_outcome_unknown;_reconcile_before_retry
+=== RUN   TestUploadUnknownOutcomeKeepsReservation/transport_connection_reset_after_request_dispatch
+--- PASS: TestUploadUnknownOutcomeKeepsReservation (0.22s)
+    --- PASS: TestUploadUnknownOutcomeKeepsReservation/remote_mutation_outcome_unknown;_reconcile_before_retry (0.13s)
+    --- PASS: TestUploadUnknownOutcomeKeepsReservation/transport_connection_reset_after_request_dispatch (0.10s)
+=== RUN   TestUploadDefinitiveFailureFreesProvisionalPath
+--- PASS: TestUploadDefinitiveFailureFreesProvisionalPath (0.12s)
+=== RUN   TestUploadConcurrentSameKeyAdmitsOnce
+--- PASS: TestUploadConcurrentSameKeyAdmitsOnce (0.10s)
+=== RUN   TestUploadedTrashRetainsQuotaVersionsAndFeedback
+--- PASS: TestUploadedTrashRetainsQuotaVersionsAndFeedback (0.15s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	2.777s
+=== RUN   TestPaths
+--- PASS: TestPaths (0.00s)
+=== RUN   TestMoveAndRevision
+--- PASS: TestMoveAndRevision (0.00s)
+=== RUN   TestImmutableIdentities
+--- PASS: TestImmutableIdentities (0.00s)
+=== RUN   TestQuota
+--- PASS: TestQuota (0.00s)
+=== RUN   TestOperationTransitions
+--- PASS: TestOperationTransitions (0.00s)
+=== RUN   TestIdempotency
+--- PASS: TestIdempotency (0.00s)
+=== RUN   TestAuthorization
+=== RUN   TestAuthorization/disabled
+=== RUN   TestAuthorization/unverified
+=== RUN   TestAuthorization/missing_scope
+=== RUN   TestAuthorization/trashed
+=== RUN   TestAuthorization/ancestor_deleted
+=== RUN   TestAuthorization/agent_received_share
+=== RUN   TestAuthorization/agent_approval
+=== RUN   TestAuthorization/agent_audit
+=== RUN   TestAuthorization/admin_alone_not_audit
+=== RUN   TestAuthorization/unknown_action
+--- PASS: TestAuthorization (0.00s)
+    --- PASS: TestAuthorization/disabled (0.00s)
+    --- PASS: TestAuthorization/unverified (0.00s)
+    --- PASS: TestAuthorization/missing_scope (0.00s)
+    --- PASS: TestAuthorization/trashed (0.00s)
+    --- PASS: TestAuthorization/ancestor_deleted (0.00s)
+    --- PASS: TestAuthorization/agent_received_share (0.00s)
+    --- PASS: TestAuthorization/agent_approval (0.00s)
+    --- PASS: TestAuthorization/agent_audit (0.00s)
+    --- PASS: TestAuthorization/admin_alone_not_audit (0.00s)
+    --- PASS: TestAuthorization/unknown_action (0.00s)
+=== RUN   TestShareAuthorization
+=== RUN   TestShareAuthorization/past_version
+=== RUN   TestShareAuthorization/stale_artifact
+=== RUN   TestShareAuthorization/owner_disabled
+=== RUN   TestShareAuthorization/owner_unavailable
+=== RUN   TestShareAuthorization/grant_disabled
+=== RUN   TestShareAuthorization/expiration_exact
+=== RUN   TestShareAuthorization/wrong_recipient
+=== RUN   TestShareAuthorization/no_group_membership
+=== RUN   TestShareAuthorization/shared_search
+--- PASS: TestShareAuthorization (0.01s)
+    --- PASS: TestShareAuthorization/past_version (0.00s)
+    --- PASS: TestShareAuthorization/stale_artifact (0.00s)
+    --- PASS: TestShareAuthorization/owner_disabled (0.00s)
+    --- PASS: TestShareAuthorization/owner_unavailable (0.00s)
+    --- PASS: TestShareAuthorization/grant_disabled (0.00s)
+    --- PASS: TestShareAuthorization/expiration_exact (0.00s)
+    --- PASS: TestShareAuthorization/wrong_recipient (0.00s)
+    --- PASS: TestShareAuthorization/no_group_membership (0.00s)
+    --- PASS: TestShareAuthorization/shared_search (0.00s)
+=== RUN   TestShareConfirmation
+--- PASS: TestShareConfirmation (0.00s)
+=== RUN   TestConversionCompleteness
+--- PASS: TestConversionCompleteness (0.00s)
+=== RUN   TestPublicationFence
+=== RUN   TestPublicationFence/expired
+=== RUN   TestPublicationFence/old_token
+=== RUN   TestPublicationFence/old_attempt
+=== RUN   TestPublicationFence/queued_index
+=== RUN   TestPublicationFence/requested_replacement
+=== RUN   TestPublicationFence/newer_already_published
+=== RUN   TestPublicationFence/same_already_published
+=== RUN   TestPublicationFence/future_source
+--- PASS: TestPublicationFence (0.00s)
+    --- PASS: TestPublicationFence/expired (0.00s)
+    --- PASS: TestPublicationFence/old_token (0.00s)
+    --- PASS: TestPublicationFence/old_attempt (0.00s)
+    --- PASS: TestPublicationFence/queued_index (0.00s)
+    --- PASS: TestPublicationFence/requested_replacement (0.00s)
+    --- PASS: TestPublicationFence/newer_already_published (0.00s)
+    --- PASS: TestPublicationFence/same_already_published (0.00s)
+    --- PASS: TestPublicationFence/future_source (0.00s)
+=== RUN   TestBatchIndependence
+--- PASS: TestBatchIndependence (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/domain	1.050s

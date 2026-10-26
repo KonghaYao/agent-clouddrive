@@ -1,0 +1,5 @@
+=== RUN   TestOCISIntegration
+    ocis_test.go:197: real oCIS: personal Graph mapping, tus chunk resume, stable ID, response-ETag-gated historical reads, Range, MOVE/restore with history passed; no final native tus CAS claimed
+--- PASS: TestOCISIntegration (7.11s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/ocis	7.118s

@@ -1,0 +1,26 @@
+{
+  "disposable": true,
+  "single_node_compose": true,
+  "storage_mode": "s3",
+  "compose_project": "agent-clouddrive",
+  "public_url": "http://drive.localhost:8080",
+  "containers": {
+    "api": "REPLACE_WITH_ACTUAL_API_CONTAINER_ID",
+    "ocis": "REPLACE_WITH_ACTUAL_OCIS_CONTAINER_ID",
+    "rustfs": "REPLACE_WITH_ACTUAL_RUSTFS_CONTAINER_ID",
+    "gateway": "REPLACE_WITH_ACTUAL_GATEWAY_CONTAINER_ID"
+  },
+  "components": {
+    "uppy_core": "6.3.0",
+    "uppy_tus": "6.0.0",
+    "ocis": "8.2.2",
+    "rustfs": "1.0.3"
+  },
+  "s3": {
+    "probe_endpoint": "http://127.0.0.1:9000",
+    "native_endpoint": "http://rustfs:9000",
+    "region": "us-east-1",
+    "bucket": "clouddrive-originals"
+  },
+  "conversion_max_bytes": 104857600
+}

@@ -1,0 +1,13 @@
+=== RUN   TestSharedContentUsesAuthorizedFixedVersion
+--- PASS: TestSharedContentUsesAuthorizedFixedVersion (0.13s)
+=== RUN   TestObservedDisableNeverRevivesPublicShare
+--- PASS: TestObservedDisableNeverRevivesPublicShare (0.11s)
+=== RUN   TestEarlyFinalizePreservesResumableUpload
+--- PASS: TestEarlyFinalizePreservesResumableUpload (0.11s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	0.350s
+=== RUN   TestMCPProtocolIntegration
+    mcp_test.go:226: official SDK initialized; 21 tools; scoped reads, missing-resource errors, no approval tool, feedback identity-write exclusion passed
+--- PASS: TestMCPProtocolIntegration (0.11s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/transport	0.122s

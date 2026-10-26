@@ -1,0 +1,16 @@
+waiting for server to start.... done
+server started
+Native dependencies ready: PostgreSQL, NATS JetStream, Meilisearch.
+Prepared isolated synthetic realm and TLS-verified native configuration.
+Native Keycloak and oCIS ready (TLS verified).
+{"status": "passed", "phase": "preflight", "checks": {"pkce": true, "confidential_exchange_openid": true, "personal_space": true, "tus_create": true, "tus_overwrite": true, "revision_read": true, "move_stable_id": true, "move_retained_history": true, "stale_admission_denied": true}, "browser_test": "not_run", "compose_runtime": "not_run"}
+2026/10/23 17:14:07 migrations applied
+curl: (7) Failed to connect to 127.0.0.1 port 58083 after 0 ms: Could not connect to server
+{"status": "passed", "phase": "page", "checks": {"actual_built_frontend_html_and_assets": "passed", "runtime_oidc_config": "passed"}, "browser_test": "not_run", "compose_runtime": "not_run"}
+{"status": "passed", "phase": "seed", "checks": {"pkce_profile_and_web_session": "passed", "real_tus_upload": "passed", "immutable_two_versions": "passed", "current_source_search_ready": "passed", "controlled_pdf_png": "passed", "reader_private_isolation": "passed"}, "browser_test": "not_run", "compose_runtime": "not_run"}
+{"status": "passed", "phase": "check", "checks": {"pkce_profile_and_web_session": "passed", "real_tus_upload": "passed", "immutable_two_versions": "passed", "current_source_search_ready": "passed", "controlled_pdf_png": "passed", "reader_private_isolation": "passed"}, "browser_test": "not_run", "compose_runtime": "not_run"}
+{"status": "passed", "phase": "edit", "checks": {"actual_user_style_metadata_edit": "passed"}, "browser_test": "not_run", "compose_runtime": "not_run"}
+curl: (7) Failed to connect to 127.0.0.1 port 58083 after 0 ms: Could not connect to server
+{"status": "passed", "phase": "restart-check", "checks": {"live_ready_after_app_restart": "passed", "user_rename_preserved": "passed", "same_current_version": "passed", "seed_journal_unchanged": "passed", "all_original_history_bytes_retained": "passed"}, "browser_test": "not_run", "compose_runtime": "not_run"}
+{"status": "passed", "phase": "preflight", "checks": {"pkce": true, "confidential_exchange_openid": true, "personal_space": true, "tus_create": true, "tus_overwrite": true, "revision_read": true, "move_stable_id": true, "move_retained_history": true, "stale_admission_denied": true}, "browser_test": "not_run", "compose_runtime": "not_run"}
+Native runtime logs: /workspace/scratch/61a2b6386f06/dependency-runtime/runs/run.VNrmRZrB

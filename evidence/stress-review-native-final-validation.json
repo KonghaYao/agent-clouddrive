@@ -1,0 +1,84 @@
+{
+  "kind": "Independent read-only validation of stored native results, not another live run",
+  "checked_at": "2026-10-23T14:45:40.623500+00:00",
+  "checks": "All stage windows/extrema reproduced from retained raw samples; exact workload/race/drain counts, complete native PPID scope, source stability, deadline and cleanup verified.",
+  "status": "pass",
+  "inputs_sha256": {
+    "evidence/r3-native-resources-final/stress.json": "51c3f3bff29053d488213ac736bc485e84decc5b576ee2f63573bb0993695c87",
+    "evidence/r3-native-resources-final/supervisor.json": "672b976899846ad8720917e3cdda73e6cae80fd311e5ca8d873fabbe1ee72ce1"
+  },
+  "stages": [
+    {
+      "concurrency": 1,
+      "timed_http_requests_per_second": 15.571251381861492,
+      "p99_seconds": 0.18530841400024656,
+      "stage_resource_samples": 38,
+      "peak_rss_bytes": 1292722176,
+      "peak_conversion_pending": 2,
+      "peak_index_pending": 1,
+      "peak_outbox_pending": 6,
+      "peak_active_connections": 2,
+      "peak_waiting_locks": 0
+    },
+    {
+      "concurrency": 4,
+      "timed_http_requests_per_second": 58.86614547048787,
+      "p99_seconds": 0.1793505659998118,
+      "stage_resource_samples": 57,
+      "peak_rss_bytes": 1467215872,
+      "peak_conversion_pending": 15,
+      "peak_index_pending": 1,
+      "peak_outbox_pending": 18,
+      "peak_active_connections": 3,
+      "peak_waiting_locks": 0
+    },
+    {
+      "concurrency": 8,
+      "timed_http_requests_per_second": 96.69992264525129,
+      "p99_seconds": 0.20946016800007783,
+      "stage_resource_samples": 86,
+      "peak_rss_bytes": 1724121088,
+      "peak_conversion_pending": 49,
+      "peak_index_pending": 1,
+      "peak_outbox_pending": 21,
+      "peak_active_connections": 5,
+      "peak_waiting_locks": 1
+    },
+    {
+      "concurrency": 16,
+      "timed_http_requests_per_second": 141.32778262785678,
+      "p99_seconds": 0.2672438469999179,
+      "stage_resource_samples": 118,
+      "peak_rss_bytes": 1848401920,
+      "peak_conversion_pending": 84,
+      "peak_index_pending": 1,
+      "peak_outbox_pending": 29,
+      "peak_active_connections": 6,
+      "peak_waiting_locks": 2
+    },
+    {
+      "concurrency": 32,
+      "timed_http_requests_per_second": 150.00267425889837,
+      "p99_seconds": 0.41344065999965096,
+      "stage_resource_samples": 134,
+      "peak_rss_bytes": 1922273280,
+      "peak_conversion_pending": 101,
+      "peak_index_pending": 1,
+      "peak_outbox_pending": 27,
+      "peak_active_connections": 5,
+      "peak_waiting_locks": 1
+    },
+    {
+      "concurrency": 64,
+      "timed_http_requests_per_second": 144.61041541224714,
+      "p99_seconds": 0.8512636300001759,
+      "stage_resource_samples": 137,
+      "peak_rss_bytes": 2004197376,
+      "peak_conversion_pending": 100,
+      "peak_index_pending": 1,
+      "peak_outbox_pending": 40,
+      "peak_active_connections": 7,
+      "peak_waiting_locks": 6
+    }
+  ]
+}

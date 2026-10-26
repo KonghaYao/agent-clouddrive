@@ -1,0 +1,22 @@
+=== RUN   TestMandatoryOwnerFilterAndNoTotals
+--- PASS: TestMandatoryOwnerFilterAndNoTotals (0.00s)
+=== RUN   TestWaitRequiresSucceeded
+--- PASS: TestWaitRequiresSucceeded (0.00s)
+=== RUN   TestChunkUTF8AndStableProvenance
+--- PASS: TestChunkUTF8AndStableProvenance (0.00s)
+=== RUN   TestMeiliIntegration
+    meili_test.go:126: real Meilisearch: configure, async completion, owner filtering, partial path update, artifact-set deletion passed
+--- PASS: TestMeiliIntegration (0.08s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/search	0.090s
+=== RUN   TestLocalImmutableRoundTrip
+--- PASS: TestLocalImmutableRoundTrip (0.00s)
+=== RUN   TestLocalSymlinkEscapeAndConcurrentPublish
+--- PASS: TestLocalSymlinkEscapeAndConcurrentPublish (0.00s)
+=== RUN   TestS3ConditionalAndChecksumHeaders
+--- PASS: TestS3ConditionalAndChecksumHeaders (0.00s)
+=== RUN   TestS3Integration
+    store_test.go:158: real S3: SigV4, checksum-verified puts, If-None-Match conflict, immutable publish, and Range passed
+--- PASS: TestS3Integration (0.02s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/artifactstore	0.029s

@@ -1,0 +1,20 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> agent-clouddrive-web@1.0.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.5 building client environment for production...
+transforming...
+✓ 3586 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                             0.64 kB │ gzip:   0.40 kB
+dist/assets/index-OrQZDFmE.css              6.60 kB │ gzip:   2.11 kB
+dist/assets/upload-D490b7UZ.css            70.93 kB │ gzip:  11.07 kB
+dist/assets/rolldown-runtime-XKyaHtl9.js    0.72 kB │ gzip:   0.42 kB
+dist/assets/Details-n82rq2I6.js           221.36 kB │ gzip:  67.71 kB
+dist/assets/upload-D5ck1pgk.js            307.90 kB │ gzip:  93.97 kB
+dist/assets/jsx-runtime-DZOqr_iJ.js       516.38 kB │ gzip: 169.60 kB
+dist/assets/index-B9DborF7.js             688.64 kB │ gzip: 213.77 kB
+
+✓ built in 410ms

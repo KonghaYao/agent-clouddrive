@@ -1,0 +1,13 @@
+# Exact direct/transitive adapter dependency lock (Python 3.12).
+firecrawl-anydoc==0.2.4
+pypdf==6.10.0
+pypdfium2==5.14.0
+Pillow==12.3.0
+CairoSVG==2.8.2
+cairocffi==1.7.1
+cffi==2.1.1
+cssselect2==0.10.1
+defusedxml==0.7.1
+pycparser==3.12
+tinycss2==1.5.1
+webencodings==0.5.1

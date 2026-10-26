@@ -1,0 +1,26 @@
+test_changed_evidence (test_release_readiness.ReadinessTests.test_changed_evidence) ... ok
+test_component_not_end_to_end (test_release_readiness.ReadinessTests.test_component_not_end_to_end) ... ok
+test_consistent_fixture (test_release_readiness.ReadinessTests.test_consistent_fixture) ... ok
+test_contract_not_native (test_release_readiness.ReadinessTests.test_contract_not_native) ... ok
+test_duplicate_gate (test_release_readiness.ReadinessTests.test_duplicate_gate) ... ok
+test_invalid_top_level (test_release_readiness.ReadinessTests.test_invalid_top_level) ... ok
+test_malformed_evidence (test_release_readiness.ReadinessTests.test_malformed_evidence) ... ok
+test_missing_file (test_release_readiness.ReadinessTests.test_missing_file) ... ok
+test_missing_required_gate (test_release_readiness.ReadinessTests.test_missing_required_gate) ... ok
+test_partial_blocks (test_release_readiness.ReadinessTests.test_partial_blocks) ... ok
+test_path_escape (test_release_readiness.ReadinessTests.test_path_escape) ... ok
+test_source_bad_status (test_release_readiness.ReadinessTests.test_source_bad_status) ... ok
+test_source_includes_contract_changes (test_release_readiness.ReadinessTests.test_source_includes_contract_changes) ... ok
+test_source_includes_example_launchers (test_release_readiness.ReadinessTests.test_source_includes_example_launchers) ... ok
+test_source_matches_delivery_exclusions (test_release_readiness.ReadinessTests.test_source_matches_delivery_exclusions) ... ok
+test_source_missing_hash (test_release_readiness.ReadinessTests.test_source_missing_hash) ... ok
+test_source_pending (test_release_readiness.ReadinessTests.test_source_pending) ... ok
+test_source_skips_undelivered_symlinks (test_release_readiness.ReadinessTests.test_source_skips_undelivered_symlinks) ... ok
+test_source_stale (test_release_readiness.ReadinessTests.test_source_stale) ... ok
+test_unknown_gate (test_release_readiness.ReadinessTests.test_unknown_gate) ... ok
+test_wrong_declared_ready (test_release_readiness.ReadinessTests.test_wrong_declared_ready) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 0.027s
+
+OK

@@ -1,0 +1,13 @@
+waiting for server to start.... done
+server started
+PostgreSQL ready; NATS and Meilisearch startup delegated to caller.
+=== RUN   TestStressReviewIndexRebuildPersistsDetectedAccountDisable
+    stress_review_test.go:318: authoritative disabled result was rolled back with the index transaction: status=active reason=
+--- FAIL: TestStressReviewIndexRebuildPersistsDetectedAccountDisable (0.34s)
+=== RUN   TestStressReviewOutboxWorkLongerThanLeaseCanFinish
+    stress_review_test.go:354: legitimate index work exceeding its lease can never be acknowledged: conflict
+--- FAIL: TestStressReviewOutboxWorkLongerThanLeaseCanFinish (4.21s)
+FAIL
+FAIL	github.com/agentclouddrive/agent-clouddrive/internal/application	4.608s
+FAIL
+Native runtime logs: /workspace/scratch/61a2b6386f06/dependency-runtime/runs/run.1NsvaOFa

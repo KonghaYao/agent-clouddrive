@@ -1,0 +1,6 @@
+=== RUN   TestReviewUploadCannotEnterPendingMoveTarget
+    security_review_test.go:74: new tus upload was admitted into persisted MOVE target; native upload calls=2; eventual MOVE commit=PATH_CONFLICT: target already exists
+--- FAIL: TestReviewUploadCannotEnterPendingMoveTarget (0.14s)
+FAIL
+FAIL	github.com/agentclouddrive/agent-clouddrive/internal/application	0.153s
+FAIL

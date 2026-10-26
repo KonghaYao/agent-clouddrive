@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "scope": "Real native subtree regression; initial run failed, retained intentionally",
+  "status": "fail",
+  "report": "deployed-api-subtree-search-run1.json",
+  "report_sha256": "e48e69249dd9024e2e4e3f0afeea9e4870f2a27a98f2f063ea9909f5df2b6494",
+  "driver_prelaunch_sha256": {
+    "tests/integration/deployed_api_acceptance.py": "da990d804f66e705b488ff9765cca28051590fc39dd2aab91aba15381fbd8e27",
+    "tests/integration/deployed_api_harness.py": "45ed31f65731dca331c24329e6909d847e18fa0d5e2e303d18e4c7e381663ddf"
+  },
+  "driver_hashes_unchanged_after_run": true,
+  "observed_failure": "Raw Meilisearch source_path did not converge after MOVE within120seconds, while reauthorized public search paths were correct.",
+  "diagnosis": "Persisted MOVE outbox row and all12fixtureevents remained unpublished; serial identity synchronization blocked outbox draining behind prior100itembatch events.",
+  "environment": "Official native Keycloak26.8.1/oCIS8.2.2/PostgreSQL17.11/NATS2.15.1/Meilisearch1.55.0; local artifacts; synthetic users; no browser or Docker Compose."
+}

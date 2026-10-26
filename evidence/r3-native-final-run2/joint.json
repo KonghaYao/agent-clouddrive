@@ -1,0 +1,806 @@
+{
+  "schema_version": 1,
+  "suite": "deployed-api",
+  "execution": "executed",
+  "status": "pass",
+  "started_at": "2026-10-23T14:29:41.681261+00:00",
+  "cases": [
+    {
+      "id": "retained_versions",
+      "acceptance_gate": "A16",
+      "scenario": "retained_versions",
+      "status": "pass",
+      "checks": [
+        {
+          "name": "fixture_has_no_pending_quota_reservations",
+          "status": "pass"
+        },
+        {
+          "name": "version_01_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_02_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_03_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_04_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_05_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_06_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_07_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_08_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_09_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_10_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "exactly_ten_immutable_versions",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_01",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_02",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_03",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_04",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_05",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_06",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_07",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_08",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_09",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_10",
+          "status": "pass"
+        },
+        {
+          "name": "delete_retains_logical_quota",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_current_file_hidden/stat",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_current_file_hidden/content",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_current_file_hidden/markdown",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_current_file_hidden/range",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_owner_version_history_retained",
+          "status": "pass"
+        },
+        {
+          "name": "while_deleted_owner_version_01",
+          "status": "pass"
+        },
+        {
+          "name": "while_deleted_owner_version_02",
+          "status": "pass"
+        },
+        {
+          "name": "while_deleted_owner_version_03",
+          "status": "pass"
+        },
+        {
+          "name": "while_deleted_owner_version_04",
+          "status": "pass"
+        },
+        {
+          "name": "while_deleted_owner_version_05",
+          "status": "pass"
+        },
+        {
+          "name": "while_deleted_owner_version_06",
+          "status": "pass"
+        },
+        {
+          "name": "while_deleted_owner_version_07",
+          "status": "pass"
+        },
+        {
+          "name": "while_deleted_owner_version_08",
+          "status": "pass"
+        },
+        {
+          "name": "while_deleted_owner_version_09",
+          "status": "pass"
+        },
+        {
+          "name": "while_deleted_owner_version_10",
+          "status": "pass"
+        },
+        {
+          "name": "restore_preserves_file_id",
+          "status": "pass"
+        },
+        {
+          "name": "restore_does_not_double_charge",
+          "status": "pass"
+        },
+        {
+          "name": "restored_version_ids_unchanged",
+          "status": "pass"
+        },
+        {
+          "name": "after_restore_version_01",
+          "status": "pass"
+        },
+        {
+          "name": "after_restore_version_02",
+          "status": "pass"
+        },
+        {
+          "name": "after_restore_version_03",
+          "status": "pass"
+        },
+        {
+          "name": "after_restore_version_04",
+          "status": "pass"
+        },
+        {
+          "name": "after_restore_version_05",
+          "status": "pass"
+        },
+        {
+          "name": "after_restore_version_06",
+          "status": "pass"
+        },
+        {
+          "name": "after_restore_version_07",
+          "status": "pass"
+        },
+        {
+          "name": "after_restore_version_08",
+          "status": "pass"
+        },
+        {
+          "name": "after_restore_version_09",
+          "status": "pass"
+        },
+        {
+          "name": "after_restore_version_10",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "id": "subtree",
+      "acceptance_gate": "A15",
+      "scenario": "subtree",
+      "status": "pass",
+      "checks": [
+        {
+          "name": "subtree_current_versions_really_converted_and_indexed",
+          "status": "pass"
+        },
+        {
+          "name": "raw_index_initial_versions_artifacts_and_source_paths",
+          "status": "pass"
+        },
+        {
+          "name": "move_preserves_directory_id",
+          "status": "pass"
+        },
+        {
+          "name": "root_path_updated",
+          "status": "pass"
+        },
+        {
+          "name": "nested_identity_and_path_updated",
+          "status": "pass"
+        },
+        {
+          "name": "moved_child_identity_path_direct.txt",
+          "status": "pass"
+        },
+        {
+          "name": "move_creates_no_versions_direct.txt",
+          "status": "pass"
+        },
+        {
+          "name": "moved_history_direct.txt0",
+          "status": "pass"
+        },
+        {
+          "name": "moved_history_direct.txt1",
+          "status": "pass"
+        },
+        {
+          "name": "moved_child_identity_path_deep.txt",
+          "status": "pass"
+        },
+        {
+          "name": "move_creates_no_versions_deep.txt",
+          "status": "pass"
+        },
+        {
+          "name": "moved_history_deep.txt0",
+          "status": "pass"
+        },
+        {
+          "name": "moved_history_deep.txt1",
+          "status": "pass"
+        },
+        {
+          "name": "moved_search_preserves_versions_artifacts_and_updates_paths",
+          "status": "pass"
+        },
+        {
+          "name": "raw_index_move_source_paths_converged_without_reconversion",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_immediately_absent_from_search",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/stat",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/content",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/markdown",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/range",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/stat",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/content",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/markdown",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/range",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/stat",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/content",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/markdown",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/range",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/stat",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/content",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/markdown",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_current_gate/range",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subdirectory_listing_denied",
+          "status": "pass"
+        },
+        {
+          "name": "subtree_delete_retains_quota",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_directory_owner_history_authorized",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_child_owner_history_ids_direct.txt",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_child_owner_history_direct.txt0",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_child_owner_history_direct.txt1",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_child_owner_history_ids_deep.txt",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_child_owner_history_deep.txt0",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_child_owner_history_deep.txt1",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_subtree_still_absent_after_owner_history_reads",
+          "status": "pass"
+        },
+        {
+          "name": "subtree_restore_preserves_root",
+          "status": "pass"
+        },
+        {
+          "name": "restored_nested_path",
+          "status": "pass"
+        },
+        {
+          "name": "restored_child_identity_path_direct.txt",
+          "status": "pass"
+        },
+        {
+          "name": "restore_creates_no_versions_direct.txt",
+          "status": "pass"
+        },
+        {
+          "name": "restored_history_direct.txt0",
+          "status": "pass"
+        },
+        {
+          "name": "restored_history_direct.txt1",
+          "status": "pass"
+        },
+        {
+          "name": "restored_child_identity_path_deep.txt",
+          "status": "pass"
+        },
+        {
+          "name": "restore_creates_no_versions_deep.txt",
+          "status": "pass"
+        },
+        {
+          "name": "restored_history_deep.txt0",
+          "status": "pass"
+        },
+        {
+          "name": "restored_history_deep.txt1",
+          "status": "pass"
+        },
+        {
+          "name": "subtree_restore_retains_quota",
+          "status": "pass"
+        },
+        {
+          "name": "restored_search_preserves_versions_artifacts_and_updates_paths",
+          "status": "pass"
+        },
+        {
+          "name": "raw_index_restore_source_paths_converged_without_reconversion",
+          "status": "pass"
+        }
+      ],
+      "raw_index_scope": "verified"
+    },
+    {
+      "id": "restore_conflict",
+      "acceptance_gate": "A14",
+      "scenario": "restore_conflict",
+      "status": "pass",
+      "checks": [
+        {
+          "name": "independent_recipient_principal",
+          "status": "pass"
+        },
+        {
+          "name": "before_share_private/stat",
+          "status": "pass"
+        },
+        {
+          "name": "before_share_private/content",
+          "status": "pass"
+        },
+        {
+          "name": "before_share_private/markdown",
+          "status": "pass"
+        },
+        {
+          "name": "before_share_private/range",
+          "status": "pass"
+        },
+        {
+          "name": "before_share_private/versions",
+          "status": "pass"
+        },
+        {
+          "name": "before_share_private/pinned_history",
+          "status": "pass"
+        },
+        {
+          "name": "before_share_private/pinned_history_range",
+          "status": "pass"
+        },
+        {
+          "name": "share_approval_requires_interactive_csrf",
+          "status": "pass"
+        },
+        {
+          "name": "approved_share_download",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_share_denied/stat",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_share_denied/content",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_share_denied/markdown",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_share_denied/range",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_share_denied/versions",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_share_denied/pinned_history",
+          "status": "pass"
+        },
+        {
+          "name": "deleted_share_denied/pinned_history_range",
+          "status": "pass"
+        },
+        {
+          "name": "same_name_restore_returns_path_conflict",
+          "status": "pass"
+        },
+        {
+          "name": "collision_does_not_overwrite_occupant",
+          "status": "pass"
+        },
+        {
+          "name": "collision_does_not_change_quota",
+          "status": "pass"
+        },
+        {
+          "name": "new_target_restore_preserves_id",
+          "status": "pass"
+        },
+        {
+          "name": "restored_history_original_bytes",
+          "status": "pass"
+        },
+        {
+          "name": "restore_does_not_reactivate_share/stat",
+          "status": "pass"
+        },
+        {
+          "name": "restore_does_not_reactivate_share/content",
+          "status": "pass"
+        },
+        {
+          "name": "restore_does_not_reactivate_share/markdown",
+          "status": "pass"
+        },
+        {
+          "name": "restore_does_not_reactivate_share/range",
+          "status": "pass"
+        },
+        {
+          "name": "restore_does_not_reactivate_share/versions",
+          "status": "pass"
+        },
+        {
+          "name": "restore_does_not_reactivate_share/pinned_history",
+          "status": "pass"
+        },
+        {
+          "name": "restore_does_not_reactivate_share/pinned_history_range",
+          "status": "pass"
+        },
+        {
+          "name": "original_share_remains_disabled",
+          "status": "pass"
+        },
+        {
+          "name": "share_approval_requires_interactive_csrf",
+          "status": "pass"
+        },
+        {
+          "name": "fresh_confirmation_creates_new_grant",
+          "status": "pass"
+        },
+        {
+          "name": "newly_confirmed_share_download",
+          "status": "pass"
+        },
+        {
+          "name": "restore_and_sharing_do_not_double_charge",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "id": "batch100",
+      "acceptance_gate": "A17",
+      "scenario": "batch100",
+      "status": "pass",
+      "checks": [
+        {
+          "name": "100_items_99_success_one_path_conflict",
+          "status": "pass"
+        },
+        {
+          "name": "same_batch_replay_returns_same_operations_and_files",
+          "status": "pass"
+        },
+        {
+          "name": "new_batch_stable_item_keys_do_not_duplicate_successes",
+          "status": "pass"
+        },
+        {
+          "name": "exactly_100_directories_after_retries",
+          "status": "pass"
+        },
+        {
+          "name": "no_duplicate_names",
+          "status": "pass"
+        },
+        {
+          "name": "conflicting_original_directory_unchanged",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "id": "unauthorized",
+      "acceptance_gate": "AUTH_ROUTES",
+      "scenario": "unauthorized",
+      "status": "pass",
+      "checks": [
+        {
+          "name": "POST /v1/session requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/admin/jobs requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/admin/feedback requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/delegation/status requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/me requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/files requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/files/:id requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "POST /v1/directories requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "PATCH /v1/files/:id/location requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "POST /v1/uploads requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "POST /v1/uploads/:id/finalize requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/operations/:id requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/files/:id/versions requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/files/:id/markdown requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "POST /v1/files/:id/conversions requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "POST /v1/search requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "DELETE /v1/files/:id requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/trash requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "POST /v1/trash/:id/restore requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "POST /v1/batches requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "POST /v1/share-requests requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/share-requests requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/share-requests/:id requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "POST /v1/share-requests/:id/approve requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/shares requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "POST /v1/shares/:id/revoke requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/shared-with-me requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "POST /v1/feedback requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "POST /v1/delegation/start requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/files/:id/content requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/audit/files/:id/versions requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/audit/files/:id/content requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/audit/files/:id/markdown requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/audit/files/:id/artifacts/:artifact/assets/:asset requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/artifacts/:id/assets/:asset requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "HEAD /v1/tus/:id requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "PATCH /v1/tus/:id requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/preview/:id requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "GET /v1/preview/:id/pages/:page requires_bearer",
+          "status": "pass"
+        },
+        {
+          "name": "anonymous_range_cannot_bypass_bearer",
+          "status": "pass"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Prepared driver execution is not a historical acceptance result or a release-readiness decision.",
+    "Uses real configured Keycloak PKCE and API only; no browser, Peri, Compose provenance or 10 GiB claim.",
+    "No operator-provisioned audit grants: owner history is read before, during and after deletion; separate auditor-grant routes are not exercised.",
+    "Subtree raw index source_path is checked only when TEST_MEILI_URL is explicitly configured; otherwise raw_index_scope is not_checked.",
+    "Authorization case checks every bearer-protected REST route without credentials, not every authenticated scope/role permutation or MCP.",
+    "Does not disable real identities, change groups, inspect private gateway logs, or inject network/storage failures.",
+    "Synthetic fixture data, versions, share records and explicit offline grants are intentionally retained; no purge or account deletion."
+  ],
+  "configuration": "valid",
+  "fixture_prefix": "api-accept-82b68178caf8d80c",
+  "finished_at": "2026-10-23T14:30:15.327013+00:00"
+}

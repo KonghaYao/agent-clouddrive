@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "phase": "page",
+  "checks": {
+    "actual_built_frontend_html_and_assets": "passed",
+    "runtime_oidc_config": "passed"
+  },
+  "browser_test": "not_run",
+  "compose_runtime": "not_run"
+}

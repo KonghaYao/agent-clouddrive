@@ -1,0 +1,296 @@
+{
+  "schema_version": 1,
+  "scope": "Configuration-only checks from this invocation; real native API execution is recorded separately. No browser or 10 GiB execution.",
+  "summary": {
+    "schema_version": 1,
+    "action": "check",
+    "started_at": "2026-10-23T11:33:42.246288+00:00",
+    "release_matrix_modified": false,
+    "scope": "Selected driver execution only, not full release readiness",
+    "suites": [
+      {
+        "id": "browser",
+        "status": "not_run",
+        "exit_code": 2,
+        "result_file": "browser.json",
+        "validation_errors": [],
+        "scope": "Real browser, real OIDC, two users, actual UI file lifecycle and sharing; not Peri or large-file acceptance.",
+        "related_gates_not_promoted": [
+          "A01",
+          "A03",
+          "A13",
+          "A14",
+          "A18",
+          "G09",
+          "A21"
+        ]
+      },
+      {
+        "id": "deployed-api",
+        "status": "not_run",
+        "exit_code": 2,
+        "result_file": "deployed-api.json",
+        "validation_errors": [],
+        "scope": "Real deployed API/IdP scenarios; not browser UI, explicit audit-grant coverage, or full release acceptance.",
+        "related_gates_not_promoted": [
+          "A01",
+          "A14",
+          "A15",
+          "A16",
+          "A17"
+        ]
+      },
+      {
+        "id": "uppy-10gib",
+        "status": "not_run",
+        "exit_code": 2,
+        "result_file": "uppy-10gib.json",
+        "validation_errors": [],
+        "scope": "Exact 10 GiB browser Uppy interruption/resume with deployment and database accounting proof; never a small-file substitute.",
+        "related_gates_not_promoted": [
+          "D02_UPPY_10_GIB",
+          "G06",
+          "A24"
+        ]
+      }
+    ],
+    "status": "not_run",
+    "finished_at": "2026-10-23T11:33:42.785682+00:00"
+  },
+  "driver_reports": {
+    "browser": {
+      "schema_version": 1,
+      "suite": "browser",
+      "mode": "check-only",
+      "execution": "not_run",
+      "status": "not_run",
+      "started_at": "2026-10-23T11:33:42.307Z",
+      "browser_started": false,
+      "cases": [
+        {
+          "id": "real_keycloak_owner_login",
+          "status": "not_run"
+        },
+        {
+          "id": "real_keycloak_recipient_login",
+          "status": "not_run"
+        },
+        {
+          "id": "own_file_list_dom",
+          "status": "not_run"
+        },
+        {
+          "id": "read_only_scope_ui_and_backend",
+          "status": "not_run"
+        },
+        {
+          "id": "offline_delegation_prerequisite",
+          "status": "not_run"
+        },
+        {
+          "id": "upload_first_version_dom",
+          "status": "not_run"
+        },
+        {
+          "id": "private_file_isolation_backend",
+          "status": "not_run"
+        },
+        {
+          "id": "raster_preview_dom",
+          "status": "not_run"
+        },
+        {
+          "id": "overwrite_and_pinned_history_dom_and_backend",
+          "status": "not_run"
+        },
+        {
+          "id": "trash_and_restore_dom",
+          "status": "not_run"
+        },
+        {
+          "id": "share_explicit_confirmation_dom",
+          "status": "not_run"
+        },
+        {
+          "id": "received_share_read_only_dom_and_backend",
+          "status": "not_run"
+        },
+        {
+          "id": "share_revocation_dom_and_backend",
+          "status": "not_run"
+        },
+        {
+          "id": "anonymous_pdf_link_preview_dom_and_resource_isolation",
+          "status": "not_run"
+        },
+        {
+          "id": "anonymous_pdf_link_revocation_dom_and_backend",
+          "status": "not_run"
+        },
+        {
+          "id": "fixture_soft_delete_dom",
+          "status": "not_run"
+        }
+      ],
+      "safety": {
+        "real_keycloak_required": true,
+        "mocks": false,
+        "sandbox_required": true,
+        "tls_verification": true,
+        "credentials_persisted": false,
+        "auth_recording": false
+      },
+      "retained_fixtures": [],
+      "failure_code": "missing_test_endpoint_configuration",
+      "finished_at": "2026-10-23T11:33:42.308Z",
+      "exit_code": 2
+    },
+    "deployed-api": {
+      "schema_version": 1,
+      "suite": "deployed-api",
+      "execution": "not_run",
+      "status": "not_run",
+      "started_at": "2026-10-23T11:33:42.381231+00:00",
+      "cases": [
+        {
+          "id": "retained_versions",
+          "acceptance_gate": "A16",
+          "scenario": "retained_versions",
+          "status": "not_run",
+          "checks": []
+        },
+        {
+          "id": "subtree",
+          "acceptance_gate": "A15",
+          "scenario": "subtree",
+          "status": "not_run",
+          "checks": []
+        },
+        {
+          "id": "restore_conflict",
+          "acceptance_gate": "A14",
+          "scenario": "restore_conflict",
+          "status": "not_run",
+          "checks": []
+        },
+        {
+          "id": "batch100",
+          "acceptance_gate": "A17",
+          "scenario": "batch100",
+          "status": "not_run",
+          "checks": []
+        },
+        {
+          "id": "unauthorized",
+          "acceptance_gate": "AUTH_ROUTES",
+          "scenario": "unauthorized",
+          "status": "not_run",
+          "checks": []
+        }
+      ],
+      "limitations": [
+        "Prepared driver execution is not a historical acceptance result or a release-readiness decision.",
+        "Uses real configured Keycloak PKCE and API only; no browser, Peri, Compose provenance or 10 GiB claim.",
+        "No operator-provisioned audit grants: owner history is read before, during and after deletion; separate auditor-grant routes are not exercised.",
+        "Subtree raw index source_path is checked only when TEST_MEILI_URL is explicitly configured; otherwise raw_index_scope is not_checked.",
+        "Authorization case checks every bearer-protected REST route without credentials, not every authenticated scope/role permutation or MCP.",
+        "Does not disable real identities, change groups, inspect private gateway logs, or inject network/storage failures.",
+        "Synthetic fixture data, versions, share records and explicit offline grants are intentionally retained; no purge or account deletion."
+      ],
+      "reason": "missing_required_configuration",
+      "finished_at": "2026-10-23T11:33:42.381364+00:00"
+    },
+    "uppy-10gib": {
+      "schema_version": 1,
+      "suite": "uppy-10gib",
+      "execution": "not_run",
+      "status": "not_run",
+      "mode": "acceptance_10gib",
+      "accepts_10gib": false,
+      "started_at": "2026-10-23T11:33:42.757Z",
+      "cases": [
+        {
+          "id": "deployment",
+          "description": "Live default S3 single-node Compose and gateway configuration",
+          "status": "not_run"
+        },
+        {
+          "id": "source",
+          "description": "Exact on-disk input and streaming source SHA256",
+          "status": "not_run"
+        },
+        {
+          "id": "login",
+          "description": "Real browser OIDC PKCE login",
+          "status": "not_run"
+        },
+        {
+          "id": "ui_upload",
+          "description": "Real Uppy chooser and one business upload session",
+          "status": "not_run"
+        },
+        {
+          "id": "interruption_resume",
+          "description": "Actual context offline, resumed positive HEAD/PATCH offsets",
+          "status": "not_run"
+        },
+        {
+          "id": "native_session",
+          "description": "Same native/business upload and receiver node before/after interruption",
+          "status": "not_run"
+        },
+        {
+          "id": "commit_once",
+          "description": "One source version and idempotent finalize replay",
+          "status": "not_run"
+        },
+        {
+          "id": "quota_once",
+          "description": "One held reservation and one quota settlement",
+          "status": "not_run"
+        },
+        {
+          "id": "download_integrity",
+          "description": "Formal streamed download byte count and SHA256",
+          "status": "not_run"
+        },
+        {
+          "id": "s3_multipart",
+          "description": "Live new exact-size S3 object and multipart HEAD evidence",
+          "status": "not_run"
+        },
+        {
+          "id": "processing_state",
+          "description": "Original saved and explicit over-limit conversion state",
+          "status": "not_run"
+        },
+        {
+          "id": "receiver_survived",
+          "description": "Same browser process and uninterrupted receiver container",
+          "status": "not_run"
+        }
+      ],
+      "missing": [
+        "TEST_PUBLIC_URL",
+        "TEST_OIDC_ISSUER",
+        "TEST_USERNAME",
+        "TEST_PASSWORD_FILE",
+        "CHROMIUM_PATH",
+        "LARGE_UPLOAD_SOURCE_FILE",
+        "LARGE_UPLOAD_DEPLOYMENT_FILE",
+        "LARGE_UPLOAD_DATABASE_URL",
+        "LARGE_UPLOAD_S3_ACCESS_KEY_FILE",
+        "LARGE_UPLOAD_S3_SECRET_KEY_FILE",
+        "ALLOW_DISPOSABLE_TEST_WRITES=yes",
+        "ALLOW_DISPOSABLE_TEST_OIDC_CONSENT=yes"
+      ],
+      "evidence": {
+        "events": []
+      },
+      "configuration_check": "safe_runtime_environment",
+      "reason": "Configuration is incomplete. No network checks or browser execution occurred.",
+      "finished_at": "2026-10-23T11:33:42.761Z",
+      "retention": "No automatic cleanup: originals/history are intentionally retained. Use only disposable infrastructure; this driver never purges user data."
+    }
+  }
+}

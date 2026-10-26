@@ -1,0 +1,6 @@
+=== RUN   TestReviewCanceledBeforeNativeUploadReleasesReservation
+    security_review_test.go:379: pre-dispatch cancellation stranded upload admission: operation=prepared reservation=held held_bytes=123 native_calls=0
+--- FAIL: TestReviewCanceledBeforeNativeUploadReleasesReservation (0.12s)
+FAIL
+FAIL	github.com/agentclouddrive/agent-clouddrive/internal/application	0.136s
+FAIL

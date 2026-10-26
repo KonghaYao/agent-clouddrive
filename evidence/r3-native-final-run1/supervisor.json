@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "suite": "native-load-supervisor",
+  "status": "fail",
+  "started_at": "2026-10-23T14:21:24.665732+00:00",
+  "mode": "all",
+  "scope": "Local synthetic native processes only; not Docker/browser/production capacity.",
+  "bounded_resources": {
+    "nats_loopback_only": true,
+    "nats_jetstream_memory_bytes": 268435456,
+    "nats_jetstream_file_bytes": 1073741824,
+    "configured_stress_maximum_concurrency": 64
+  },
+  "source_sha256_at_launch": "3ce1401dc516e96a34dea8c9c9c8088c247de3e1c6ee5c7286f3126e850c39a8",
+  "binary_sha256": {
+    "nats": "baab2eecb5a8ebdabf6edd3e22756f89805e3184468653ba67185adf5a3b57eb",
+    "meili": "7e33f5889235f14290074a19a6d3574bd9b10fb2ee8731eabb7dafd0714b0513",
+    "api": "31e9938fbe49b0b7452462c1e40800e97964dfadb375f554a880d585eaf0784b",
+    "worker": "662797c4e2c041e2990dfe4caef646d083eb6858647767da3b1cbb3399bbb018",
+    "maintenance": "c892bafaa3717d8f66d807ab9c41fb00a4593de824cfc01c49025e0f1ab29360"
+  },
+  "scenarios": {
+    "joint": 1
+  },
+  "cleanup": "graceful_children_stopped",
+  "reason": "joint_scenario_failed",
+  "finished_at": "2026-10-23T14:21:37.347036+00:00",
+  "source_sha256_at_finish": "3ce1401dc516e96a34dea8c9c9c8088c247de3e1c6ee5c7286f3126e850c39a8",
+  "source_changed_during_run": false,
+  "whole_run_budget": {
+    "maximum_seconds": 600,
+    "work_cutoff_seconds": 570,
+    "elapsed_seconds": 12.7207,
+    "watchdog_fired": false,
+    "watchdog_shutdown_incomplete": false,
+    "owned_stop_failures": []
+  }
+}

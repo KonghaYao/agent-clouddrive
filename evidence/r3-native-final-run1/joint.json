@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "suite": "deployed-api",
+  "execution": "executed",
+  "status": "fail",
+  "started_at": "2026-10-23T14:21:26.902826+00:00",
+  "cases": [
+    {
+      "id": "retained_versions",
+      "acceptance_gate": "A16",
+      "scenario": "retained_versions",
+      "status": "fail",
+      "checks": [
+        {
+          "name": "fixture_has_no_pending_quota_reservations",
+          "status": "pass"
+        },
+        {
+          "name": "version_01_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_02_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_03_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_04_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_05_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_06_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_07_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_08_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_09_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "version_10_latest_only_quota",
+          "status": "pass"
+        },
+        {
+          "name": "exactly_ten_immutable_versions",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_01",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_02",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_03",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_04",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_05",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_06",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_07",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_08",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_09",
+          "status": "pass"
+        },
+        {
+          "name": "before_delete_version_10",
+          "status": "pass"
+        }
+      ],
+      "reason": "unexpected_api_http_status_503"
+    },
+    {
+      "id": "subtree",
+      "acceptance_gate": "A15",
+      "scenario": "subtree",
+      "status": "not_run",
+      "checks": []
+    },
+    {
+      "id": "restore_conflict",
+      "acceptance_gate": "A14",
+      "scenario": "restore_conflict",
+      "status": "not_run",
+      "checks": []
+    },
+    {
+      "id": "batch100",
+      "acceptance_gate": "A17",
+      "scenario": "batch100",
+      "status": "not_run",
+      "checks": []
+    },
+    {
+      "id": "unauthorized",
+      "acceptance_gate": "AUTH_ROUTES",
+      "scenario": "unauthorized",
+      "status": "not_run",
+      "checks": []
+    }
+  ],
+  "limitations": [
+    "Prepared driver execution is not a historical acceptance result or a release-readiness decision.",
+    "Uses real configured Keycloak PKCE and API only; no browser, Peri, Compose provenance or 10 GiB claim.",
+    "No operator-provisioned audit grants: owner history is read before, during and after deletion; separate auditor-grant routes are not exercised.",
+    "Subtree raw index source_path is checked only when TEST_MEILI_URL is explicitly configured; otherwise raw_index_scope is not_checked.",
+    "Authorization case checks every bearer-protected REST route without credentials, not every authenticated scope/role permutation or MCP.",
+    "Does not disable real identities, change groups, inspect private gateway logs, or inject network/storage failures.",
+    "Synthetic fixture data, versions, share records and explicit offline grants are intentionally retained; no purge or account deletion."
+  ],
+  "configuration": "valid",
+  "fixture_prefix": "api-accept-232166f26f6567ef",
+  "reason": "unexpected_api_http_status_503",
+  "finished_at": "2026-10-23T14:21:37.050733+00:00"
+}

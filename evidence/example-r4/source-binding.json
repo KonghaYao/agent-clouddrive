@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "recorded_at_utc": "2026-10-24T00:16:32.704438+00:00",
+  "tree_sha256": "245b212c2405b3f177284c17e48e3094ac5e392dbf3d2dbf278274cdd351d1b2",
+  "scope": "Current delivered R4 executable source/test/configuration scope; source tests only, not full specification release readiness",
+  "aggregate_exit_code": 0,
+  "aggregate_sha256": "a37f6cb454171aec60c92ac7f0b9dccde704607fc9a82104476441a263f437ed",
+  "native_example_source_stable": true,
+  "explicit_not_run": [
+    "Docker Engine full example",
+    "actual browser interaction",
+    "10 GiB browser resume",
+    "external vision",
+    "Peri client"
+  ],
+  "production_r3_unchanged_files": 177
+}

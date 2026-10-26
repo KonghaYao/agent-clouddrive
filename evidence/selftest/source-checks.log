@@ -1,0 +1,401 @@
+
+== Integration boundary declaration (endpoint credentials are never printed) ==
+ENABLED: PostgreSQL native tests against supplied development endpoint.
+ENABLED: NATS native tests against supplied development endpoint.
+ENABLED: Meilisearch native tests against supplied development endpoint.
+SKIPPED: S3/RustFS native tests (DRIVE_TEST_S3_URL is unset)
+SKIPPED: oCIS native tests (DRIVE_TEST_OCIS_URL is unset)
+SKIPPED: Full Docker Compose deployment, real Keycloak-to-Peri consent, preview engine end-to-end, and 10 GiB interrupted/resumed browser upload are not asserted by this source test runner.
+
+== Go race tests and static analysis ==
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/api	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/contracts	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/maintenance	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/cmd/worker	[no test files]
+=== RUN   TestLocalImmutableRoundTrip
+--- PASS: TestLocalImmutableRoundTrip (0.02s)
+=== RUN   TestLocalSymlinkEscapeAndConcurrentPublish
+--- PASS: TestLocalSymlinkEscapeAndConcurrentPublish (0.00s)
+=== RUN   TestS3ConditionalAndChecksumHeaders
+--- PASS: TestS3ConditionalAndChecksumHeaders (0.01s)
+=== RUN   TestS3Integration
+    store_test.go:138: set DRIVE_TEST_S3_URL for real S3/RustFS integration
+--- SKIP: TestS3Integration (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/artifactstore	1.047s
+=== RUN   TestExecuteContract
+--- PASS: TestExecuteContract (0.00s)
+=== RUN   TestRejectExternalURLAndFalseSuccess
+--- PASS: TestRejectExternalURLAndFalseSuccess (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/converters	1.021s
+=== RUN   TestCipherAuthenticatesOwnerAndTampering
+--- PASS: TestCipherAuthenticatesOwnerAndTampering (0.00s)
+=== RUN   TestVaultPostgresIntegration
+    vault_test.go:200: real PostgreSQL + mock IdP: encrypted persistence, concurrent refresh rotation, owner/source checks, live disable, lifecycle rejection and revoke passed
+--- PASS: TestVaultPostgresIntegration (0.14s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/delegation	1.153s
+=== RUN   TestStrictJWTValidationAndLiveDisable
+--- PASS: TestStrictJWTValidationAndLiveDisable (0.06s)
+=== RUN   TestGroupsAndExchangeFailClosed
+--- PASS: TestGroupsAndExchangeFailClosed (0.14s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/identity	1.217s
+=== RUN   TestUnverifiedCapabilitiesFailClosed
+--- PASS: TestUnverifiedCapabilitiesFailClosed (0.00s)
+=== RUN   TestReadIgnoresStaleServerPreconditionSafely
+--- PASS: TestReadIgnoresStaleServerPreconditionSafely (0.00s)
+=== RUN   TestUploadRejectsForeignLocation
+--- PASS: TestUploadRejectsForeignLocation (0.00s)
+=== RUN   TestOCISIntegration
+    ocis_test.go:99: set DRIVE_TEST_OCIS_URL for native oCIS integration
+--- SKIP: TestOCISIntegration (0.00s)
+=== RUN   TestReconcileRequiresServerTransportProof
+--- PASS: TestReconcileRequiresServerTransportProof (0.00s)
+=== RUN   TestMutationServerErrorIsUnknown
+--- PASS: TestMutationServerErrorIsUnknown (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/ocis	1.028s
+=== RUN   TestMandatoryOwnerFilterAndNoTotals
+--- PASS: TestMandatoryOwnerFilterAndNoTotals (0.00s)
+=== RUN   TestWaitRequiresSucceeded
+--- PASS: TestWaitRequiresSucceeded (0.00s)
+=== RUN   TestChunkUTF8AndStableProvenance
+--- PASS: TestChunkUTF8AndStableProvenance (0.00s)
+=== RUN   TestMeiliIntegration
+    meili_test.go:126: real Meilisearch: configure, async completion, owner filtering, partial path update, artifact-set deletion passed
+--- PASS: TestMeiliIntegration (0.14s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/search	1.163s
+=== RUN   TestMutationMkdirRenameAndIdempotence
+--- PASS: TestMutationMkdirRenameAndIdempotence (0.14s)
+=== RUN   TestMutationUnknownOutcomeBlocksAndRetains
+--- PASS: TestMutationUnknownOutcomeBlocksAndRetains (0.13s)
+=== RUN   TestMutationDeleteRestoreAndQuota
+--- PASS: TestMutationDeleteRestoreAndQuota (0.16s)
+=== RUN   TestBatchIndependentAndDependencyBlocked
+--- PASS: TestBatchIndependentAndDependencyBlocked (0.16s)
+=== RUN   TestMkdirDefinitiveFailureReleasesPath
+--- PASS: TestMkdirDefinitiveFailureReleasesPath (0.13s)
+=== RUN   TestMutationReconcilesLostMoveResponse
+--- PASS: TestMutationReconcilesLostMoveResponse (0.15s)
+=== RUN   TestPreparedAdmissionRecoveryFencesLateNativeDispatch
+--- PASS: TestPreparedAdmissionRecoveryFencesLateNativeDispatch (0.15s)
+=== RUN   TestFeedbackLeavesNoIdentityActivityRecord
+--- PASS: TestFeedbackLeavesNoIdentityActivityRecord (0.12s)
+=== RUN   TestOfflineVerifierEncryptionBoundToPrincipal
+--- PASS: TestOfflineVerifierEncryptionBoundToPrincipal (0.00s)
+=== RUN   TestAnonymousRateIsGlobalBoundedAndEphemeral
+--- PASS: TestAnonymousRateIsGlobalBoundedAndEphemeral (0.00s)
+=== RUN   TestReviewUploadCannotEnterPendingMoveTarget
+--- PASS: TestReviewUploadCannotEnterPendingMoveTarget (0.15s)
+=== RUN   TestReviewAnonymousFixedShareSelectsAuthorizedSource
+--- PASS: TestReviewAnonymousFixedShareSelectsAuthorizedSource (0.13s)
+=== RUN   TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata
+--- PASS: TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata (0.15s)
+=== RUN   TestReviewPinnedMarkdownSurvivesBusinessTrash
+--- PASS: TestReviewPinnedMarkdownSurvivesBusinessTrash (0.17s)
+=== RUN   TestReviewAuditRequiresSpecificActiveHumanGrant
+--- PASS: TestReviewAuditRequiresSpecificActiveHumanGrant (0.15s)
+=== RUN   TestReviewUploadReloadsParentAfterSpaceSerialization
+--- PASS: TestReviewUploadReloadsParentAfterSpaceSerialization (0.16s)
+=== RUN   TestReviewCanceledBeforeNativeUploadReleasesReservation
+--- PASS: TestReviewCanceledBeforeNativeUploadReleasesReservation (0.14s)
+=== RUN   TestSharePendingDeleteRestoreRequiresFreshConfirmation
+--- PASS: TestSharePendingDeleteRestoreRequiresFreshConfirmation (0.14s)
+=== RUN   TestSharePendingAccountReenableRequiresFreshConfirmation
+--- PASS: TestSharePendingAccountReenableRequiresFreshConfirmation (0.12s)
+=== RUN   TestShareApprovalExpiryCannotExpand
+--- PASS: TestShareApprovalExpiryCannotExpand (0.13s)
+=== RUN   TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentDeleteNeverLeavesActiveGrant (0.24s)
+=== RUN   TestMaintenanceIdentitySyncDoesNotReviveShares
+--- PASS: TestMaintenanceIdentitySyncDoesNotReviveShares (0.15s)
+=== RUN   TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant
+--- PASS: TestShareApprovalConcurrentAccountDisableNeverLeavesActiveGrant (0.15s)
+=== RUN   TestSharedContentUsesAuthorizedFixedVersion
+--- PASS: TestSharedContentUsesAuthorizedFixedVersion (0.15s)
+=== RUN   TestObservedDisableNeverRevivesPublicShare
+--- PASS: TestObservedDisableNeverRevivesPublicShare (0.12s)
+=== RUN   TestEarlyFinalizePreservesResumableUpload
+--- PASS: TestEarlyFinalizePreservesResumableUpload (0.11s)
+=== RUN   TestUploadConcurrentOverwriteExcludesEntireTransfer
+--- PASS: TestUploadConcurrentOverwriteExcludesEntireTransfer (0.13s)
+=== RUN   TestUploadIdempotencyConflictAndDuplicateCommit
+--- PASS: TestUploadIdempotencyConflictAndDuplicateCommit (0.11s)
+=== RUN   TestUploadUnknownOutcomeKeepsReservation
+=== RUN   TestUploadUnknownOutcomeKeepsReservation/remote_mutation_outcome_unknown;_reconcile_before_retry
+=== RUN   TestUploadUnknownOutcomeKeepsReservation/transport_connection_reset_after_request_dispatch
+--- PASS: TestUploadUnknownOutcomeKeepsReservation (0.24s)
+    --- PASS: TestUploadUnknownOutcomeKeepsReservation/remote_mutation_outcome_unknown;_reconcile_before_retry (0.13s)
+    --- PASS: TestUploadUnknownOutcomeKeepsReservation/transport_connection_reset_after_request_dispatch (0.11s)
+=== RUN   TestUploadDefinitiveFailureFreesProvisionalPath
+--- PASS: TestUploadDefinitiveFailureFreesProvisionalPath (0.11s)
+=== RUN   TestUploadConcurrentSameKeyAdmitsOnce
+--- PASS: TestUploadConcurrentSameKeyAdmitsOnce (0.11s)
+=== RUN   TestUploadedTrashRetainsQuotaVersionsAndFeedback
+--- PASS: TestUploadedTrashRetainsQuotaVersionsAndFeedback (0.15s)
+=== RUN   TestDirectTextTruthfulness
+--- PASS: TestDirectTextTruthfulness (0.00s)
+=== RUN   TestPageProvenanceIsNotInvented
+--- PASS: TestPageProvenanceIsNotInvented (0.00s)
+=== RUN   TestConversionFailureClassification
+--- PASS: TestConversionFailureClassification (0.00s)
+=== RUN   TestWorkerLimitPreservesOriginal
+--- PASS: TestWorkerLimitPreservesOriginal (0.10s)
+=== RUN   TestWorkerPostgresNATSMeiliIntegration
+--- PASS: TestWorkerPostgresNATSMeiliIntegration (1.21s)
+=== RUN   TestManifestNeverContainsDelegation
+--- PASS: TestManifestNeverContainsDelegation (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	6.724s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/bootstrap	[no test files]
+=== RUN   TestDefaultsAndStorage
+--- PASS: TestDefaultsAndStorage (0.00s)
+=== RUN   TestSecretFile
+--- PASS: TestSecretFile (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/config	1.012s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/dbgen	[no test files]
+=== RUN   TestPaths
+--- PASS: TestPaths (0.00s)
+=== RUN   TestMoveAndRevision
+--- PASS: TestMoveAndRevision (0.00s)
+=== RUN   TestImmutableIdentities
+--- PASS: TestImmutableIdentities (0.00s)
+=== RUN   TestQuota
+--- PASS: TestQuota (0.00s)
+=== RUN   TestOperationTransitions
+--- PASS: TestOperationTransitions (0.00s)
+=== RUN   TestIdempotency
+--- PASS: TestIdempotency (0.00s)
+=== RUN   TestAuthorization
+=== RUN   TestAuthorization/disabled
+=== RUN   TestAuthorization/unverified
+=== RUN   TestAuthorization/missing_scope
+=== RUN   TestAuthorization/trashed
+=== RUN   TestAuthorization/ancestor_deleted
+=== RUN   TestAuthorization/agent_received_share
+=== RUN   TestAuthorization/agent_approval
+=== RUN   TestAuthorization/agent_audit
+=== RUN   TestAuthorization/admin_alone_not_audit
+=== RUN   TestAuthorization/unknown_action
+--- PASS: TestAuthorization (0.00s)
+    --- PASS: TestAuthorization/disabled (0.00s)
+    --- PASS: TestAuthorization/unverified (0.00s)
+    --- PASS: TestAuthorization/missing_scope (0.00s)
+    --- PASS: TestAuthorization/trashed (0.00s)
+    --- PASS: TestAuthorization/ancestor_deleted (0.00s)
+    --- PASS: TestAuthorization/agent_received_share (0.00s)
+    --- PASS: TestAuthorization/agent_approval (0.00s)
+    --- PASS: TestAuthorization/agent_audit (0.00s)
+    --- PASS: TestAuthorization/admin_alone_not_audit (0.00s)
+    --- PASS: TestAuthorization/unknown_action (0.00s)
+=== RUN   TestShareAuthorization
+=== RUN   TestShareAuthorization/past_version
+=== RUN   TestShareAuthorization/stale_artifact
+=== RUN   TestShareAuthorization/owner_disabled
+=== RUN   TestShareAuthorization/owner_unavailable
+=== RUN   TestShareAuthorization/grant_disabled
+=== RUN   TestShareAuthorization/expiration_exact
+=== RUN   TestShareAuthorization/wrong_recipient
+=== RUN   TestShareAuthorization/no_group_membership
+=== RUN   TestShareAuthorization/shared_search
+--- PASS: TestShareAuthorization (0.00s)
+    --- PASS: TestShareAuthorization/past_version (0.00s)
+    --- PASS: TestShareAuthorization/stale_artifact (0.00s)
+    --- PASS: TestShareAuthorization/owner_disabled (0.00s)
+    --- PASS: TestShareAuthorization/owner_unavailable (0.00s)
+    --- PASS: TestShareAuthorization/grant_disabled (0.00s)
+    --- PASS: TestShareAuthorization/expiration_exact (0.00s)
+    --- PASS: TestShareAuthorization/wrong_recipient (0.00s)
+    --- PASS: TestShareAuthorization/no_group_membership (0.00s)
+    --- PASS: TestShareAuthorization/shared_search (0.00s)
+=== RUN   TestShareConfirmation
+--- PASS: TestShareConfirmation (0.00s)
+=== RUN   TestConversionCompleteness
+--- PASS: TestConversionCompleteness (0.00s)
+=== RUN   TestPublicationFence
+=== RUN   TestPublicationFence/expired
+=== RUN   TestPublicationFence/old_token
+=== RUN   TestPublicationFence/old_attempt
+=== RUN   TestPublicationFence/queued_index
+=== RUN   TestPublicationFence/requested_replacement
+=== RUN   TestPublicationFence/newer_already_published
+=== RUN   TestPublicationFence/same_already_published
+=== RUN   TestPublicationFence/future_source
+--- PASS: TestPublicationFence (0.00s)
+    --- PASS: TestPublicationFence/expired (0.00s)
+    --- PASS: TestPublicationFence/old_token (0.00s)
+    --- PASS: TestPublicationFence/old_attempt (0.00s)
+    --- PASS: TestPublicationFence/queued_index (0.00s)
+    --- PASS: TestPublicationFence/requested_replacement (0.00s)
+    --- PASS: TestPublicationFence/newer_already_published (0.00s)
+    --- PASS: TestPublicationFence/same_already_published (0.00s)
+    --- PASS: TestPublicationFence/future_source (0.00s)
+=== RUN   TestBatchIndependence
+--- PASS: TestBatchIndependence (0.00s)
+=== RUN   FuzzNormalizePath
+=== RUN   FuzzNormalizePath/seed#0
+=== RUN   FuzzNormalizePath/seed#1
+=== RUN   FuzzNormalizePath/seed#2
+=== RUN   FuzzNormalizePath/seed#3
+=== RUN   FuzzNormalizePath/seed#4
+--- PASS: FuzzNormalizePath (0.00s)
+    --- PASS: FuzzNormalizePath/seed#0 (0.00s)
+    --- PASS: FuzzNormalizePath/seed#1 (0.00s)
+    --- PASS: FuzzNormalizePath/seed#2 (0.00s)
+    --- PASS: FuzzNormalizePath/seed#3 (0.00s)
+    --- PASS: FuzzNormalizePath/seed#4 (0.00s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/domain	1.015s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/migrate	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/ports	[no test files]
+=== RUN   TestSingleRange
+--- PASS: TestSingleRange (0.00s)
+=== RUN   TestNoForbiddenMCPTools
+--- PASS: TestNoForbiddenMCPTools (0.01s)
+=== RUN   TestExactOrigin
+--- PASS: TestExactOrigin (0.00s)
+=== RUN   TestMCPProtocolIntegration
+    mcp_test.go:229: official SDK initialized; 21 tools; scoped reads, missing-resource errors, no approval tool, feedback identity-write exclusion passed
+--- PASS: TestMCPProtocolIntegration (0.22s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/transport	1.325s
+
+== sqlc v1.29.0 generation drift check (no Git repository required) ==
+
+== PostgreSQL invariant SQL suite in a disposable schema ==
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+psql:/workspace/scratch/61a2b6386f06/agent-clouddrive/db/tests/invariants.sql:128: NOTICE:  PASS: quota, unknown-outcome safeguards, idempotency, immutability, version and generation priority, stale workers, share approval, disable/re-enable, anonymous feedback, ancestor gates
+DO
+ROLLBACK
+
+== Frontend clean dependency installation, unit tests, and production build ==
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+added 319 packages in 5s
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> agent-clouddrive-web@1.0.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /tmp/clouddrive-selftest.F2Qf66/web
+
+
+ Test Files  5 passed (5)
+      Tests  50 passed (50)
+   Start at  00:14:13
+   Duration  3.69s (import 35%, environment 33%, tests 19%, transform 7%, setup 6%)
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> agent-clouddrive-web@1.0.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.5 building client environment for production...
+transforming...
+✓ 3586 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                             0.64 kB │ gzip:   0.40 kB
+dist/assets/index-OrQZDFmE.css              6.60 kB │ gzip:   2.11 kB
+dist/assets/upload-D490b7UZ.css            70.93 kB │ gzip:  11.07 kB
+dist/assets/rolldown-runtime-XKyaHtl9.js    0.72 kB │ gzip:   0.42 kB
+dist/assets/Details-n82rq2I6.js           221.36 kB │ gzip:  67.71 kB
+dist/assets/upload-D5ck1pgk.js            307.90 kB │ gzip:  93.97 kB
+dist/assets/jsx-runtime-DZOqr_iJ.js       516.38 kB │ gzip: 169.60 kB
+dist/assets/index-B9DborF7.js             688.64 kB │ gzip: 213.77 kB
+
+✓ built in 627ms
+
+== Python converter, deployment, and release-readiness tests ==
+Using caller-provided Python environment; caller is responsible for installing the pinned requirements.
+test_csv_upstream (test_adapter.ActualAnyDocTests.test_csv_upstream) ... ok
+test_docx_embedded_image_preserved_but_missing_description (test_adapter.ActualAnyDocTests.test_docx_embedded_image_preserved_but_missing_description) ... ok
+test_docx_upstream (test_adapter.ActualAnyDocTests.test_docx_upstream) ... ok
+test_pptx_upstream (test_adapter.ActualAnyDocTests.test_pptx_upstream) ... ok
+test_rtf_upstream (test_adapter.ActualAnyDocTests.test_rtf_upstream) ... ok
+test_xlsx_native_chart_is_not_silently_complete (test_adapter.ActualAnyDocTests.test_xlsx_native_chart_is_not_silently_complete) ... ok
+test_xlsx_upstream (test_adapter.ActualAnyDocTests.test_xlsx_upstream) ... ok
+test_200_page_failure_mapping_only_not_ocr_acceptance (test_adapter.FormatTests.test_200_page_failure_mapping_only_not_ocr_acceptance) ... ok
+test_encrypted_pdf (test_adapter.FormatTests.test_encrypted_pdf) ... ok
+test_image_reencoded_metadata_stripped (test_adapter.FormatTests.test_image_reencoded_metadata_stripped) ... ok
+test_invalid_utf8 (test_adapter.FormatTests.test_invalid_utf8) ... ok
+test_pdf_page_limit (test_adapter.FormatTests.test_pdf_page_limit) ... ok
+test_pdf_preview_only_png (test_adapter.FormatTests.test_pdf_preview_only_png) ... ok
+test_real_paddle_unconfigured_is_not_pass (test_adapter.FormatTests.test_real_paddle_unconfigured_is_not_pass) ... ok
+test_scan_no_fake_success (test_adapter.FormatTests.test_scan_no_fake_success) ... ok
+test_scan_page_marker_precedes_assets_and_description (test_adapter.FormatTests.test_scan_page_marker_precedes_assets_and_description) ... ok
+test_selected_page_preserves_global_number (test_adapter.FormatTests.test_selected_page_preserves_global_number) ... ok
+test_static_svg_raster (test_adapter.FormatTests.test_static_svg_raster) ... ok
+test_svg_external_fetch_forbidden (test_adapter.FormatTests.test_svg_external_fetch_forbidden) ... ok
+test_svg_fails_closed (test_adapter.FormatTests.test_svg_fails_closed) ... ok
+test_text_pdf (test_adapter.FormatTests.test_text_pdf) ... ok
+test_utf8_markdown (test_adapter.FormatTests.test_utf8_markdown) ... ok
+test_authenticated_http_subprocess_execution (test_adapter.HTTPTests.test_authenticated_http_subprocess_execution) ... ok
+test_bad_job_identifier (test_adapter.SecurityTests.test_bad_job_identifier) ... ok
+test_checksum (test_adapter.SecurityTests.test_checksum) ... ok
+test_filename_escape (test_adapter.SecurityTests.test_filename_escape) ... ok
+test_path_escape_output (test_adapter.SecurityTests.test_path_escape_output) ... ok
+test_redirect_rejected (test_adapter.SecurityTests.test_redirect_rejected) ... ok
+test_request_cannot_increase_limit (test_adapter.SecurityTests.test_request_cannot_increase_limit) ... ok
+test_token_and_source_not_echoed (test_adapter.SecurityTests.test_token_and_source_not_echoed) ... ok
+test_unsupported (test_adapter.SecurityTests.test_unsupported) ... ok
+test_url_ssrf (test_adapter.SecurityTests.test_url_ssrf) ... ok
+test_zip_expansion_limit (test_adapter.SecurityTests.test_zip_expansion_limit) ... ok
+test_native_http_inference_and_scanned_pdf (test_real_ocr.RealOCRTests.test_native_http_inference_and_scanned_pdf) ... ok
+test_real_office_to_pdf_to_raster_http (test_real_preview.RealPreviewTests.test_real_office_to_pdf_to_raster_http) ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 33.010s
+
+OK
+REAL CPU OCR text: CloudDrive OCR test 12345
+Stable source version 2026
+test_http_cannot_silently_be_production (test_deploy.DeploymentTests.test_http_cannot_silently_be_production) ... ok
+test_local_and_s3_generation_idempotent (test_deploy.DeploymentTests.test_local_and_s3_generation_idempotent) ... ok
+test_no_silent_storage_migration (test_deploy.DeploymentTests.test_no_silent_storage_migration) ... ok
+test_reference_realm_security (test_deploy.DeploymentTests.test_reference_realm_security) ... ok
+test_actual_signed_bucket_creation_is_idempotent (test_s3_init.RustFSBucketTests.test_actual_signed_bucket_creation_is_idempotent) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.580s
+
+OK
+test_changed_evidence (test_release_readiness.ReadinessTests.test_changed_evidence) ... ok
+test_component_not_end_to_end (test_release_readiness.ReadinessTests.test_component_not_end_to_end) ... ok
+test_consistent_fixture (test_release_readiness.ReadinessTests.test_consistent_fixture) ... ok
+test_contract_not_native (test_release_readiness.ReadinessTests.test_contract_not_native) ... ok
+test_duplicate_gate (test_release_readiness.ReadinessTests.test_duplicate_gate) ... ok
+test_invalid_top_level (test_release_readiness.ReadinessTests.test_invalid_top_level) ... ok
+test_malformed_evidence (test_release_readiness.ReadinessTests.test_malformed_evidence) ... ok
+test_missing_file (test_release_readiness.ReadinessTests.test_missing_file) ... ok
+test_missing_required_gate (test_release_readiness.ReadinessTests.test_missing_required_gate) ... ok
+test_partial_blocks (test_release_readiness.ReadinessTests.test_partial_blocks) ... ok
+test_path_escape (test_release_readiness.ReadinessTests.test_path_escape) ... ok
+test_source_bad_status (test_release_readiness.ReadinessTests.test_source_bad_status) ... ok
+test_source_includes_contract_changes (test_release_readiness.ReadinessTests.test_source_includes_contract_changes) ... ok
+test_source_matches_delivery_exclusions (test_release_readiness.ReadinessTests.test_source_matches_delivery_exclusions) ... ok
+test_source_missing_hash (test_release_readiness.ReadinessTests.test_source_missing_hash) ... ok
+test_source_pending (test_release_readiness.ReadinessTests.test_source_pending) ... ok
+test_source_skips_undelivered_symlinks (test_release_readiness.ReadinessTests.test_source_skips_undelivered_symlinks) ... ok
+test_source_stale (test_release_readiness.ReadinessTests.test_source_stale) ... ok
+test_unknown_gate (test_release_readiness.ReadinessTests.test_unknown_gate) ... ok
+test_wrong_declared_ready (test_release_readiness.ReadinessTests.test_wrong_declared_ready) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.027s
+
+OK
+SKIPPED: Actual Chromium UI/PKCE smoke; set SELFTEST_BROWSER=1 and optionally CHROMIUM_PATH.
+
+PASSED: all requested source checks completed.
+Skipped/native deployment gates above are NOT converted into acceptance passes.
+Log: /workspace/scratch/61a2b6386f06/agent-clouddrive/evidence/selftest/source-checks.log

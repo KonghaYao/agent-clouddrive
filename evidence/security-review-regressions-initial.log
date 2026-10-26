@@ -1,0 +1,12 @@
+=== RUN   TestReviewAnonymousFixedShareSelectsAuthorizedSource
+    security_review_test.go:47: explicit historical link cannot open its authorized source: version="" error=NOT_FOUND: resource not found
+--- FAIL: TestReviewAnonymousFixedShareSelectsAuthorizedSource (0.14s)
+=== RUN   TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata
+    security_review_test.go:79: historical grant leaked newer source metadata: current="cd3b59b3-0910-4033-b39c-ccf9506a33c6" size=10
+--- FAIL: TestReviewFixedReceivedShareDoesNotExposeCurrentVersionMetadata (0.12s)
+=== RUN   TestReviewPinnedMarkdownSurvivesBusinessTrash
+    security_review_test.go:105: owner's pinned historical artifact stopped resolving after retained delete: NOT_FOUND: resource not found
+--- FAIL: TestReviewPinnedMarkdownSurvivesBusinessTrash (0.12s)
+FAIL
+FAIL	github.com/agentclouddrive/agent-clouddrive/internal/application	0.391s
+FAIL

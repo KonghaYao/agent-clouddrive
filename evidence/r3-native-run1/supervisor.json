@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "suite": "native-load-supervisor",
+  "status": "fail",
+  "started_at": "2026-10-23T13:59:51.861923+00:00",
+  "mode": "all",
+  "scope": "Local synthetic native processes only; not Docker/browser/production capacity.",
+  "binary_sha256": {
+    "nats": "baab2eecb5a8ebdabf6edd3e22756f89805e3184468653ba67185adf5a3b57eb",
+    "meili": "7e33f5889235f14290074a19a6d3574bd9b10fb2ee8731eabb7dafd0714b0513",
+    "api": "31e9938fbe49b0b7452462c1e40800e97964dfadb375f554a880d585eaf0784b",
+    "worker": "662797c4e2c041e2990dfe4caef646d083eb6858647767da3b1cbb3399bbb018",
+    "maintenance": "c892bafaa3717d8f66d807ab9c41fb00a4593de824cfc01c49025e0f1ab29360"
+  },
+  "scenarios": {},
+  "cleanup": "graceful_children_stopped",
+  "reason": "native_child_exited_before_ready",
+  "finished_at": "2026-10-23T13:59:52.598299+00:00"
+}

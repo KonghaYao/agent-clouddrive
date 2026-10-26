@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "suite": "native-load-supervisor",
+  "status": "pass",
+  "started_at": "2026-10-23T14:10:18.606908+00:00",
+  "mode": "stress",
+  "scope": "Local synthetic native processes only; not Docker/browser/production capacity.",
+  "bounded_resources": {
+    "nats_loopback_only": true,
+    "nats_jetstream_memory_bytes": 268435456,
+    "nats_jetstream_file_bytes": 1073741824
+  },
+  "source_sha256_at_launch": "80a660d8589c33d34813dbbf4dac1def7de8c8ff87926fe82fe75f080f507f7f",
+  "binary_sha256": {
+    "nats": "baab2eecb5a8ebdabf6edd3e22756f89805e3184468653ba67185adf5a3b57eb",
+    "meili": "7e33f5889235f14290074a19a6d3574bd9b10fb2ee8731eabb7dafd0714b0513",
+    "api": "31e9938fbe49b0b7452462c1e40800e97964dfadb375f554a880d585eaf0784b",
+    "worker": "662797c4e2c041e2990dfe4caef646d083eb6858647767da3b1cbb3399bbb018",
+    "maintenance": "c892bafaa3717d8f66d807ab9c41fb00a4593de824cfc01c49025e0f1ab29360"
+  },
+  "scenarios": {
+    "stress": 0
+  },
+  "cleanup": "graceful_children_stopped",
+  "baseline_drain": {
+    "status": "pass",
+    "samples": [
+      {
+        "conversion_pending": 0,
+        "index_pending": 0,
+        "outbox_pending": 0,
+        "sampled_rss_bytes": 1023430656,
+        "available_ram_bytes": 8755597312,
+        "free_disk_bytes": 27265773568,
+        "active_connections": 1,
+        "waiting_locks": 0,
+        "elapsed_seconds": 0.0191
+      },
+      {
+        "conversion_pending": 0,
+        "index_pending": 0,
+        "outbox_pending": 0,
+        "sampled_rss_bytes": 1017810944,
+        "available_ram_bytes": 8751792128,
+        "free_disk_bytes": 27265773568,
+        "active_connections": 1,
+        "waiting_locks": 0,
+        "elapsed_seconds": 1.052
+      },
+      {
+        "conversion_pending": 0,
+        "index_pending": 0,
+        "outbox_pending": 0,
+        "sampled_rss_bytes": 1017810944,
+        "available_ram_bytes": 8747663360,
+        "free_disk_bytes": 27265773568,
+        "active_connections": 1,
+        "waiting_locks": 0,
+        "elapsed_seconds": 2.0803
+      }
+    ],
+    "required_consecutive_zero_samples": 3,
+    "minimum_sample_interval_seconds": 1,
+    "maximum_seconds": 120,
+    "consecutive_zero_samples": 3,
+    "stable_zero_span_seconds": 2.0612,
+    "elapsed_seconds": 2.0803
+  },
+  "selected_status": "pass",
+  "finished_at": "2026-10-23T14:12:42.701911+00:00",
+  "source_sha256_at_finish": "80a660d8589c33d34813dbbf4dac1def7de8c8ff87926fe82fe75f080f507f7f",
+  "source_changed_during_run": false
+}

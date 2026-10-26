@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "phase": "preflight",
+  "checks": {
+    "pkce": true,
+    "confidential_exchange_openid": true,
+    "personal_space": true,
+    "tus_create": true,
+    "tus_overwrite": true,
+    "revision_read": true,
+    "move_stable_id": true,
+    "move_retained_history": true,
+    "stale_admission_denied": true
+  },
+  "browser_test": "not_run",
+  "compose_runtime": "not_run"
+}
