@@ -124,7 +124,7 @@ services:
     secrets: [postgres_password, keycloak_db_password]
     volumes:
       - postgres:/var/lib/postgresql/data
-      - ./postgres-init.sh:/docker-entrypoint-initdb.d/10-keycloak.sh:ro
+      - ./postgres/postgres-init.sh:/docker-entrypoint-initdb.d/10-keycloak.sh:ro
     command: [postgres, -c, log_statement=none, -c, log_min_error_statement=panic, -c, log_parameter_max_length=0, -c, log_parameter_max_length_on_error=0]
     healthcheck:
       test: [CMD-SHELL, pg_isready -U clouddrive -d clouddrive]
@@ -139,7 +139,7 @@ services:
     entrypoint: [/bin/sh, -ec]
     command: ['export NATS_TOKEN="$$(cat /run/secrets/nats_token)"; exec nats-server -c /etc/nats/nats.conf']
     secrets: [nats_token]
-    volumes: [nats:/data, ./nats.conf:/etc/nats/nats.conf:ro]
+    volumes: [nats:/data, ./nats/nats.conf:/etc/nats/nats.conf:ro]
     healthcheck:
       test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8222/healthz]
       interval: 10s
@@ -188,7 +188,7 @@ services:
     networks: [backend]
     entrypoint: [python, /init.py]
     environment: {DRIVE_S3_ENDPOINT: "http://rustfs:9000", DRIVE_S3_REGION: us-east-1}
-    volumes: [./init_buckets.py:/init.py:ro]
+    volumes: [./rustfs/init_buckets.py:/init.py:ro]
     secrets: [s3_access_key, s3_secret_key]
     depends_on:
       rustfs: {condition: service_healthy}
@@ -213,7 +213,7 @@ services:
       KC_HTTP_ACCESS_LOG_ENABLED: "false"
     secrets: [keycloak_db_password, keycloak_admin_password]
     volumes:
-      - ./keycloak-entrypoint.sh:/config/entrypoint.sh:ro
+      - ./keycloak/keycloak-entrypoint.sh:/config/entrypoint.sh:ro
       - ./generated/clouddrive-realm.json:/opt/keycloak/data/import/clouddrive-realm.json:ro
     depends_on:
       postgres: {condition: service_healthy}
@@ -263,7 +263,7 @@ services:
       STORAGE_USERS_PURGE_TRASH_BIN_PROJECT_DELETE_BEFORE: "0"
     secrets: [ocis_admin_password, s3_access_key, s3_secret_key]
     volumes:
-      - ./ocis-entrypoint.sh:/config/entrypoint.sh:ro
+      - ./ocis/ocis-entrypoint.sh:/config/entrypoint.sh:ro
       - ocis-config:/etc/ocis
       - ocis-data:/var/lib/ocis
       - ocis-originals:/var/lib/ocis-originals
@@ -331,7 +331,7 @@ services:
 
   kkfileview:
     image: agent-clouddrive/kkfileview:5.0.3-pdf1
-    build: {context: ../.., dockerfile: deploy/compose/Dockerfile.kkfileview}
+    build: {context: ../.., dockerfile: deploy/compose/kkfileview/Dockerfile.kkfileview}
     restart: unless-stopped
     networks: [backend]
     environment:
@@ -340,7 +340,7 @@ services:
       KK_OFFICE_PREVIEW_TYPE: pdf
       KK_OFFICE_TYPE_WEB: image
       KK_CACHE_TYPE: jdk
-    volumes: [preview-cache:/data/previews, ./kkfileview.properties:/config/security.properties:ro]
+    volumes: [preview-cache:/data/previews, ./kkfileview/kkfileview.properties:/config/security.properties:ro]
     depends_on:
       init-volumes: {condition: service_completed_successfully}
     mem_limit: 3g

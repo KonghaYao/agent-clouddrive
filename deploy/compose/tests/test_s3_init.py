@@ -4,11 +4,15 @@ from pathlib import Path
 import secrets
 import socket
 import subprocess
+import sys
 import tempfile
 import time
 import unittest
 from unittest.mock import patch
 import urllib.request
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent / "rustfs"))
 
 import init_buckets
 

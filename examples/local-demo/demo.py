@@ -30,6 +30,17 @@ OMITTED = ("rustfs", "s3-init", "paddleocr", "prepare-models", "kkfileview")
 GATES = ("DRIVE_OCIS_INTEGRATION_VERIFIED", "DRIVE_DELEGATION_VERIFIED")
 
 
+def deploy_files():
+    """Yield deployable source files by relative path, including nested services."""
+    for path in DEPLOY.rglob("*"):
+        relative = path.relative_to(DEPLOY)
+        if (not path.is_file() or relative.name in ("compose.yaml", ".env")
+                or relative.parts[0] in ("generated", "secrets")
+                or any(part.startswith(".") or part == "__pycache__" for part in relative.parts)):
+            continue
+        yield relative
+
+
 class DemoError(Exception):
     pass
 
@@ -112,7 +123,7 @@ def write_state(runtime, state):
 
 def record_hashes(runtime, state):
     names = [".env", "compose.source.yaml", "compose.json", "credentials.json", "service-credentials.json"]
-    names += [p.name for p in DEPLOY.iterdir() if p.is_file() and not p.name.startswith(".") and p.name != "compose.yaml"]
+    names += [str(p) for p in deploy_files()]
     names += [str(p.relative_to(runtime)) for folder in ("generated", "secrets") for p in (runtime / folder).glob("*") if p.is_file()]
     state["managed_hashes"] = {name: hashlib.sha256((runtime / name).read_bytes()).hexdigest() for name in names if (runtime / name).is_file()}
     write_state(runtime, state)
@@ -213,6 +224,20 @@ def render_source(project):
     return source.replace("agent-clouddrive/", project + "/")
 
 
+def copy_deploy_files(runtime):
+    for relative in deploy_files():
+        source = DEPLOY / relative
+        content = source.read_text()
+        if source.name == "ocis-entrypoint.sh":
+            # oCIS initialization can print generated credentials. Preserve its
+            # exit status, but never send that output to Docker logs.
+            content = content.replace("then ocis init; fi", "then ocis init >/dev/null 2>&1; fi")
+        destination = runtime / relative
+        destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        destination.parent.chmod(0o700)
+        atomic_write(destination, content, 0o444)
+
+
 def prepare(runtime, state):
     command([sys.executable, str(DEPLOY / "setup.py"), "--mode", "local", "--development-http", "--public-url", ORIGIN,
              "--directory", str(runtime)], "Generate isolated local configuration", 30)
@@ -228,14 +253,7 @@ def prepare(runtime, state):
                                "emailVerified": True, "firstName": "Synthetic", "lastName": role, "realmRoles": ["offline_access"],
                                "credentials": [{"type": "password", "value": account["password"], "temporary": False}]})
     save_json(realm_path, realm, 0o444)
-    for path in DEPLOY.iterdir():
-        if path.is_file() and path.name not in ("compose.yaml", ".env") and not path.name.startswith("."):
-            content = path.read_text()
-            if path.name == "ocis-entrypoint.sh":
-                # oCIS initialization can print generated credentials. Preserve its
-                # exit status, but never send that output to Docker logs.
-                content = content.replace("then ocis init; fi", "then ocis init >/dev/null 2>&1; fi")
-            atomic_write(runtime / path.name, content, 0o444)
+    copy_deploy_files(runtime)
     atomic_write(runtime / "compose.source.yaml", render_source(state["project"]))
     state["phase"] = "configured"
     record_hashes(runtime, state)

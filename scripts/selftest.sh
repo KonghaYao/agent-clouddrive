@@ -90,7 +90,7 @@ else
   fi
 fi
 "$TEST_PYTHON" -m unittest discover -s converters/tests -p 'test_*.py' -v
-"$TEST_PYTHON" -m unittest discover -s deploy/compose -p 'test_*.py' -v
+"$TEST_PYTHON" -m unittest discover -s deploy/compose/tests -p 'test_*.py' -v
 step 'Local example offline guards (not Docker or browser execution)'
 "$TEST_PYTHON" -m unittest discover -s examples/local-demo -p 'test_*.py' -v
 "$TEST_PYTHON" - <<'PYREADINESS'
@@ -109,8 +109,8 @@ fi
 step 'Offline live-acceptance driver syntax and guard tests (no browser/services launched)'
 # Browser-driver source contracts inspect the actual gateway configuration beside
 # the isolated web copy. Do not silently drop that contract in clean self-tests.
-mkdir -p "$WORK/deploy/compose"
-cp deploy/compose/nginx.conf "$WORK/deploy/compose/nginx.conf"
+mkdir -p "$WORK/deploy/compose/gateway"
+cp deploy/compose/gateway/nginx.conf "$WORK/deploy/compose/gateway/nginx.conf"
 PYTHON_BIN="$TEST_PYTHON" DRIVERS_WEB_ROOT="$WEB_WORK" ACCEPTANCE_DRIVER_LOG="$LOG_DIR/acceptance-driver-preparation.log" bash scripts/check-acceptance-drivers.sh
 
 if [[ "${SELFTEST_BROWSER:-0}" == 1 ]]; then

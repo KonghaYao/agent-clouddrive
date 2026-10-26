@@ -99,7 +99,7 @@ class LauncherTests(unittest.TestCase):
         human = [user for user in realm["users"] if "credentials" in user]
         self.assertEqual(len(human), 2)
         self.assertTrue(all(user["firstName"] and user["lastName"] for user in human))
-        self.assertIn("ocis init >/dev/null 2>&1", (self.root / "ocis-entrypoint.sh").read_text())
+        self.assertIn("ocis init >/dev/null 2>&1", (self.root / "ocis" / "ocis-entrypoint.sh").read_text())
         self.assertIn("DRIVE_OCIS_INTEGRATION_VERIFIED=false", (self.root / ".env").read_text())
         self.assertIn('"' + str(demo.REPO) + '"', (self.root / "compose.source.yaml").read_text())
         demo.load_state(self.root)

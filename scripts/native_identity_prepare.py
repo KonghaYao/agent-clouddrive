@@ -29,7 +29,7 @@ write(state/'service-credentials.json',json.dumps({'client_id':'clouddrive-ident
 if not (state/'delegation.key').exists():
     (state/'delegation.key').write_bytes(secrets.token_bytes(32))
     (state/'delegation.key').chmod(0o600)
-spec=importlib.util.spec_from_file_location('realm_template',repo/'deploy/compose/realm_template.py')
+spec=importlib.util.spec_from_file_location('realm_template',repo/'deploy/compose/keycloak/realm_template.py')
 mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
 realm=mod.realm(public, creds['backend'], creds['identity'], creds['background'])
 for name in ['owner','reader']:

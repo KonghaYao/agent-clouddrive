@@ -41,7 +41,7 @@ class RealPreviewTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory); (root / "previews").mkdir(); (root / "bin").mkdir(); (root / "config").mkdir()
             config = root / "config/application.properties"
-            security = Path(__file__).resolve().parents[2] / "deploy/compose/kkfileview.properties"
+            security = Path(__file__).resolve().parents[2] / "deploy/compose/kkfileview/kkfileview.properties"
             office_home = os.environ.get("KKFILEVIEW_OFFICE_HOME", "/usr/lib/libreoffice")
             config.write_text(Path(os.environ["KKFILEVIEW_APP_CONFIG"]).read_text() + "\n" + security.read_text() + f"\nserver.port={kk_port}\nfile.dir={root / 'previews'}/\ntrust.host=127.0.0.1\noffice.plugin.server.ports={office_port}\noffice.home={office_home}\n")
             kk_log = open(os.environ.get("KKFILEVIEW_TEST_LOG", "/tmp/clouddrive-kkfileview-test.log"), "w")

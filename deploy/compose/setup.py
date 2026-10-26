@@ -8,7 +8,7 @@ import secrets
 import shutil
 import sys
 import urllib.parse
-from realm_template import realm
+from keycloak.realm_template import realm
 
 HERE = Path(__file__).resolve().parent
 
@@ -92,7 +92,7 @@ def main():
         configuration["sslRequired"] = "none"
     write(generated / "clouddrive-realm.json", json.dumps(configuration, indent=2) + "\n")
     write(generated / "config.json", json.dumps({"oidc_issuer": issuer, "oidc_client_id": "clouddrive-web", "oidc_audience": "agent-clouddrive"}) + "\n")
-    nginx = (HERE / "nginx.conf").read_text()
+    nginx = (HERE / "gateway" / "nginx.conf").read_text()
     if parsed.scheme == "https":
         nginx = nginx.replace("    listen 8080;", "    listen 443 ssl;\n    ssl_certificate /run/secrets/tls_certificate;\n    ssl_certificate_key /run/secrets/tls_private_key;\n    ssl_protocols TLSv1.2 TLSv1.3;")
         nginx = nginx.replace("  server {", "  server { listen 8080; location = /healthz { return 200 'ok'; } }\n  server {", 1)

@@ -6,7 +6,7 @@ The Compose reference is intended for a single Linux Docker Engine host with Com
 
 Actual tests distinguish: (1) local/native dependency integration evidence, (2) converter/domain/frontend tests, (3) Compose schema/config validation, and (4) a real Compose runtime. Docker Engine is absent in the implementation workspace. `docker compose config --quiet` was run with the official standalone Compose v2.39.4 CLI for both generated storage modes, but no Docker containers were started here. Native dependency passes do not replace Compose acceptance.
 
-`deploy/compose/image-lock.json` records actual read-only registry manifest lookups. Successfully resolved upstream images are pinned by version AND returned digest in Compose/Dockerfiles. This verifies registry existence, not runtime compatibility. kkFileView 5.0.3 application/base image tags were unavailable in those queries, so `Dockerfile.kkfileview` builds the official v5.0.3 source archive with a verified SHA256 instead of pretending a tag exists or downgrading to a known older security release. A documented one-line source patch forces Office spreadsheets to PDF rather than HTML. This is the project image `agent-clouddrive/kkfileview:5.0.3-pdf1`, not an official upstream image. Its Maven build and real native DOCX/XLSX/PPTX raster integration passed; the Docker build/runtime remains untested.
+`deploy/compose/images/image-lock.json` records actual read-only registry manifest lookups. Successfully resolved upstream images are pinned by version AND returned digest in Compose/Dockerfiles. This verifies registry existence, not runtime compatibility. kkFileView 5.0.3 application/base image tags were unavailable in those queries, so `Dockerfile.kkfileview` builds the official v5.0.3 source archive with a verified SHA256 instead of pretending a tag exists or downgrading to a known older security release. A documented one-line source patch forces Office spreadsheets to PDF rather than HTML. This is the project image `agent-clouddrive/kkfileview:5.0.3-pdf1`, not an official upstream image. Its Maven build and real native DOCX/XLSX/PPTX raster integration passed; the Docker build/runtime remains untested.
 
 ## First local setup
 
@@ -123,11 +123,11 @@ docker compose ps
 # Idempotent migrations after a reviewed upgrade.
 docker compose run --rm --no-deps maintenance /app/maintenance migrate
 # Static deployment tests, no Docker daemon needed.
-python3 -m unittest discover -s deploy/compose -p 'test_*.py' -v
+python3 -m unittest discover -s deploy/compose/tests -p 'test_*.py' -v
 # Optional actual RustFS initializer integration (synthetic temporary data).
-RUSTFS_BIN=/path/to/official/rustfs python3 -m unittest discover -s deploy/compose -p 'test_*.py' -v
+RUSTFS_BIN=/path/to/official/rustfs python3 -m unittest discover -s deploy/compose/tests -p 'test_*.py' -v
 # Read-only manifest resolution, not container execution.
-python3 deploy/compose/lock_images.py --output /tmp/new-image-lock.json
+python3 deploy/compose/images/lock_images.py --output /tmp/new-image-lock.json
 ```
 
 Conversion retry goes through the authorized business conversion endpoint and creates a new immutable artifact generation. Uploads with unknown remote outcomes must be reconciled by their operation/session, not blindly retried or have quota released on timeout. Do not edit PostgreSQL pointers to make a remote discrepancy disappear.

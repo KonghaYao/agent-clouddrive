@@ -8,11 +8,12 @@ import tempfile
 import unittest
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent))
 
 
 class DeploymentTests(unittest.TestCase):
     def run_setup(self, path, *args):
-        return subprocess.run([sys.executable, str(HERE / "setup.py"), "--directory", str(path), *args], capture_output=True, text=True)
+        return subprocess.run([sys.executable, str(HERE.parent / "setup.py"), "--directory", str(path), *args], capture_output=True, text=True)
 
     def test_local_and_s3_generation_idempotent(self):
         for mode, driver in (("local", "ocis"), ("s3", "s3ng")):
@@ -34,7 +35,7 @@ class DeploymentTests(unittest.TestCase):
                 self.assertEqual(json.loads((path / "generated/config.json").read_text())["oidc_audience"], "agent-clouddrive")
                 compose = os.environ.get("COMPOSE_BIN", "/tmp/docker-compose")
                 if Path(compose).is_file():
-                    shutil.copy(HERE / "compose.yaml", path / "compose.yaml")
+                    shutil.copy(HERE.parent / "compose.yaml", path / "compose.yaml")
                     check = subprocess.run([compose, "--project-directory", str(path), "config", "--quiet"], capture_output=True, text=True)
                     self.assertEqual(check.returncode, 0, check.stderr)
 
@@ -52,7 +53,7 @@ class DeploymentTests(unittest.TestCase):
             self.assertIn("not a migration", result.stderr)
 
     def test_reference_realm_security(self):
-        from realm_template import realm
+        from keycloak.realm_template import realm
         value = realm("https://drive.example.test", "backend-test", "identity-test")
         clients = {c["clientId"]: c for c in value["clients"]}
         for name in ("clouddrive-web", "peri", "clouddrive-background"):

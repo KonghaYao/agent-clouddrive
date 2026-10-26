@@ -52,7 +52,7 @@ test('check-only preflight cannot call fetch', async () => {
 });
 test('read-only preflight accepts Compose plain edge health without claiming business health', async () => {
   const original = globalThis.fetch, paths = [];
-  const nginx = await readFile(new URL('../../deploy/compose/nginx.conf', import.meta.url), 'utf8');
+  const nginx = await readFile(new URL('../../deploy/compose/gateway/nginx.conf', import.meta.url), 'utf8');
   assert.match(nginx, /healthz[^\n]*return 200 'ok'/);
   globalThis.fetch = async raw => {
     paths.push(new URL(raw).pathname);

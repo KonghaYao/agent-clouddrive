@@ -20,7 +20,7 @@ RUN npm run build
 
 FROM nginx:1.28.0-alpine@sha256:30f1c0d78e0ad60901648be663a710bdadf19e4c10ac6782c235200619158284 AS gateway
 COPY --from=web-build /src/web/dist /usr/share/nginx/html
-COPY deploy/compose/nginx.conf /etc/nginx/nginx.conf
+COPY deploy/compose/gateway/nginx.conf /etc/nginx/nginx.conf
 EXPOSE 8080
 HEALTHCHECK --interval=15s --timeout=3s CMD wget -q -O /dev/null http://127.0.0.1:8080/healthz || exit 1
 
@@ -31,7 +31,7 @@ RUN apk add --no-cache ca-certificates tzdata \
 WORKDIR /app
 COPY --from=go-build /out/ /app/
 COPY db/migrations /app/db/migrations
-COPY deploy/compose/app-entrypoint.sh /app/entrypoint.sh
+COPY deploy/compose/app/app-entrypoint.sh /app/entrypoint.sh
 USER 10001:10001
 EXPOSE 8080 8081
 ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
