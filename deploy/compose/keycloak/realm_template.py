@@ -59,11 +59,12 @@ def realm(public_url="__PUBLIC_URL__", backend_secret="__BACKEND_CLIENT_SECRET__
             "bruteForceProtected": True, "accessTokenLifespan": 300, "ssoSessionIdleTimeout": 1800,
             "roles": {"realm": [{"name": "offline_access", "description": "Offline access for explicit user-consented background processing"}, {"name": "default-roles-clouddrive", "composite": True, "composites": {"realm": ["offline_access"]}}]},
             "defaultRole": {"name": "default-roles-clouddrive", "composite": True, "clientRole": False},
-            "eventsEnabled": False, "adminEventsEnabled": False, "clientScopes": scopes, "clients": clients,
+            "eventsEnabled": True, "eventsListeners": [], "enabledEventTypes": ["UPDATE_PROFILE"],
+            "adminEventsEnabled": True, "adminEventsDetailsEnabled": True, "clientScopes": scopes, "clients": clients,
             "scopeMappings": [{"clientScope": "offline_access", "roles": ["offline_access"]}],
-            "clientScopeMappings": {"realm-management": [{"client": "clouddrive-identity", "roles": ["view-users", "query-users"]}]},
+            "clientScopeMappings": {"realm-management": [{"client": "clouddrive-identity", "roles": ["view-users", "query-users", "view-events"]}]},
             "users": [{"username": "service-account-clouddrive-identity", "enabled": True, "serviceAccountClientId": "clouddrive-identity",
-                       "clientRoles": {"realm-management": ["view-users", "query-users"]}}]}
+                       "clientRoles": {"realm-management": ["view-users", "query-users", "view-events"]}}]}
 
 
 if __name__ == "__main__":

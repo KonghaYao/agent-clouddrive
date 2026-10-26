@@ -385,6 +385,9 @@ func (k *Keycloak) Groups(ctx context.Context, issuer, subject string) ([]string
 	return nil, ports.ErrLimit
 }
 func (k *Keycloak) DelegatedCredential(ctx context.Context, in ports.DelegationRequest) (ports.Credential, error) {
+	if in.Audit != nil {
+		return ports.Credential{}, ports.ErrUnauthorized
+	}
 	if !k.cfg.DelegationVerified || in.SubjectToken == "" || k.cfg.ExchangeClientID == "" || k.cfg.ExchangeClientSecret == "" {
 		return ports.Credential{}, ports.ErrUnverified
 	}

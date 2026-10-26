@@ -135,6 +135,53 @@ func (q *Queries) GetAccessTicket(ctx context.Context, tokenHash []byte) (Access
 	return i, err
 }
 
+const getIdentityEventCursor = `-- name: GetIdentityEventCursor :one
+SELECT source, anchor, updated_at, gap_count FROM identity_event_cursors WHERE source=$1
+`
+
+func (q *Queries) GetIdentityEventCursor(ctx context.Context, source string) (IdentityEventCursor, error) {
+	row := q.db.QueryRow(ctx, getIdentityEventCursor, source)
+	var i IdentityEventCursor
+	err := row.Scan(
+		&i.Source,
+		&i.Anchor,
+		&i.UpdatedAt,
+		&i.GapCount,
+	)
+	return i, err
+}
+
+const getIdentityEvents = `-- name: GetIdentityEvents :many
+SELECT source, event_id, subject, disabled, occurred_at, processed_at FROM identity_events WHERE source=$1 ORDER BY occurred_at,event_id
+`
+
+func (q *Queries) GetIdentityEvents(ctx context.Context, source string) ([]IdentityEvent, error) {
+	rows, err := q.db.Query(ctx, getIdentityEvents, source)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []IdentityEvent{}
+	for rows.Next() {
+		var i IdentityEvent
+		if err := rows.Scan(
+			&i.Source,
+			&i.EventID,
+			&i.Subject,
+			&i.Disabled,
+			&i.OccurredAt,
+			&i.ProcessedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getOwnerSpace = `-- name: GetOwnerSpace :one
 SELECT id, owner_id, native_instance, native_space_id, created_at, native_root_resource_id FROM spaces WHERE owner_id = $1
 `
@@ -154,7 +201,7 @@ func (q *Queries) GetOwnerSpace(ctx context.Context, ownerID pgtype.UUID) (Space
 }
 
 const getPrincipal = `-- name: GetPrincipal :one
-SELECT id, issuer, subject, display_name, status, created_at, updated_at, disabled_reason FROM principals WHERE id = $1
+SELECT id, issuer, subject, display_name, status, created_at, updated_at, disabled_reason, identity_epoch FROM principals WHERE id = $1
 `
 
 func (q *Queries) GetPrincipal(ctx context.Context, id pgtype.UUID) (Principal, error) {
@@ -169,12 +216,13 @@ func (q *Queries) GetPrincipal(ctx context.Context, id pgtype.UUID) (Principal, 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DisabledReason,
+		&i.IdentityEpoch,
 	)
 	return i, err
 }
 
 const getPrincipalByIdentity = `-- name: GetPrincipalByIdentity :one
-SELECT id, issuer, subject, display_name, status, created_at, updated_at, disabled_reason FROM principals WHERE issuer = $1 AND subject = $2
+SELECT id, issuer, subject, display_name, status, created_at, updated_at, disabled_reason, identity_epoch FROM principals WHERE issuer = $1 AND subject = $2
 `
 
 type GetPrincipalByIdentityParams struct {
@@ -194,6 +242,7 @@ func (q *Queries) GetPrincipalByIdentity(ctx context.Context, arg GetPrincipalBy
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DisabledReason,
+		&i.IdentityEpoch,
 	)
 	return i, err
 }
@@ -252,7 +301,7 @@ func (q *Queries) PruneExpiredTickets(ctx context.Context) error {
 }
 
 const setPrincipalStatus = `-- name: SetPrincipalStatus :one
-UPDATE principals SET status = $2, updated_at = now() WHERE id = $1 RETURNING id, issuer, subject, display_name, status, created_at, updated_at, disabled_reason
+UPDATE principals SET status = $2, updated_at = now() WHERE id = $1 RETURNING id, issuer, subject, display_name, status, created_at, updated_at, disabled_reason, identity_epoch
 `
 
 type SetPrincipalStatusParams struct {
@@ -272,13 +321,14 @@ func (q *Queries) SetPrincipalStatus(ctx context.Context, arg SetPrincipalStatus
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DisabledReason,
+		&i.IdentityEpoch,
 	)
 	return i, err
 }
 
 const upsertPrincipal = `-- name: UpsertPrincipal :one
 INSERT INTO principals(id,issuer,subject,display_name) VALUES($1,$2,$3,$4)
-ON CONFLICT (issuer,subject) DO UPDATE SET display_name = EXCLUDED.display_name, updated_at = now() RETURNING id, issuer, subject, display_name, status, created_at, updated_at, disabled_reason
+ON CONFLICT (issuer,subject) DO UPDATE SET display_name = EXCLUDED.display_name, updated_at = now() RETURNING id, issuer, subject, display_name, status, created_at, updated_at, disabled_reason, identity_epoch
 `
 
 type UpsertPrincipalParams struct {
@@ -305,6 +355,7 @@ func (q *Queries) UpsertPrincipal(ctx context.Context, arg UpsertPrincipalParams
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DisabledReason,
+		&i.IdentityEpoch,
 	)
 	return i, err
 }

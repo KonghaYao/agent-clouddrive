@@ -7,6 +7,7 @@ import (
 	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
 	"github.com/agentclouddrive/agent-clouddrive/internal/ports"
 	"strings"
+	"time"
 )
 
 // Audit grants are provisioned by an authorized deployment operator, not by an
@@ -15,7 +16,7 @@ func (s *Service) auditFile(ctx context.Context, a Actor, fid string) (Object, p
 	if a.Principal.Type != domain.ActorUser || !a.Principal.Active || !a.Principal.StatusVerified {
 		return nil, ports.Subject{}, denied()
 	}
-	f, e := one(ctx, s.DB, `SELECT to_jsonb(f)||jsonb_build_object('audit_granted_by',g.granted_by,'owner_issuer',p.issuer,'owner_subject',p.subject) FROM audit_grants g JOIN files f ON f.id=g.file_id JOIN principals p ON p.id=f.owner_id JOIN principals auditor ON auditor.id=g.principal_id WHERE g.principal_id=$1 AND g.file_id=$2 AND auditor.status='active' AND (g.expires_at IS NULL OR g.expires_at>now())`, a.Principal.ID, fid)
+	f, e := one(ctx, s.DB, `SELECT to_jsonb(f)||jsonb_build_object('audit_expires_at',g.expires_at,'audit_grant_id',g.id,'audit_granted_by',g.granted_by,'owner_issuer',p.issuer,'owner_subject',p.subject) FROM audit_grants g JOIN files f ON f.id=g.file_id JOIN principals p ON p.id=f.owner_id JOIN principals auditor ON auditor.id=g.principal_id WHERE g.principal_id=$1 AND g.file_id=$2 AND auditor.status='active' AND g.auditor_epoch=auditor.identity_epoch AND (g.expires_at IS NULL OR g.expires_at>now())`, a.Principal.ID, fid)
 	if e != nil {
 		return nil, ports.Subject{}, denied()
 	}
@@ -52,7 +53,8 @@ func (s *Service) AuditContent(ctx context.Context, a Actor, fid, vid string, rn
 	}
 	// No admin impersonation: native reads still require the owner's lawful,
 	// previously consented delegation. Revoked or disabled grants fail closed.
-	c, e := access.New(s.deps()).OriginalVersion(ctx, owner, "", fid, vid, rng)
+	expires, _ := time.Parse(time.RFC3339Nano, str(f, "audit_expires_at"))
+	c, e := access.New(s.deps()).AuditOriginalVersion(ctx, owner, ports.AuditCapability{AuditorPrincipalID: a.Principal.ID, GrantID: str(f, "audit_grant_id"), FileID: fid, VersionID: vid, Purpose: "audit_original", ExpiresAt: expires}, rng)
 	if e != nil {
 		return ports.Content{}, normalizeError(e)
 	}

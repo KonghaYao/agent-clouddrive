@@ -1101,6 +1101,9 @@ func (s *Service) reconcileUploads(ctx context.Context) error {
 // cache: every protected request still asks the authoritative provider. Failed
 // provider reads never enable an account or reactivate a share.
 func (s *Service) syncPrincipalStatuses(ctx context.Context) error {
+	if e := s.syncIdentityEvents(ctx); e != nil {
+		return e
+	}
 	if s.Identity == nil {
 		return ports.ErrUnavailable
 	}
