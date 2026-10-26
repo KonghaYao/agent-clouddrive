@@ -32,7 +32,7 @@ var ToolDefinitions = []ToolDefinition{
 	{"drive_create_text", "create_text", "Create or explicitly overwrite up to 1 MiB UTF-8 content; expected versions prevent silent overwrites.", "drive.write", []string{"name", "content", "idempotency_key"}},
 	{"drive_begin_upload", "begin_upload", "Reserve quota and begin a controlled tus upload. Binary bytes are sent over HTTP, not tool JSON.", "drive.write", []string{"name", "size_bytes", "idempotency_key"}},
 	{"drive_finish_upload", "finish_upload", "Reconcile and commit an uploaded source only after native verification.", "drive.write", []string{"upload_id"}},
-	{"drive_mkdir", "mkdir", "Create a native folder.", "drive.write", []string{"name", "idempotency_key"}},
+	{"drive_mkdir", "mkdir", "Create a native folder. Creating below an existing parent requires expected_parent_revision, the parent's current metadata_revision; the root needs no revision.", "drive.write", []string{"name", "idempotency_key"}},
 	{"drive_move", "move", "Move owned files without changing stable IDs or source history.", "drive.write", []string{"file_id", "name", "expected_metadata_revision", "idempotency_key"}},
 	{"drive_rename", "rename", "Rename an owned file with optimistic concurrency.", "drive.write", []string{"file_id", "name", "expected_metadata_revision", "idempotency_key"}},
 	{"drive_delete", "delete", "Hide a file/subtree and move it to retained business trash. Never permanently deletes.", "drive.delete", []string{"file_id", "expected_metadata_revision", "idempotency_key"}},
@@ -53,6 +53,10 @@ func ToolSchema(d ToolDefinition) map[string]any {
 	for _, k := range []string{"size_bytes", "expected_metadata_revision", "limit", "offset"} {
 		properties[k] = map[string]any{"type": "integer", "minimum": 0}
 	}
+	// The backend already requires the parent revision for non-root mkdir. Expose
+	// it so an Agent can express the same optimistic concurrency contract; the
+	// root path stays valid because the field is optional.
+	properties["expected_parent_revision"] = map[string]any{"type": "integer", "minimum": 1}
 	properties["rights"] = map[string]any{"type": "array", "items": map[string]any{"type": "string", "enum": []string{"read", "download", "preview"}}}
 	properties["items"] = map[string]any{"type": "array", "maxItems": 100, "items": map[string]any{"type": "object"}}
 	r := map[string]any{"type": "object", "properties": properties, "additionalProperties": false}
