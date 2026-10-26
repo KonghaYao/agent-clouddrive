@@ -39,10 +39,13 @@ type ArtifactSet struct {
 }
 
 type AuditGrant struct {
-	PrincipalID pgtype.UUID        `json:"principal_id"`
-	FileID      pgtype.UUID        `json:"file_id"`
-	GrantedBy   pgtype.UUID        `json:"granted_by"`
-	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
+	PrincipalID   pgtype.UUID        `json:"principal_id"`
+	FileID        pgtype.UUID        `json:"file_id"`
+	GrantedBy     pgtype.UUID        `json:"granted_by"`
+	ExpiresAt     pgtype.Timestamptz `json:"expires_at"`
+	ID            pgtype.UUID        `json:"id"`
+	IdentityEpoch int64              `json:"identity_epoch"`
+	AuditorEpoch  int64              `json:"auditor_epoch"`
 }
 
 type AuditRead struct {
@@ -202,6 +205,22 @@ type FileVersion struct {
 	NativeRevisionRef []byte             `json:"native_revision_ref"`
 }
 
+type IdentityEvent struct {
+	Source      string             `json:"source"`
+	EventID     string             `json:"event_id"`
+	Subject     string             `json:"subject"`
+	Disabled    bool               `json:"disabled"`
+	OccurredAt  pgtype.Timestamptz `json:"occurred_at"`
+	ProcessedAt pgtype.Timestamptz `json:"processed_at"`
+}
+
+type IdentityEventCursor struct {
+	Source    string             `json:"source"`
+	Anchor    string             `json:"anchor"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	GapCount  int64              `json:"gap_count"`
+}
+
 type Outbox struct {
 	ID               pgtype.UUID        `json:"id"`
 	EventType        string             `json:"event_type"`
@@ -227,6 +246,7 @@ type Principal struct {
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	DisabledReason *string            `json:"disabled_reason"`
+	IdentityEpoch  int64              `json:"identity_epoch"`
 }
 
 type QuotaAccount struct {
@@ -307,6 +327,7 @@ type ShareGrant struct {
 	ExpiresAt          pgtype.Timestamptz `json:"expires_at"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	RevokedAt          pgtype.Timestamptz `json:"revoked_at"`
+	IdentityEpoch      int64              `json:"identity_epoch"`
 }
 
 type Space struct {

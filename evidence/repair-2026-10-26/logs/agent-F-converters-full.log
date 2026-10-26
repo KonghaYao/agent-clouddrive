@@ -52,8 +52,8 @@ test_text_only_pdf_skips_vision (test_repair_pages.PdfVisualDetectionTests.test_
 test_vision_failure_is_partial_not_ready (test_repair_pages.PdfVisualDetectionTests.test_vision_failure_is_partial_not_ready) ... ok
 test_deployment_model_used_only_without_recipe_model (test_repair_pages.RecipeModelTests.test_deployment_model_used_only_without_recipe_model) ... ok
 test_describe_maps_provider_404_to_model_unavailable (test_repair_pages.RecipeModelTests.test_describe_maps_provider_404_to_model_unavailable) ... ok
-test_provider_rejecting_recipe_model_blocks_without_substitution (test_repair_pages.RecipeModelTests.test_provider_rejecting_recipe_model_blocks_without_substitution) ... /tmp/repair-venv/lib/python3.12/site-packages/pypdf/_utils.py:268: ResourceWarning: unclosed <socket.socket [closed] fd=4, family=2, type=1, proto=6>
-  m = regex.search(buf)
+test_provider_rejecting_recipe_model_blocks_without_substitution (test_repair_pages.RecipeModelTests.test_provider_rejecting_recipe_model_blocks_without_substitution) ... /Users/konghayao/.pyenv/versions/3.12.8/lib/python3.12/base64.py:408: ResourceWarning: unclosed <socket.socket [closed] fd=4, family=2, type=1, proto=6>
+  curr_append(x)
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
 ok
 test_recipe_model_is_sent_verbatim (test_repair_pages.RecipeModelTests.test_recipe_model_is_sent_verbatim) ... ok
@@ -70,6 +70,6 @@ test_sigkill_orphan_is_reaped_on_next_start (test_repair_pages.TempRecoveryTests
 test_two_real_office_timeouts_leave_no_source_files (test_repair_pages.TempRecoveryTests.test_two_real_office_timeouts_leave_no_source_files) ... ok
 
 ----------------------------------------------------------------------
-Ran 67 tests in 19.049s
+Ran 67 tests in 19.610s
 
 OK (skipped=2)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Prepare idempotent local configuration. Does not deploy or migrate storage."""
 import argparse
+import ipaddress
 import json
 import os
 from pathlib import Path
@@ -29,6 +30,7 @@ def main():
     parser.add_argument("--public-url", default="http://drive.localhost:8080")
     parser.add_argument("--development-http", action="store_true", help="explicitly allow HTTP ONLY on loopback .localhost; never production")
     parser.add_argument("--directory", type=Path, default=HERE, help="configuration output directory")
+    parser.add_argument("--trusted-proxy-cidr", action="append", default=[], help="明确受信的 TLS 终止代理 CIDR，不得包含非受信客户端")
     parser.add_argument("--tls-cert", type=Path)
     parser.add_argument("--tls-key", type=Path)
     args = parser.parse_args()
@@ -93,6 +95,16 @@ def main():
     write(generated / "clouddrive-realm.json", json.dumps(configuration, indent=2) + "\n")
     write(generated / "config.json", json.dumps({"oidc_issuer": issuer, "oidc_client_id": "clouddrive-web", "oidc_audience": "agent-clouddrive"}) + "\n")
     nginx = (HERE / "gateway" / "nginx.conf").read_text()
+    try:
+        trusted = [str(ipaddress.ip_network(value, strict=True)) for value in args.trusted_proxy_cidr]
+    except ValueError:
+        parser.error("受信代理必须是有效的标准 CIDR")
+    if any(ipaddress.ip_network(value).prefixlen == 0 for value in trusted):
+        parser.error("受信代理 CIDR 不能覆盖整个 Internet")
+    nginx = nginx.replace("# __TRUSTED_IDENTITY_PROXIES__", "\n    ".join(value + " 1;" for value in trusted))
+    if local_http:
+        nginx = nginx.replace("# __DEVELOPMENT_COOKIE_SECURE__", '"http:' + parsed.hostname + '" "nosecure";')
+        nginx = nginx.replace("# __DEVELOPMENT_COOKIE_SAMESITE__", '"http:' + parsed.hostname + '" "samesite=lax";')
     if parsed.scheme == "https":
         nginx = nginx.replace("    listen 8080;", "    listen 443 ssl;\n    ssl_certificate /run/secrets/tls_certificate;\n    ssl_certificate_key /run/secrets/tls_private_key;\n    ssl_protocols TLSv1.2 TLSv1.3;")
         nginx = nginx.replace("  server {", "  server { listen 8080; location = /healthz { return 200 'ok'; } }\n  server {", 1)

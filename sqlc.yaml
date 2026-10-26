@@ -11,6 +11,7 @@ sql:
       - "db/migrations/000007_share_lifecycle.up.sql"
       - "db/migrations/000008_audit_reads.up.sql"
       - "db/migrations/000012_read_cursor_binding.up.sql"
+      - "db/migrations/000013_identity_epoch_events.up.sql"
     queries: "db/queries"
     gen:
       go:

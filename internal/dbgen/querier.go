@@ -51,6 +51,8 @@ type Querier interface {
 	GetFileOperation(ctx context.Context, id pgtype.UUID) (FileOperation, error)
 	GetIdempotentBatch(ctx context.Context, arg GetIdempotentBatchParams) (BatchOperation, error)
 	GetIdempotentOperation(ctx context.Context, arg GetIdempotentOperationParams) (FileOperation, error)
+	GetIdentityEventCursor(ctx context.Context, source string) (IdentityEventCursor, error)
+	GetIdentityEvents(ctx context.Context, source string) ([]IdentityEvent, error)
 	GetLatestConversionJob(ctx context.Context, sourceVersionID pgtype.UUID) (ConversionJob, error)
 	GetOwnedActiveFile(ctx context.Context, arg GetOwnedActiveFileParams) (File, error)
 	GetOwnedVersion(ctx context.Context, arg GetOwnedVersionParams) (FileVersion, error)

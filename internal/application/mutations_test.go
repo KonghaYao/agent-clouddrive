@@ -100,6 +100,10 @@ func (m *mutationStore) LookupChild(_ context.Context, parent ports.ResourceRef,
 
 type mutationIdentity struct{}
 
+func (mutationIdentity) IdentityEvents(context.Context, string, string) (ports.IdentityEventBatch, error) {
+	return ports.IdentityEventBatch{Anchor: "fixture-empty", Continuous: true}, nil
+}
+
 func (mutationIdentity) ValidateToken(context.Context, string, ports.TokenRequirements) (ports.Subject, error) {
 	return ports.Subject{}, nil
 }

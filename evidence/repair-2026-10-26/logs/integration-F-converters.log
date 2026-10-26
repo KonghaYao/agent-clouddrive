@@ -1,0 +1,8 @@
+.................................ss....................../Users/konghayao/.pyenv/versions/3.12.8/lib/python3.12/pathlib.py:404: ResourceWarning: unclosed <socket.socket [closed] fd=4, family=2, type=1, proto=6>
+  parsed = [sys.intern(str(x)) for x in rel.split(sep) if x and x != '.']
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..........
+----------------------------------------------------------------------
+Ran 67 tests in 19.102s
+
+OK (skipped=2)

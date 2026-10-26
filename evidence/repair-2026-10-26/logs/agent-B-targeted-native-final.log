@@ -1,0 +1,58 @@
+=== RUN   TestRepairLifecycleNativeOCIS
+    repair_lifecycle_native_test.go:171: 真实 oCIS MKCOL/MOVE/LookupChild + PostgreSQL：并发门禁、保留根响应丢失/重启恢复、restore-only 和单连接 batch 全部通过；隔离目录保留供复核： ce4643b6-3ce8-4a60-a3bb-e70749b31294$691334a3-24ac-4cf0-81ae-7f5ef43c10f3!52bd17aa-282a-4cc3-ba47-7d1409158afc
+--- PASS: TestRepairLifecycleNativeOCIS (0.57s)
+=== RUN   TestRepairLifecycleInboundHolds
+=== RUN   TestRepairLifecycleInboundHolds/parent-rename
+=== RUN   TestRepairLifecycleInboundHolds/parent-move
+=== RUN   TestRepairLifecycleInboundHolds/parent-delete
+=== RUN   TestRepairLifecycleInboundHolds/ancestor-rename
+=== RUN   TestRepairLifecycleInboundHolds/ancestor-move
+=== RUN   TestRepairLifecycleInboundHolds/ancestor-delete
+--- PASS: TestRepairLifecycleInboundHolds (1.66s)
+    --- PASS: TestRepairLifecycleInboundHolds/parent-rename (0.29s)
+    --- PASS: TestRepairLifecycleInboundHolds/parent-move (0.24s)
+    --- PASS: TestRepairLifecycleInboundHolds/parent-delete (0.30s)
+    --- PASS: TestRepairLifecycleInboundHolds/ancestor-rename (0.29s)
+    --- PASS: TestRepairLifecycleInboundHolds/ancestor-move (0.26s)
+    --- PASS: TestRepairLifecycleInboundHolds/ancestor-delete (0.28s)
+=== RUN   TestRepairLifecycleHistoricalTargetConvergence
+=== RUN   TestRepairLifecycleHistoricalTargetConvergence/deleted=false
+=== RUN   TestRepairLifecycleHistoricalTargetConvergence/deleted=true
+--- PASS: TestRepairLifecycleHistoricalTargetConvergence (0.52s)
+    --- PASS: TestRepairLifecycleHistoricalTargetConvergence/deleted=false (0.24s)
+    --- PASS: TestRepairLifecycleHistoricalTargetConvergence/deleted=true (0.28s)
+=== RUN   TestRepairBatchSingleConnection
+--- PASS: TestRepairBatchSingleConnection (0.20s)
+=== RUN   TestRepairBatchConcurrentBatchesExhaustPool
+--- PASS: TestRepairBatchConcurrentBatchesExhaustPool (0.24s)
+=== RUN   TestRepairBatchCancellationAndLeaseTakeover
+--- PASS: TestRepairBatchCancellationAndLeaseTakeover (0.23s)
+=== RUN   TestRepairRetentionCrashAndLostResponse
+=== RUN   TestRepairRetentionCrashAndLostResponse/before=true
+=== RUN   TestRepairRetentionCrashAndLostResponse/before=false
+--- PASS: TestRepairRetentionCrashAndLostResponse (0.69s)
+    --- PASS: TestRepairRetentionCrashAndLostResponse/before=true (0.42s)
+    --- PASS: TestRepairRetentionCrashAndLostResponse/before=false (0.27s)
+=== RUN   TestRepairRetentionConcurrentFirstDeletes
+--- PASS: TestRepairRetentionConcurrentFirstDeletes (0.26s)
+=== RUN   TestRepairLifecycleRestoreOnlyScope
+=== RUN   TestRepairLifecycleRestoreOnlyScope/nested=false
+=== RUN   TestRepairLifecycleRestoreOnlyScope/nested=true
+--- PASS: TestRepairLifecycleRestoreOnlyScope (0.49s)
+    --- PASS: TestRepairLifecycleRestoreOnlyScope/nested=false (0.24s)
+    --- PASS: TestRepairLifecycleRestoreOnlyScope/nested=true (0.25s)
+=== RUN   TestRepairLifecycleRestoreParentDenials
+--- PASS: TestRepairLifecycleRestoreParentDenials (0.21s)
+=== RUN   TestRepairRetentionIdentityMismatchAndFence
+--- PASS: TestRepairRetentionIdentityMismatchAndFence (0.22s)
+=== RUN   TestRepairLifecycleMigrationReentrant
+    repair_lifecycle_test.go:609: PostgreSQL 17.11 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+--- PASS: TestRepairLifecycleMigrationReentrant (0.26s)
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	8.608s
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/access	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/batch	[no test files]
+?   	github.com/agentclouddrive/agent-clouddrive/internal/application/core	[no test files]
+testing: warning: no tests to run
+PASS
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application/delegation	2.705s [no tests to run]

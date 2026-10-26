@@ -1,0 +1,23 @@
+repair-minio	minio/minio:RELEASE.2025-04-22T22-12-26Z	127.0.0.1:19000->9000/tcp
+repair-agent-B-ocis-tunnel	alpine/socat	127.0.0.1:59212->9200/tcp
+repair-kc-proxy	alpine/socat	8080/tcp
+repair-ocis-proxy	alpine/socat	9200/tcp
+clouddrive-repair-nats	nats:2.11-alpine	6222/tcp, 8222/tcp, 127.0.0.1:14222->4222/tcp
+clouddrive-repair-meili	getmeili/meilisearch:v1.55.0	127.0.0.1:17700->7700/tcp
+clouddrive-repair-pg	postgres:17.11-alpine	127.0.0.1:55432->5432/tcp
+clouddrive-demo-df68102d15f5-api-1	clouddrive-demo-df68102d15f5/app:1.0.0	8080-8081/tcp
+clouddrive-demo-df68102d15f5-gateway-1	clouddrive-demo-df68102d15f5/gateway:1.0.0	80/tcp, 127.0.0.1:8080->8080/tcp
+clouddrive-demo-df68102d15f5-preview-1	clouddrive-demo-df68102d15f5/converter:1.0.0	8090/tcp
+clouddrive-demo-df68102d15f5-anydoc-1	clouddrive-demo-df68102d15f5/converter:1.0.0	8090/tcp
+clouddrive-demo-df68102d15f5-worker-1	44fd848b2475	8080-8081/tcp
+clouddrive-demo-df68102d15f5-maintenance-1	44fd848b2475	8080-8081/tcp
+clouddrive-demo-df68102d15f5-ocis-1	owncloud/ocis:8.2.2	9200/tcp
+clouddrive-demo-df68102d15f5-keycloak-1	quay.io/keycloak/keycloak:26.8.1	8080/tcp, 8443/tcp, 9000/tcp
+clouddrive-demo-df68102d15f5-nats-1	nats:2.15.1-alpine	4222/tcp, 6222/tcp, 8222/tcp
+clouddrive-demo-df68102d15f5-postgres-1	postgres:17.11-alpine	5432/tcp
+clouddrive-demo-df68102d15f5-meilisearch-1	getmeili/meilisearch:v1.55.0	7700/tcp
+fenix-peri-fuse	ghcr.io/konghayao/peri-fuse:1.1.0	127.0.0.1:23332->23332/tcp
+fenix-forgejo	codeberg.org/forgejo/forgejo:15.0.9	22/tcp, 127.0.0.1:3210->3000/tcp
+fenix-postgres-1	postgres:16-alpine	127.0.0.1:5432->5432/tcp
+libsql-libsql-1	ghcr.io/tursodatabase/libsql-server:latest	5001/tcp, 0.0.0.0:8088->8080/tcp, [::]:8088->8080/tcp
+1Panel-rustfs-TcP9	rustfs/rustfs:latest	127.0.0.1:9000-9001->9000-9001/tcp

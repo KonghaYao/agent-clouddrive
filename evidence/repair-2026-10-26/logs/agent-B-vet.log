@@ -1,0 +1,6 @@
+# github.com/agentclouddrive/agent-clouddrive/internal/application
+# [github.com/agentclouddrive/agent-clouddrive/internal/application]
+internal/application/repair_lifecycle_native_test.go:142:15: assignment copies lock value to restarted: github.com/agentclouddrive/agent-clouddrive/internal/application.Service contains github.com/agentclouddrive/agent-clouddrive/internal/application.anonymousRate contains sync.Mutex
+internal/application/repair_lifecycle_test.go:164:18: assignment copies lock value to restarted: github.com/agentclouddrive/agent-clouddrive/internal/application.Service contains github.com/agentclouddrive/agent-clouddrive/internal/application.anonymousRate contains sync.Mutex
+internal/application/repair_lifecycle_test.go:236:17: assignment copies lock value to restarted: github.com/agentclouddrive/agent-clouddrive/internal/application.Service contains github.com/agentclouddrive/agent-clouddrive/internal/application.anonymousRate contains sync.Mutex
+internal/application/repair_lifecycle_test.go:402:17: assignment copies lock value to restarted: github.com/agentclouddrive/agent-clouddrive/internal/application.Service contains github.com/agentclouddrive/agent-clouddrive/internal/application.anonymousRate contains sync.Mutex

@@ -28,7 +28,10 @@ type PreviewPage struct {
 }
 
 func (s *Service) linkFile(ctx context.Context, raw, vid string) (Object, ports.Subject, error) {
-	row, e := one(ctx, s.DB, `SELECT to_jsonb(g)-'token_hash'||jsonb_build_object('file',to_jsonb(f),'issuer',p.issuer,'subject',p.subject) FROM share_grants g JOIN files f ON f.id=g.file_id JOIN principals p ON p.id=f.owner_id WHERE g.token_hash=$1 AND g.state='active' AND g.audience_type='link' AND p.status='active' AND file_is_active(f.id) AND(g.expires_at IS NULL OR g.expires_at>now())`, digest(raw))
+	if e := s.syncIdentityEvents(ctx); e != nil {
+		return nil, ports.Subject{}, dependency()
+	}
+	row, e := one(ctx, s.DB, `SELECT to_jsonb(g)-'token_hash'||jsonb_build_object('file',to_jsonb(f),'issuer',p.issuer,'subject',p.subject) FROM share_grants g JOIN files f ON f.id=g.file_id JOIN principals p ON p.id=f.owner_id WHERE g.token_hash=$1 AND g.state='active' AND share_identity_valid(g.id) AND g.audience_type='link' AND p.status='active' AND file_is_active(f.id) AND(g.expires_at IS NULL OR g.expires_at>now())`, digest(raw))
 	if e != nil {
 		return nil, ports.Subject{}, denied()
 	}

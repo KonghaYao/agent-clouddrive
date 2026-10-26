@@ -1,3 +1,8 @@
+-- name: GetIdentityEventCursor :one
+SELECT * FROM identity_event_cursors WHERE source=$1;
+-- name: GetIdentityEvents :many
+SELECT * FROM identity_events WHERE source=$1 ORDER BY occurred_at,event_id;
+
 -- name: GetPrincipal :one
 SELECT * FROM principals WHERE id = $1;
 -- name: GetPrincipalByIdentity :one

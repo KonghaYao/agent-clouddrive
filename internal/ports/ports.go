@@ -169,6 +169,34 @@ type TokenRequirements struct {
 	Scopes   []string
 	Resource string
 }
+
+// AuditCapability 只能由显式审核入口构造，vault 必须重新验证持久授权。
+type AuditCapability struct {
+	AuditorPrincipalID string
+	GrantID            string
+	FileID             string
+	VersionID          string
+	Purpose            string
+	ExpiresAt          time.Time
+}
+
+// IdentityEventSource 提供可信、可重放的管理员事件，按最新到最旧排序。
+// Anchor 缺失或事件配置不可靠时不得声称历史连续。
+type IdentityEvent struct {
+	ID      string
+	Subject string
+	Disable bool
+	Time    time.Time
+}
+type IdentityEventBatch struct {
+	Events     []IdentityEvent
+	Anchor     string
+	Continuous bool
+}
+type IdentityEventSource interface {
+	IdentityEvents(context.Context, string, string) (IdentityEventBatch, error)
+}
+
 type DelegationRequest struct {
 	Subject      Subject
 	SubjectToken string
@@ -176,6 +204,7 @@ type DelegationRequest struct {
 	Scopes       []string
 	Source       RevisionRef
 	JobID        string
+	Audit        *AuditCapability
 }
 type IdentityAdapter interface {
 	ValidateToken(context.Context, string, TokenRequirements) (Subject, error)

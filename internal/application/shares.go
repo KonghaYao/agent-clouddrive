@@ -11,6 +11,9 @@ import (
 )
 
 func (s *Service) RequestShare(ctx context.Context, a Actor, in Object) (any, error) {
+	if e := s.syncIdentityEvents(ctx); e != nil {
+		return nil, dependency()
+	}
 	f, e := access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), domain.ActionRequestShare)
 	if e != nil {
 		return nil, e
@@ -48,6 +51,9 @@ func (s *Service) RequestShare(ctx context.Context, a Actor, in Object) (any, er
 	return out, nil
 }
 func (s *Service) ApproveShare(ctx context.Context, a Actor, rid string) (any, error) {
+	if e := s.syncIdentityEvents(ctx); e != nil {
+		return nil, dependency()
+	}
 	if a.Principal.Type != domain.ActorUser || !a.Interactive {
 		return nil, domain.NewError(domain.ConfirmationRequired, "sharing requires the user's interactive confirmation")
 	}
@@ -138,6 +144,9 @@ func (s *Service) RevokeShare(ctx context.Context, a Actor, sid string) (any, er
 	return Object{"revoked": true}, nil
 }
 func (s *Service) Shared(ctx context.Context, a Actor) (any, error) {
+	if e := s.syncIdentityEvents(ctx); e != nil {
+		return nil, dependency()
+	}
 	if a.Principal.Type != domain.ActorUser {
 		return nil, domain.NewError(domain.AccessDenied, "Agent access excludes received shares")
 	}
@@ -148,7 +157,7 @@ func (s *Service) Shared(ctx context.Context, a Actor) (any, error) {
 	if e != nil {
 		return nil, dependency()
 	}
-	rows, e := many(ctx, s.DB, `SELECT to_jsonb(g)-'token_hash'||jsonb_build_object('file',to_jsonb(f)-'native_resource_id'-'native_instance','issuer',p.issuer,'subject',p.subject) FROM share_grants g JOIN files f ON f.id=g.file_id JOIN principals p ON p.id=f.owner_id WHERE g.state='active' AND (g.expires_at IS NULL OR g.expires_at>now()) AND f.lifecycle='active' AND file_is_active(f.id) AND p.status='active' AND ((g.audience_type='user' AND g.audience_id=$1) OR (g.audience_type='group' AND g.audience_id=ANY($2::text[])))`, a.Principal.ID, groups)
+	rows, e := many(ctx, s.DB, `SELECT to_jsonb(g)-'token_hash'||jsonb_build_object('file',to_jsonb(f)-'native_resource_id'-'native_instance','issuer',p.issuer,'subject',p.subject) FROM share_grants g JOIN files f ON f.id=g.file_id JOIN principals p ON p.id=f.owner_id WHERE g.state='active' AND share_identity_valid(g.id) AND (g.expires_at IS NULL OR g.expires_at>now()) AND f.lifecycle='active' AND file_is_active(f.id) AND p.status='active' AND ((g.audience_type='user' AND g.audience_id=$1) OR (g.audience_type='group' AND g.audience_id=ANY($2::text[])))`, a.Principal.ID, groups)
 	if e != nil {
 		return nil, e
 	}
@@ -180,6 +189,9 @@ func (s *Service) Shared(ctx context.Context, a Actor) (any, error) {
 	return Object{"items": out}, nil
 }
 func (s *Service) SharedFile(ctx context.Context, a Actor, fid, vid string, action domain.Action) (Object, ports.Subject, error) {
+	if e := s.syncIdentityEvents(ctx); e != nil {
+		return nil, ports.Subject{}, dependency()
+	}
 	if a.Principal.Type != domain.ActorUser {
 		return nil, ports.Subject{}, denied()
 	}
@@ -190,7 +202,7 @@ func (s *Service) SharedFile(ctx context.Context, a Actor, fid, vid string, acti
 	if e != nil {
 		return nil, ports.Subject{}, dependency()
 	}
-	rows, e := many(ctx, s.DB, `SELECT to_jsonb(g)-'token_hash'||jsonb_build_object('file',to_jsonb(f),'owner_issuer',p.issuer,'owner_subject',p.subject) FROM share_grants g JOIN files f ON f.id=g.file_id JOIN principals p ON p.id=f.owner_id WHERE g.file_id=$1 AND g.state='active' AND (g.expires_at IS NULL OR g.expires_at>now()) AND file_is_active(f.id) AND p.status='active' AND ((g.audience_type='user' AND g.audience_id=$2) OR (g.audience_type='group' AND g.audience_id=ANY($3::text[])))`, fid, a.Principal.ID, groups)
+	rows, e := many(ctx, s.DB, `SELECT to_jsonb(g)-'token_hash'||jsonb_build_object('file',to_jsonb(f),'owner_issuer',p.issuer,'owner_subject',p.subject) FROM share_grants g JOIN files f ON f.id=g.file_id JOIN principals p ON p.id=f.owner_id WHERE g.file_id=$1 AND g.state='active' AND share_identity_valid(g.id) AND (g.expires_at IS NULL OR g.expires_at>now()) AND file_is_active(f.id) AND p.status='active' AND ((g.audience_type='user' AND g.audience_id=$2) OR (g.audience_type='group' AND g.audience_id=ANY($3::text[])))`, fid, a.Principal.ID, groups)
 	if e != nil {
 		return nil, ports.Subject{}, e
 	}
