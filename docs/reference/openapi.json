@@ -3189,6 +3189,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "version_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3309,6 +3316,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "version_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3418,6 +3432,13 @@
             "name": "token",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version_id",
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -3534,6 +3555,13 @@
             "name": "page",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version_id",
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -5516,6 +5544,10 @@
           },
           "name": {
             "type": "string"
+          },
+          "expected_parent_revision": {
+            "type": "integer",
+            "minimum": 1
           },
           "idempotency_key": {
             "type": "string"

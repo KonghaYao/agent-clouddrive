@@ -44,6 +44,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "expected_parent_revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
           "expected_version_id": {
             "type": "string"
           },
@@ -150,6 +154,10 @@
           },
           "expected_metadata_revision": {
             "minimum": 0,
+            "type": "integer"
+          },
+          "expected_parent_revision": {
+            "minimum": 1,
             "type": "integer"
           },
           "expected_version_id": {
@@ -263,6 +271,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "expected_parent_revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
           "expected_version_id": {
             "type": "string"
           },
@@ -374,6 +386,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "expected_parent_revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
           "expected_version_id": {
             "type": "string"
           },
@@ -483,6 +499,10 @@
           },
           "expected_metadata_revision": {
             "minimum": 0,
+            "type": "integer"
+          },
+          "expected_parent_revision": {
+            "minimum": 1,
             "type": "integer"
           },
           "expected_version_id": {
@@ -598,6 +618,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "expected_parent_revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
           "expected_version_id": {
             "type": "string"
           },
@@ -709,6 +733,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "expected_parent_revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
           "expected_version_id": {
             "type": "string"
           },
@@ -818,6 +846,10 @@
           },
           "expected_metadata_revision": {
             "minimum": 0,
+            "type": "integer"
+          },
+          "expected_parent_revision": {
+            "minimum": 1,
             "type": "integer"
           },
           "expected_version_id": {
@@ -933,6 +965,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "expected_parent_revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
           "expected_version_id": {
             "type": "string"
           },
@@ -1046,6 +1082,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "expected_parent_revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
           "expected_version_id": {
             "type": "string"
           },
@@ -1122,7 +1162,7 @@
       "scope": "drive.write"
     },
     {
-      "description": "Create a native folder.",
+      "description": "Create a native folder. Creating below an existing parent requires expected_parent_revision, the parent's current metadata_revision; the root needs no revision.",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {
@@ -1155,6 +1195,10 @@
           },
           "expected_metadata_revision": {
             "minimum": 0,
+            "type": "integer"
+          },
+          "expected_parent_revision": {
+            "minimum": 1,
             "type": "integer"
           },
           "expected_version_id": {
@@ -1267,6 +1311,10 @@
           },
           "expected_metadata_revision": {
             "minimum": 0,
+            "type": "integer"
+          },
+          "expected_parent_revision": {
+            "minimum": 1,
             "type": "integer"
           },
           "expected_version_id": {
@@ -1383,6 +1431,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "expected_parent_revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
           "expected_version_id": {
             "type": "string"
           },
@@ -1495,6 +1547,10 @@
           },
           "expected_metadata_revision": {
             "minimum": 0,
+            "type": "integer"
+          },
+          "expected_parent_revision": {
+            "minimum": 1,
             "type": "integer"
           },
           "expected_version_id": {
@@ -1610,6 +1666,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "expected_parent_revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
           "expected_version_id": {
             "type": "string"
           },
@@ -1716,6 +1776,10 @@
           },
           "expected_metadata_revision": {
             "minimum": 0,
+            "type": "integer"
+          },
+          "expected_parent_revision": {
+            "minimum": 1,
             "type": "integer"
           },
           "expected_version_id": {
@@ -1831,6 +1895,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "expected_parent_revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
           "expected_version_id": {
             "type": "string"
           },
@@ -1941,6 +2009,10 @@
           },
           "expected_metadata_revision": {
             "minimum": 0,
+            "type": "integer"
+          },
+          "expected_parent_revision": {
+            "minimum": 1,
             "type": "integer"
           },
           "expected_version_id": {
@@ -2055,6 +2127,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "expected_parent_revision": {
+            "minimum": 1,
+            "type": "integer"
+          },
           "expected_version_id": {
             "type": "string"
           },
@@ -2165,6 +2241,10 @@
           },
           "expected_metadata_revision": {
             "minimum": 0,
+            "type": "integer"
+          },
+          "expected_parent_revision": {
+            "minimum": 1,
             "type": "integer"
           },
           "expected_version_id": {
@@ -2279,6 +2359,10 @@
           },
           "expected_metadata_revision": {
             "minimum": 0,
+            "type": "integer"
+          },
+          "expected_parent_revision": {
+            "minimum": 1,
             "type": "integer"
           },
           "expected_version_id": {
