@@ -3,9 +3,9 @@
 This document describes the **post-delivery candidate**. The original source ZIP
 is unchanged. The new browser, 10 GiB and response-loss drivers have not run their live cases.
 The new deployed API suite subsequently ran against the existing real native stack:
-Initially **5 scenarios /178 assertions** passed at11:19:55UTC. The frozen updated candidate subsequently passed **5 scenarios /186 assertions** at11:47:02UTC, including actual raw Meilisearch path convergence after the maintenance fix. See [the final result](../evidence/deployed-api-candidate-run2.json) and [prelaunch hash provenance](../evidence/deployed-api-candidate-run2-provenance.json). The earlier result remains retained:
-[the sanitized result](../evidence/deployed-api-candidate-run1.json) and
-[bound provenance](../evidence/deployed-api-candidate-provenance.json). Offline
+Initially **5 scenarios /178 assertions** passed at11:19:55UTC. The frozen updated candidate subsequently passed **5 scenarios /186 assertions** at11:47:02UTC, including actual raw Meilisearch path convergence after the maintenance fix. See [the final result](../../evidence/deployed-api-candidate-run2.json) and [prelaunch hash provenance](../../evidence/deployed-api-candidate-run2-provenance.json). The earlier result remains retained:
+[the sanitized result](../../evidence/deployed-api-candidate-run1.json) and
+[bound provenance](../../evidence/deployed-api-candidate-provenance.json). Offline
 unit/static checks alone never count as product acceptance.
 
 ## What was missing
@@ -45,7 +45,7 @@ ALLOW_DISPOSABLE_TEST_WRITES=yes python3 scripts/acceptance.py run --suite uppy-
   retained by this wrapper, since third-party exceptions may contain auth URLs.
 - A missing result, empty cases, duplicate case IDs, skipped cases labeled pass,
   or exit-code/result disagreement fails the wrapper. No runner edits
-  `docs/acceptance.json` or fills evidence hashes automatically.
+  `docs/acceptance/acceptance.json` or fills evidence hashes automatically.
 - `python3 scripts/release-readiness.py` remains the independent fail-closed final
   release gate. A prepared script is not release evidence.
 
@@ -79,9 +79,9 @@ native history. Uploads consume quota and disk space. Do not use production data
 - The 10 GiB case requires the **default S3 Compose stack**, a real on-disk input of
   exactly 10,737,418,240 bytes, and read-only deployment/database/object-store
   observations. Merely setting an environment variable to `s3` is not proof.
-- See [browser setup](../web/scripts/BROWSER-ACCEPTANCE.md),
-  [deployed API setup](../tests/integration/DEPLOYED_API_ACCEPTANCE.md), and
-  [10 GiB setup](../web/scripts/LARGE_UPLOAD_ACCEPTANCE.md) for exact fields. Some
+- See [browser setup](../../web/scripts/BROWSER-ACCEPTANCE.md),
+  [deployed API setup](../../tests/integration/DEPLOYED_API_ACCEPTANCE.md), and
+  [10 GiB setup](../../web/scripts/LARGE_UPLOAD_ACCEPTANCE.md) for exact fields. Some
   driver configuration is deliberately stricter than the old native probe.
 
 There is no measured CPU/RAM or total-disk lower bound to publish. Input, retained

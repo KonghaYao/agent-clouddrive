@@ -1,6 +1,6 @@
 # R4 example 独立打包安全审查
 
-本记录审查源码交付边界，不代表 Docker Compose、真实浏览器或全规格验收通过。机器可读记录见 [package-review.json](../evidence/example-r4/package-review.json)。最终生成的不可变 ZIP 另行核对，不能用本记录替代最终 ZIP 校验。
+本记录审查源码交付边界，不代表 Docker Compose、真实浏览器或全规格验收通过。机器可读记录见 [package-review.json](../../evidence/example-r4/package-review.json)。最终生成的不可变 ZIP 另行核对，不能用本记录替代最终 ZIP 校验。
 
 ## 已完成
 
@@ -15,7 +15,7 @@
 
 ## 最终交付应维持的边界
 
-最终 ZIP 应逐项核对 `SHA256SUMS.json`，确认无多余或遗漏条目、无 symlink、无 runtime 或构建垃圾；解压后的 source digest 必须与 `docs/acceptance.json` 一致。release-readiness 应保持非零退出、错误列表为空、11 pass / 22 partial / 4 blocked，不得把剩余必需验收改为通过。
+最终 ZIP 应逐项核对 `SHA256SUMS.json`，确认无多余或遗漏条目、无 symlink、无 runtime 或构建垃圾；解压后的 source digest 必须与 `docs/acceptance/acceptance.json` 一致。release-readiness 应保持非零退出、错误列表为空、11 pass / 22 partial / 4 blocked，不得把剩余必需验收改为通过。
 
 R3 输入 ZIP 的 SHA256 为 `ad57cf17ae4a31b348d83ee86b3a357447feaed4f84644564011e2069300e492`；最终交付前再次确认它未被修改。
 

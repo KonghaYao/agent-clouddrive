@@ -3,7 +3,7 @@
 
 This is NOT an acceptance driver. It never generates success responses for MOVE,
 retries a mutation, follows redirects, or treats proxy-unit tests as live evidence.
-Import and --check-only perform no network I/O. See fault-injection-acceptance.md.
+Import and --check-only perform no network I/O. See docs/acceptance/fault-injection-acceptance.md.
 """
 from __future__ import annotations
 

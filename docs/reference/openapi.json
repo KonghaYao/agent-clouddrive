@@ -3,7 +3,7 @@
   "info": {
     "title": "Agent CloudDrive REST API",
     "version": "0.1.0",
-    "description": "Native oCIS interfaces remain private. Historical source/artifact IDs are immutable; anonymous feedback is a separate no-source path. See docs/acceptance.md for actual verified vs pending gates."
+    "description": "Native oCIS interfaces remain private. Historical source/artifact IDs are immutable; anonymous feedback is a separate no-source path. See docs/acceptance/acceptance.md for actual verified vs pending gates."
   },
   "servers": [
     {

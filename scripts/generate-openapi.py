@@ -41,5 +41,5 @@ for method,path,summary,request,response in rows:
  if path.startswith('/s/') or path=='/healthz' or path.endswith('/callback') or '/download/' in path:entry['security']=[]
  for status in [401,403,404,409,413,422,429,503]:entry['responses'][str(status)]={'description':'Structured business error','content':{'application/json':{'schema':S('Error')}}}
  paths.setdefault(path,{})[method.lower()]=entry
-out={'openapi':'3.1.0','info':{'title':'Agent CloudDrive REST API','version':'0.1.0','description':'Native oCIS interfaces remain private. Historical source/artifact IDs are immutable; anonymous feedback is a separate no-source path. See docs/acceptance.md for actual verified vs pending gates.'},'servers':[{'url':'https://drive.localhost:8080'}],'paths':paths,'components':{'securitySchemes':{'bearerAuth':{'type':'http','scheme':'bearer','bearerFormat':'JWT'}},'schemas':schemas}}
-Path('docs/openapi.json').write_text(json.dumps(out,indent=2,ensure_ascii=False)+'\n')
+out={'openapi':'3.1.0','info':{'title':'Agent CloudDrive REST API','version':'0.1.0','description':'Native oCIS interfaces remain private. Historical source/artifact IDs are immutable; anonymous feedback is a separate no-source path. See docs/acceptance/acceptance.md for actual verified vs pending gates.'},'servers':[{'url':'https://drive.localhost:8080'}],'paths':paths,'components':{'securitySchemes':{'bearerAuth':{'type':'http','scheme':'bearer','bearerFormat':'JWT'}},'schemas':schemas}}
+Path('docs/reference/openapi.json').write_text(json.dumps(out,indent=2,ensure_ascii=False)+'\n')

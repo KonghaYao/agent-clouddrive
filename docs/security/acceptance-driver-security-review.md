@@ -52,10 +52,10 @@ not changed.
 
 `scripts/check-acceptance-drivers.sh` completed at 2026-10-23 11:32 UTC:
 **100 Python + 37 Node tests passed**, with syntax checks and zero skipped tests.
-See [the complete offline log](../evidence/security-review-driver-checks-final.log).
+See [the complete offline log](../../evidence/security-review-driver-checks-final.log).
 These are driver/helper tests, not executed browser or storage acceptance.
 
-The separate [native API run](../evidence/deployed-api-candidate-run1.json)
+The separate [native API run](../../evidence/deployed-api-candidate-run1.json)
 contains five executed scenarios and 178 assertions. Its real request paths,
 exact version/source-byte comparisons, quota checks, restore conflict and
 100-item replay assertions were reviewed against the code. It supports the
@@ -64,20 +64,20 @@ coverage or complete release acceptance. Preserve its original source hashes:
 later output-writer hardening and additional subtree-search assertions must not
 be retroactively attributed to that run.
 
-The separate [enhanced subtree run](../evidence/deployed-api-subtree-search-run1.json)
+The separate [enhanced subtree run](../../evidence/deployed-api-subtree-search-run1.json)
 executed at 11:32 UTC and **failed**: its first 14 assertions passed, including
 current public search paths after MOVE, but raw Meilisearch `source_path`
 convergence timed out. The driver correctly distinguishes the database-backed
 public projection from actual index metadata. This failure does not revoke the
 separate A14/A16/A17 checks, and cannot be relabeled as an A15 pass.
 
-The subsequent [native API rerun](../evidence/deployed-api-candidate-run2.json)
+The subsequent [native API rerun](../../evidence/deployed-api-candidate-run2.json)
 completed at 11:47 UTC with **five scenarios and 186 passing assertions**.
 Its 55 subtree checks include actual raw Meilisearch paths before MOVE, after
 MOVE and after restore, unchanged version/artifact IDs, immediate search and
 current-entry denial during trash, and retained owner history. The review
 independently matched the report hash and four frozen source-file hashes against
-the [prelaunch provenance](../evidence/deployed-api-candidate-run2-provenance.json).
+the [prelaunch provenance](../../evidence/deployed-api-candidate-run2-provenance.json).
 The executing harness additionally records unchanged source-tree and binary
 hashes; this review did not separately relaunch that stack. This new evidence
 supports A15's stated directory gate/identity/history/path scenario, while the
@@ -98,7 +98,7 @@ removed before the passing native rerun. Identity reads instead have individual
 five-second bounds and ordered attempts; provider errors still cannot reactivate
 an account or a share. Native/upload lanes preserve prior cancellation semantics.
 
-The [focused PostgreSQL/race log](../evidence/maintenance-scheduling-regression.log)
+The [focused PostgreSQL/race log](../../evidence/maintenance-scheduling-regression.log)
 records passing chunk boundary/failure, backlog, reciprocal identity-revocation,
 shutdown-join, slow-first/later-disable and share regressions in 7.858 seconds.
 These tests use real PostgreSQL but explicitly fake identity/search/NATS

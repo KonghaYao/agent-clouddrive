@@ -105,7 +105,7 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     selected = list(SUITES) if args.suite == "all" else [args.suite]
     if args.action == "plan":
-        print(json.dumps({"schema_version": 1, "execution": "not_run", "status": "not_run", "suites": [{"id": name, **SUITES[name], "status": "not_run"} for name in selected], "note": "Prepared drivers are not test evidence. No commands executed. See docs/acceptance-drivers.md."}, indent=2))
+        print(json.dumps({"schema_version": 1, "execution": "not_run", "status": "not_run", "suites": [{"id": name, **SUITES[name], "status": "not_run"} for name in selected], "note": "Prepared drivers are not test evidence. No commands executed. See docs/acceptance/acceptance-drivers.md."}, indent=2))
         return 3
     if args.action == "run" and os.environ.get("ALLOW_DISPOSABLE_TEST_WRITES") != "yes":
         print("NOT RUN: ALLOW_DISPOSABLE_TEST_WRITES=yes is required for dedicated disposable test accounts. No command executed.", file=sys.stderr)

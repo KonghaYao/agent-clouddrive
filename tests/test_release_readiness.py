@@ -161,8 +161,8 @@ class ReadinessTests(unittest.TestCase):
 
     def test_source_includes_contract_changes(self):
         before = readiness.source_digest(self.root)
-        (self.root / "docs").mkdir()
-        (self.root / "docs/mcp-tools.json").write_text("{}")
+        (self.root / "docs/reference").mkdir(parents=True)
+        (self.root / "docs/reference/mcp-tools.json").write_text("{}")
         self.assertNotEqual(before, readiness.source_digest(self.root))
 
     def test_source_includes_example_launchers(self):

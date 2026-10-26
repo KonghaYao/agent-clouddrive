@@ -21,8 +21,8 @@ All five scenarios and **178 assertions** passed:
   new-envelope retries preserve the same successful operation/file identities.
 - All 39 bearer-protected REST routes and anonymous Range reject missing auth.
 
-Result: [sanitized JSON](../evidence/deployed-api-candidate-run1.json).
-Provenance: [runtime/source hashes](../evidence/deployed-api-candidate-provenance.json).
+Result: [sanitized JSON](../../evidence/deployed-api-candidate-run1.json).
+Provenance: [runtime/source hashes](../../evidence/deployed-api-candidate-provenance.json).
 Only A14/A16/A17 were promoted after independent review. The other observations
 remain scoped supporting evidence, not all-entry authorization or browser proof.
 
@@ -45,7 +45,7 @@ remain scoped supporting evidence, not all-entry authorization or browser proof.
   real PKCE and the five joint API scenarios above, with explicit disposable-write
   and separate persistent offline-consent opt-ins.
 - `tests/integration/ocis_response_loss_proxy.py`, `tests/test_ocis_fault_proxy.py`,
-  `docs/fault-injection-acceptance.md`: a narrow one-shot real-MOVE response-loss
+  `docs/acceptance/fault-injection-acceptance.md`: a narrow one-shot real-MOVE response-loss
   helper and an exact reconciliation procedure. It is **not** a completed A23 test.
 
 ## Defect found by the enhanced real test
@@ -53,8 +53,8 @@ remain scoped supporting evidence, not all-entry authorization or browser proof.
 The enhanced subtree test additionally inspected actual Meilisearch document
 metadata. Its initial run failed after 14 successful checks: public paths were
 already correct, but raw `source_path` did not converge after MOVE within 120
-seconds. The [failure report](../evidence/deployed-api-subtree-search-run1.json)
-and [prelaunch driver hashes](../evidence/deployed-api-subtree-search-run1-provenance.json)
+seconds. The [failure report](../../evidence/deployed-api-subtree-search-run1.json)
+and [prelaunch driver hashes](../../evidence/deployed-api-subtree-search-run1-provenance.json)
 are retained, not overwritten.
 
 A subsequent read-only PostgreSQL inspection found the MOVE and every event for
@@ -88,9 +88,9 @@ At 11:47:02 UTC the frozen, rebuilt candidate passed all **five scenarios /
 and artifact set before and after MOVE/restore; the path update cannot pass by
 reconversion or a database-only display projection.
 
-- [Final actual result](../evidence/deployed-api-candidate-run2.json)
-- [Prelaunch source/driver/binary hashes and unchanged-after-run verification](../evidence/deployed-api-candidate-run2-provenance.json)
-- [Focused real-PostgreSQL/race scheduling regression](../evidence/maintenance-scheduling-regression.log)
+- [Final actual result](../../evidence/deployed-api-candidate-run2.json)
+- [Prelaunch source/driver/binary hashes and unchanged-after-run verification](../../evidence/deployed-api-candidate-run2-provenance.json)
+- [Focused real-PostgreSQL/race scheduling regression](../../evidence/maintenance-scheduling-regression.log)
 
 These observations retain all original execution boundaries. The focused
 scheduling test uses explicit identity/search/NATS contract implementations, while
@@ -114,7 +114,7 @@ actual PostgreSQL/NATS/Meilisearch worker tests, 50 frontend tests and productio
 build, all35 converter tests including actual CPU OCR and Office rasterization,
 all5 deployment tests including actual RustFS bucket creation, root Python
 regressions, and100Python/37Node driver-preparation checks. The full log is
-[evidence/selftest-candidate/source-checks.log](../evidence/selftest-candidate/source-checks.log).
+[evidence/selftest-candidate/source-checks.log](../../evidence/selftest-candidate/source-checks.log).
 
 The executed source digest is bound in `acceptance.json` and agrees with the
 prelaunch digest from the final native run. Source verification is `pass`;

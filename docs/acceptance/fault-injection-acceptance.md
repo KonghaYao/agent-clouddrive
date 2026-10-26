@@ -7,7 +7,7 @@ test-only fault injector, not an A23 acceptance driver. No live oCIS fault,
 deployed application reconciliation, browser, container, or full acceptance run
 is claimed by this document. `tests/test_ocis_fault_proxy.py` uses explicitly
 fake in-memory sockets/responses and proves only proxy-unit control flow.
-Neither file modifies `docs/acceptance.json`, release readiness, or a ZIP.
+Neither file modifies `docs/acceptance/acceptance.json`, release readiness, or a ZIP.
 
 The existing application has real interfaces for this procedure:
 

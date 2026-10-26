@@ -36,33 +36,33 @@ duplicate/unknown/overflowing page markers, and second-batch failure/recovery.
 
 ## Evidence and reproducibility
 
-- [Original failing interleavings and indexing limit](../evidence/stress-review-red-regressions.log).
-- [Additional failing revocation and lease cases](../evidence/stress-review-followup-red.log).
-- [Failing source-marker case](../evidence/stress-review-marker-amplification-red.log).
-- [Final independent PostgreSQL/race run](../evidence/stress-review-final-regressions.log):
+- [Original failing interleavings and indexing limit](../../evidence/stress-review-red-regressions.log).
+- [Additional failing revocation and lease cases](../../evidence/stress-review-followup-red.log).
+- [Failing source-marker case](../../evidence/stress-review-marker-amplification-red.log).
+- [Final independent PostgreSQL/race run](../../evidence/stress-review-final-regressions.log):
   11 top-level tests, 16 leaf scenarios repeated three times, 48 passing scenario
   executions, zero skipped tests, 32.770 seconds.
-- [Final offline driver/supervisor checks](../evidence/stress-review-driver-final-unit.log):
+- [Final offline driver/supervisor checks](../../evidence/stress-review-driver-final-unit.log):
   118 acceptance-driver checks and 15 supervisor checks passed.
-- [RSS-correction independent checks](../evidence/stress-review-driver-rss-unit.log):
+- [RSS-correction independent checks](../../evidence/stress-review-driver-rss-unit.log):
   123 acceptance-driver checks and 21 supervisor checks passed, including an
   actual harmless local parent/child process-tree measurement.
-- [Final source-stability guard checks](../evidence/stress-review-supervisor-source-guard.log):
+- [Final source-stability guard checks](../../evidence/stress-review-supervisor-source-guard.log):
   all 24 supervisor checks passed in that intermediate snapshot.
-- [64-client extension checks](../evidence/stress-review-64-driver-unit.log):
+- [64-client extension checks](../../evidence/stress-review-64-driver-unit.log):
   133 acceptance-driver and 36 supervisor checks passed. The independent
-  [retention-isolation check](../evidence/stress-review-retention-isolation-unit.log)
+  [retention-isolation check](../../evidence/stress-review-retention-isolation-unit.log)
   subsequently passed all 37 supervisor checks.
-- [Final per-stage observability checks](../evidence/stress-review-observability-unit.log):
+- [Final per-stage observability checks](../../evidence/stress-review-observability-unit.log):
   137 acceptance-driver and 37 supervisor checks passed, 174 total. These are
   offline/control-fixture checks, not substitutes for actual deployed execution.
-- [Reviewed source hashes](../evidence/stress-review-verified-source-hashes.json):
+- [Reviewed source hashes](../../evidence/stress-review-verified-source-hashes.json):
   post-test snapshots, not an invented prelaunch attestation.
-- [Final reviewed source snapshot](../evidence/stress-review-final-source-hashes.json)
+- [Final reviewed source snapshot](../../evidence/stress-review-final-source-hashes.json)
   records the subsequent RSS and source-stability guard corrections separately.
-- [Final observability source snapshot](../evidence/stress-review-observability-source-hashes.json)
+- [Final observability source snapshot](../../evidence/stress-review-observability-source-hashes.json)
   records the max-64, deadline, retention-isolation and per-stage reporting version.
-- [Independent native-result validation](../evidence/stress-review-native-final-validation.json)
+- [Independent native-result validation](../../evidence/stress-review-native-final-validation.json)
   records input-report hashes and independently recomputed stage extrema. It is
   read-only review evidence, not an additional claimed live run.
 
@@ -126,11 +126,11 @@ The review required and verified corrections for:
 
 ### Independently reviewed native runs
 
-- [Joint API run](../evidence/r3-native-run2/joint.json): five cases and 186
+- [Joint API run](../../evidence/r3-native-run2/joint.json): five cases and 186
   assertions passed. The subsequent pressure phase correctly stopped before
   load because the prior workload had not drained; its report is preserved and
   is not pressure evidence. Its old RSS measurements must not be cited.
-- [Pressure run](../evidence/r3-native-stress-run1/stress.json): all four
+- [Pressure run](../../evidence/r3-native-stress-run1/stress.json): all four
   1/4/8/16-client stages passed, with each of the ten declared workloads observed
   during each timed stage. There were 4,331 HTTP calls, 237 expected conflicts
   and zero unexpected errors. The final audit checked 191 files and 195 versions
@@ -144,9 +144,9 @@ The review required and verified corrections for:
   and other named service roots were included. Peak sampled RSS was
   1,725,644,800 bytes (about 1.61 GiB); conversion/index/outbox maxima were
   37/1/22. Every stage and the final audit required three consecutive zero-backlog
-  samples. The [supervisor](../evidence/r3-native-stress-run1/supervisor.json)
+  samples. The [supervisor](../../evidence/r3-native-stress-run1/supervisor.json)
   recorded identical launch/final source hashes and graceful child cleanup.
-- [Selected fault run](../evidence/r3-native-fault-run1/fault.json): four
+- [Selected fault run](../../evidence/r3-native-fault-run1/fault.json): four
   selected cases and 77 assertions passed. These prove durable pending work
   across a graceful worker stop/restart, attempted NATS publication during its
   outage, an attempted failed/requeued index job during Meilisearch absence,
@@ -154,17 +154,17 @@ The review required and verified corrections for:
   Replaying that upload's original idempotency key/finalize returned the same
   upload/file/version without duplicate quota or version effects. Recovery
   rechecked exact bytes and the published artifact pointer. The
-  [supervisor](../evidence/r3-native-fault-run1/supervisor.json) correctly remains
+  [supervisor](../../evidence/r3-native-fault-run1/supervisor.json) correctly remains
   `partial`: native MOVE-response loss was `not_run`. Its source hashes matched
   and child cleanup succeeded. Process restart timing is not service-readiness
   timing; actual pipeline/search recovery is reported separately.
 
 ### Extended 64-client combined run
 
-The first attempt, [final-run1](../evidence/r3-native-final-run1/supervisor.json),
+The first attempt, [final-run1](../../evidence/r3-native-final-run1/supervisor.json),
 stopped in the joint test with HTTP 503 before pressure began. Its read-only
-[database diagnostic](../evidence/r3-native-final-run1/retention-fixture-diagnostic.log)
-and [native probe](../evidence/r3-native-final-run1/retention-native-read-confirmation.log)
+[database diagnostic](../../evidence/r3-native-final-run1/retention-fixture-diagnostic.log)
+and [native probe](../../evidence/r3-native-final-run1/retention-native-read-confirmation.log)
 confirmed the isolation problem above: no mapped native retention root, an
 unknown retention-creation outcome, zero dispatched delete operations, all ten
 history versions retained, and an already-existing native reserved directory.
@@ -172,11 +172,11 @@ The successful probe used TLS-verified native Graph/PROPFIND; earlier failed
 diagnostic attempts remain visible rather than silently discarded.
 
 After correcting only the harness isolation, the
-[combined final-run2 supervisor](../evidence/r3-native-final-run2/supervisor.json)
+[combined final-run2 supervisor](../../evidence/r3-native-final-run2/supervisor.json)
 finished in 295.725 seconds with matching launch/final source hashes and graceful
-child cleanup. The [joint API cases](../evidence/r3-native-final-run2/joint.json)
-passed all 186 assertions, the [pressure run](../evidence/r3-native-final-run2/stress.json)
-passed all six requested stages, and the [selected fault cases](../evidence/r3-native-final-run2/fault.json)
+child cleanup. The [joint API cases](../../evidence/r3-native-final-run2/joint.json)
+passed all 186 assertions, the [pressure run](../../evidence/r3-native-final-run2/stress.json)
+passed all six requested stages, and the [selected fault cases](../../evidence/r3-native-final-run2/fault.json)
 passed all 77 assertions. The overall fault status correctly remains partial
 because native MOVE-response loss was not run.
 
@@ -196,9 +196,9 @@ timed-window rates.
 
 ### Final per-stage resource run
 
-The [final stress-only report](../evidence/r3-native-resources-final/stress.json)
+The [final stress-only report](../../evidence/r3-native-resources-final/stress.json)
 passed all six levels on the reporting-complete source. Its
-[supervisor](../evidence/r3-native-resources-final/supervisor.json) finished in
+[supervisor](../../evidence/r3-native-resources-final/supervisor.json) finished in
 266.840 seconds (258.285 seconds inside the pressure driver), with unchanged
 launch/final source hash `909c46e59be2b0e43bd87c7b52b2e7529fa0eeced9b6fb973b5233de5a91187b`,
 no watchdog expiry, no unfinished watchdog callback, and graceful child cleanup.

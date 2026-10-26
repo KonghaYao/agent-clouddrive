@@ -12,7 +12,7 @@ STATUSES = {"pass", "partial", "blocked"}
 NATIVE_LEVELS = {"native_component", "native_end_to_end"}
 NATIVE_REQUIRED = {f"G{i:02d}" for i in range(1, 11)} | {"D01_COMPOSE_RUNTIME", "D02_UPPY_10_GIB", "D03_EXTERNAL_VISION"}
 END_TO_END_REQUIRED = {"G02", "G09", "G10", "D01_COMPOSE_RUNTIME", "D02_UPPY_10_GIB", "D03_EXTERNAL_VISION"}
-SOURCE_PATHS = ("cmd", "converters", "db", "deploy", "examples", "internal", "scripts", "tests", "web", "Dockerfile", ".dockerignore", "go.mod", "go.sum", "sqlc.yaml", "docs/openapi.json", "docs/mcp-tools.json")
+SOURCE_PATHS = ("cmd", "converters", "db", "deploy", "examples", "internal", "scripts", "tests", "web", "Dockerfile", ".dockerignore", "go.mod", "go.sum", "sqlc.yaml", "docs/reference/openapi.json", "docs/reference/mcp-tools.json")
 # Mirror the source ZIP exclusion policy in scripts/package.py. In particular,
 # native diagnostic cmd/_* programs and runtime credentials are never delivered.
 SOURCE_IGNORED_PARTS = {"node_modules", "__pycache__", ".git", "secrets", "generated", "dist", "test-results", "dumps", ".venv", "models", "data"}
@@ -157,7 +157,7 @@ def inspect(root: Path, manifest: dict) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--manifest", type=Path, default=Path("docs/acceptance.json"))
+    parser.add_argument("--manifest", type=Path, default=Path("docs/acceptance/acceptance.json"))
     parser.add_argument("--json", action="store_true", help="Print machine-readable result; does not weaken gating.")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]

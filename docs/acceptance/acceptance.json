@@ -94,7 +94,7 @@
       "sha256": "334c8473f1a5c09286e099548f80e6e22711cf4867b9c9a76c4832c401f2834d"
     },
     "conversion_matrix": {
-      "path": "docs/conversion.md",
+      "path": "docs/architecture/conversion.md",
       "level": "native_component_report",
       "scope": "Actual sample-format and local CPU OCR report; 200-page injected failure accounting is not full real OCR acceptance; external vision unavailable.",
       "sha256": "007e256f99a7095599522999bf646bf39b4169c39512f7e2e054fd97279aed34"
@@ -112,10 +112,10 @@
       "sha256": "14ba9ab96b03781440c9a46692af256be5e833dc7eaad3ef2dfd852c1baff36a"
     },
     "deployment_config": {
-      "path": "docs/deployment.md",
+      "path": "docs/operations/deployment.md",
       "level": "source_static",
       "scope": "Configuration and operator instructions only; not evidence that containers ran.",
-      "sha256": "83f382bc885f870704baead4129e605fd3c066ca1377d0f874972a713606ebad"
+      "sha256": "f77226ea1c62f39c841c2e8fa7585b23e4a493e4b6ce3293d6f9db0b5bb9c6b4"
     },
     "target_race_initial": {
       "path": "evidence/security-review-target-race-initial.log",
@@ -250,7 +250,7 @@
       "sha256": "7f473d20f34a0009f142a1a0a3e58132c09cb003ba44f46f69fe8083d433c4a5"
     },
     "r3_stress_report": {
-      "path": "docs/stress-and-fault-r3.md",
+      "path": "docs/acceptance/stress-and-fault-r3.md",
       "level": "native_component_report",
       "scope": "Bounded pressure/fault interpretation, preserved failures, deterministic defect fixes and strict remaining exclusions.",
       "sha256": "69c66e8d5d7652ea625eab565744d0f604b78f5437dc63c43b779692895c8e18"
@@ -268,10 +268,10 @@
       "sha256": "672b976899846ad8720917e3cdda73e6cae80fd311e5ca8d873fabbe1ee72ce1"
     },
     "r3_independent_review": {
-      "path": "docs/stress-security-review-r3.md",
+      "path": "docs/security/stress-security-review-r3.md",
       "level": "native_component_report",
       "scope": "Independent review of six defect classes, real-PG/race48scenario checks, offline174driver guards, combined native186/77checks and final six-stage resources; explicit unexecuted limits remain.",
-      "sha256": "ad7cdb7bba8a7879a26014e28fbd25b1396395203ef164d7f15c12c713663302"
+      "sha256": "5a0871c8a17eef218dc915aa312cb9194bb5ffeaabd1e186997bbdab3002c59e"
     },
     "r4_source_aggregate": {
       "path": "evidence/example-r4/aggregate/source-checks.log",
@@ -286,16 +286,16 @@
       "sha256": "459549eafb4088794d7084bb77e9685ae4ef489298f8960c17519885151ad561"
     },
     "r4_example_review": {
-      "path": "docs/local-demo-security-review-r4.md",
+      "path": "docs/security/local-demo-security-review-r4.md",
       "level": "source_static",
       "scope": "Independent example safety review and checked live scoped evidence; not full deployment acceptance.",
       "sha256": "840d302fd5bbf19803dee22b684b9d8a17077de5791557f030a7608483ac0452"
     },
     "r4_verification": {
-      "path": "docs/example-r4-verification.md",
+      "path": "docs/acceptance/example-r4-verification.md",
       "level": "native_component_report",
       "scope": "Explicit R4 execution provenance, retained failures, full aggregate skips, and Docker/browser limits.",
-      "sha256": "7e6cc19d73140a5ae44524ab51e9db7738f5235d4104e6c01c1750dca665e9bf"
+      "sha256": "4e092b72ebf92451f1618c3e57982333bc041c151d059afa65a9f2e59a575688"
     },
     "r4_compose_config": {
       "path": "evidence/example-r4/compose-config-final.json",

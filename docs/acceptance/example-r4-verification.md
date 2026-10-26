@@ -12,7 +12,7 @@ python3 examples/local-demo/demo.py start
 
 启动器输出实际私有 runtime 路径和 `http://drive.localhost:8080`。在自己的终端读取该目录的 `credentials.json`，使用随机 owner 账号登录。不要改为其他域名，不要把 runtime 或口令发给他人。
 
-完整中文逐步操作：[examples/local-demo/README.md](../examples/local-demo/README.md)。包括上传、正文搜索、PDF 预览、历史下载、人工确认分享、reader 隔离、回收站恢复、状态/检查/停止/重启。
+完整中文逐步操作：[examples/local-demo/README.md](../../examples/local-demo/README.md)。包括上传、正文搜索、PDF 预览、历史下载、人工确认分享、reader 隔离、回收站恢复、状态/检查/停止/重启。
 
 ## 本轮实际验证
 
@@ -51,7 +51,7 @@ python3 examples/local-demo/demo.py start
 - run2：原生预检通过后，外置测试 shell 的同时 `export` 引用未定义变量，应用尚未启动便停止。修复测试脚本，不计完整通过。
 - run3：完整 seed/check 通过；随后 seed journal 校验进一步加严，因此最终重新执行 run5，不拿 run3 替代最终源码。
 - run4：完整预检、page、seed/check 已过；额外改名检查误读 JSON `status`，实际 mutation 字段为 `state`。修正外置断言并对 pending operation 只读轮询，不改业务代码、不重放旧未知 mutation；失败日志原样保留。run5 在新的隔离 PG/合成样例上完整通过。
-- 独立审查还发现并修复宿主环境插值污染 loopback、Docker context 优先级、工具容器共享 harness 路径，以及 seed 搜索 artifact 绑定不足，见[审查记录](local-demo-security-review-r4.md)。
+- 独立审查还发现并修复宿主环境插值污染 loopback、Docker context 优先级、工具容器共享 harness 路径，以及 seed 搜索 artifact 绑定不足，见[审查记录](../security/local-demo-security-review-r4.md)。
 
 ## 明确未执行或不包含
 

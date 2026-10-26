@@ -4,11 +4,11 @@ A single-node, agent-native cloud drive implementation: **Hertz + official MCP G
 
 ## Delivery status
 
-The source suite and several **real native integration loops passed**. This is **not a full-spec acceptance pass**: Docker Compose runtime, the actual Peri client, a real-browser 10 GiB interrupted/resumed Uppy transfer, and configured external vision-model acceptance have not passed in this environment. See the machine-readable [acceptance matrix](docs/acceptance.json), [human matrix](docs/acceptance.md), and [known limitations](docs/known-limitations.md). `python3 scripts/release-readiness.py` deliberately exits nonzero while any mandatory gate is incomplete.
+The source suite and several **real native integration loops passed**. This is **not a full-spec acceptance pass**: Docker Compose runtime, the actual Peri client, a real-browser 10 GiB interrupted/resumed Uppy transfer, and configured external vision-model acceptance have not passed in this environment. See the machine-readable [acceptance matrix](docs/acceptance/acceptance.json), [human matrix](docs/acceptance/acceptance.md), and [known limitations](docs/operations/known-limitations.md). `python3 scripts/release-readiness.py` deliberately exits nonzero while any mandatory gate is incomplete.
 
-The second source delivery adds executable real-browser, joint-API, 10 GiB and response-loss acceptance drivers with explicit `not_run` boundaries. See [the change report](docs/acceptance-changes-20261023.md) and [driver runbook](docs/acceptance-drivers.md); prepared scripts are not evidence that their live scenarios passed.
+The second source delivery adds executable real-browser, joint-API, 10 GiB and response-loss acceptance drivers with explicit `not_run` boundaries. See [the change report](docs/acceptance/acceptance-changes-20261023.md) and [driver runbook](docs/acceptance/acceptance-drivers.md); prepared scripts are not evidence that their live scenarios passed.
 
-The third source delivery adds bounded native pressure/fault testing and fixes reproduced index-ordering, batching, fencing and allocation defects. See [the R3 report](docs/stress-and-fault-r3.md), [independent review](docs/stress-security-review-r3.md), and [source test evidence](evidence/source-r3/README.md). Safety budgets are not measured production capacity, and unexecuted gates remain unaccepted.
+The third source delivery adds bounded native pressure/fault testing and fixes reproduced index-ordering, batching, fencing and allocation defects. See [the R3 report](docs/acceptance/stress-and-fault-r3.md), [independent review](docs/security/stress-security-review-r3.md), and [source test evidence](evidence/source-r3/README.md). Safety budgets are not measured production capacity, and unexecuted gates remain unaccepted.
 
 Implemented and tested paths include:
 
@@ -32,7 +32,7 @@ python3 examples/local-demo/demo.py start
 
 这个隔离演示会生成随机合成账号，启动真实登录、存储、搜索、转换和前端服务，只有真实原生预检及样例上传/搜索/PDF预览验证成功才报告就绪。账号保存在命令打印的私有文件，不写入分发源码。网页地址固定为 `http://drive.localhost:8080`。停止、重启和中文逐步验收见 [example 操作说明](examples/local-demo/README.md)。
 
-该轻量示例使用 local 原件存储，文本/PDF路径无需外部模型；OCR、外部视觉描述、Office专用预览和S3不在默认演示中。当前执行环境没有Docker Engine且真实浏览器启动受限，因此准备和原生协议验证不冒充该Compose/浏览器已运行；实际证据见 [R4验证记录](docs/example-r4-verification.md)。
+该轻量示例使用 local 原件存储，文本/PDF路径无需外部模型；OCR、外部视觉描述、Office专用预览和S3不在默认演示中。当前执行环境没有Docker Engine且真实浏览器启动受限，因此准备和原生协议验证不冒充该Compose/浏览器已运行；实际证据见 [R4验证记录](docs/acceptance/example-r4-verification.md)。
 
 ## Start a disposable local deployment
 
@@ -44,7 +44,7 @@ python3 setup.py --mode s3 --development-http
 ./up.sh
 ```
 
-Open `http://drive.localhost:8080`. Review [deployment instructions](docs/deployment.md) before starting. The setup generates **local** secrets and never contains production credentials. Integration gates are fail-closed until the operator verifies the chosen oCIS/IdP combination. Production requires HTTPS, trusted certificates, exact redirects and private dependency endpoints. Do not use `docker compose down -v` on real data.
+Open `http://drive.localhost:8080`. Review [deployment instructions](docs/operations/deployment.md) before starting. The setup generates **local** secrets and never contains production credentials. Integration gates are fail-closed until the operator verifies the chosen oCIS/IdP combination. Production requires HTTPS, trusted certificates, exact redirects and private dependency endpoints. Do not use `docker compose down -v` on real data.
 
 ## Build and self-test
 
@@ -54,7 +54,7 @@ bash scripts/selftest.sh
 python3 scripts/release-readiness.py
 ```
 
-Requirements: Go 1.25+, Node 22+, Python 3.12, and a C toolchain for the Go race detector. The source runner performs Go race/vet, sqlc generation drift, frontend clean-install tests/build, and converter/deployment tests. Native integration variables opt into disposable services; missing native prerequisites are explicitly reported as skipped, never accepted. See [self-test instructions](docs/selftest.md).
+Requirements: Go 1.25+, Node 22+, Python 3.12, and a C toolchain for the Go race detector. The source runner performs Go race/vet, sqlc generation drift, frontend clean-install tests/build, and converter/deployment tests. Native integration variables opt into disposable services; missing native prerequisites are explicitly reported as skipped, never accepted. See [self-test instructions](docs/operations/selftest.md).
 
 The recorded native core loop uses **real** Keycloak, oCIS, PostgreSQL, NATS and Meilisearch with the same application binaries. Its exact newly-uploaded file/version was retrieved and indexed. [Evidence and replay contract](docs/evidence/native-application-loop.md) are separate from unit tests using explicitly labeled identity/storage fixtures.
 
@@ -71,7 +71,7 @@ The recorded native core loop uses **real** Keycloak, oCIS, PostgreSQL, NATS and
 | `deploy/compose` | Pinned reference stack, secret/config generation |
 | `tests`, `evidence`, `docs/evidence` | Reproducible tests and scoped actual results |
 
-REST contract: [OpenAPI](docs/openapi.json). MCP: [21 tool schemas](docs/mcp-tools.json), official SDK Streamable HTTP at `/mcp`. All mutations use explicit idempotency/revision rules; errors are structured. Received sharing and audit remain web/REST-only, not Agent tools.
+REST contract: [OpenAPI](docs/reference/openapi.json). MCP: [21 tool schemas](docs/reference/mcp-tools.json), official SDK Streamable HTTP at `/mcp`. All mutations use explicit idempotency/revision rules; errors are structured. Received sharing and audit remain web/REST-only, not Agent tools.
 
 ## Important operational boundaries
 
