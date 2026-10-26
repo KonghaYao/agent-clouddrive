@@ -1,5 +1,0 @@
-baseline applied: 8 migrations
-read_cursors columns: [('token_hash', 'bytea'), ('format_version', 'integer'), ('principal_id', 'uuid'), ('file_id', 'uuid'), ('source_version_id', 'uuid'), ('artifact_set_id', 'uuid'), ('read_scope', 'text'), ('byte_offset', 'bigint'), ('expires_at', 'timestamp with time zone'), ('created_at', 'timestamp with time zone')]
-read_cursors indexes: ['read_cursors_expiry', 'read_cursors_pkey', 'read_cursors_principal_file']
-read_cursors constraints: ['read_cursors_byte_offset_check', 'read_cursors_file_id_source_version_id_fkey', 'read_cursors_format_version_check', 'read_cursors_pkey', 'read_cursors_principal_id_fkey', 'read_cursors_read_scope_check', 'read_cursors_source_version_id_artifact_set_id_fkey', 'read_cursors_token_hash_check']
-schema dropped; upgrade+idempotency OK

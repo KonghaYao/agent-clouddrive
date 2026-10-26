@@ -1,8 +1,0 @@
-.................................ss.................../tmp/repair-venv/lib/python3.12/site-packages/pypdf/filters.py:803: ResourceWarning: unclosed <socket.socket [closed] fd=4, family=2, type=1, proto=6>
-  for filter_name, params in zip(filters, decode_parms):
-ResourceWarning: Enable tracemalloc to get the object allocation traceback
-.............
-----------------------------------------------------------------------
-Ran 67 tests in 19.838s
-
-OK (skipped=2)

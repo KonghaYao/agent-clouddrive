@@ -1,5 +1,0 @@
-=== RUN   TestRepairLifecycleNativeOCIS
-    repair_lifecycle_native_test.go:171: 真实 oCIS MKCOL/MOVE/LookupChild + PostgreSQL：并发门禁、保留根响应丢失/重启恢复、restore-only 和单连接 batch 全部通过；隔离目录保留供复核： ce4643b6-3ce8-4a60-a3bb-e70749b31294$691334a3-24ac-4cf0-81ae-7f5ef43c10f3!bf4671bb-3c7b-45b6-a4e1-cde28850f8f4
---- PASS: TestRepairLifecycleNativeOCIS (0.57s)
-PASS
-ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	1.950s

@@ -1,6 +1,0 @@
-=== RUN   TestRepairLifecycleNativeOCIS
-    repair_lifecycle_native_test.go:82: real personal-space resolution: ocis GET: transport_error (status 0)
---- FAIL: TestRepairLifecycleNativeOCIS (0.00s)
-FAIL
-FAIL	github.com/agentclouddrive/agent-clouddrive/internal/application	0.517s
-FAIL

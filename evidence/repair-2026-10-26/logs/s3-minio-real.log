@@ -1,4 +1,0 @@
-=== RUN   TestRepairS3MinIORangeIntegration
---- PASS: TestRepairS3MinIORangeIntegration (0.00s)
-PASS
-ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/artifactstore	0.390s

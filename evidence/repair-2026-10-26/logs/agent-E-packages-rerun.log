@@ -1,4 +1,0 @@
-ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	28.909s
-?   	github.com/agentclouddrive/agent-clouddrive/internal/application/access	[no test files]
-ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/delegation	2.075s
-ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/identity	2.091s

@@ -1,1 +1,0 @@
-go: github.com/sqlc-dev/sqlc/cmd/sqlc@v1.29.0: github.com/sqlc-dev/sqlc/cmd/sqlc@v1.29.0: Get "https://proxy.golang.org/github.com/sqlc-dev/sqlc/cmd/sqlc/@v/v1.29.0.info": dial tcp 142.250.204.49:443: i/o timeout
