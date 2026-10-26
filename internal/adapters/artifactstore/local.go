@@ -117,8 +117,17 @@ func (l *Local) put(ctx context.Context, w ports.ArtifactWrite) (ports.Object, e
 	if !validKey(w.Key) || w.Body == nil || w.Size < 0 || w.Size > l.max || !hashValid(w.SHA256) {
 		return out, ports.ErrInvalid
 	}
-	if e := l.root.MkdirAll(path.Dir(w.Key), 0700); e != nil {
-		return out, e
+	// os.Root.MkdirAll can return EEXIST without retrying when a concurrent
+	// writer creates an intermediate directory. Retry so the remaining path
+	// components are still created; a non-directory collision keeps failing.
+	for try := 0; ; try++ {
+		e := l.root.MkdirAll(path.Dir(w.Key), 0700)
+		if e == nil {
+			break
+		}
+		if !errors.Is(e, os.ErrExist) || try == 3 {
+			return out, e
+		}
 	}
 	nonce := make([]byte, 16)
 	if _, e := rand.Read(nonce); e != nil {
