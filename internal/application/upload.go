@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"github.com/agentclouddrive/agent-clouddrive/internal/application/access"
 	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
@@ -205,11 +206,27 @@ func (s *Service) AbandonUpload(ctx context.Context, a Actor, uid string) (any, 
 		return nil, normalizeError(e)
 	}
 	defer tx.Rollback(ctx)
-	u, e := one(ctx, tx, `SELECT to_jsonb(u)||jsonb_build_object('file_id',o.file_id,'op_state',o.state) FROM upload_sessions u JOIN file_operations o ON o.id=u.operation_id WHERE u.id=$1 AND o.actor_principal_id=$2 FOR UPDATE OF u,o`, uid, a.Principal.ID)
+	// 空间锁先于 operation/upload 行锁，保持与版本提交相同的锁顺序。
+	if _, e = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtextextended(f.space_id::text,0)) FROM files f JOIN file_operations o ON o.file_id=f.id JOIN upload_sessions u ON u.operation_id=o.id WHERE u.id=$1 AND o.actor_principal_id=$2`, uid, a.Principal.ID); e != nil {
+		return nil, e
+	}
+	if _, e = tx.Exec(ctx, `SELECT 1 FROM file_operations o JOIN upload_sessions u ON u.operation_id=o.id WHERE u.id=$1 AND o.actor_principal_id=$2 FOR UPDATE OF o`, uid, a.Principal.ID); e != nil {
+		return nil, e
+	}
+	u, e := one(ctx, tx, `SELECT to_jsonb(u)||jsonb_build_object('file_id',o.file_id,'op_state',o.state,'leased',o.lease_until>now()) FROM upload_sessions u JOIN file_operations o ON o.id=u.operation_id WHERE u.id=$1 AND o.actor_principal_id=$2 FOR UPDATE OF u`, uid, a.Principal.ID)
 	if e != nil {
 		return nil, e
 	}
 	if str(u, "state") != "failed_confirmed" || str(u, "op_state") != "failed_confirmed" {
+		if num(u, "in_flight_patches") > 0 || u["legacy_dispatch_unknown"] == true || (num(u, "patch_epoch") > 0 && u["native_termination_confirmed_at"] == nil) || u["leased"] == true {
+			if _, e = tx.Exec(ctx, `UPDATE upload_sessions SET abandon_requested_at=COALESCE(abandon_requested_at,now()) WHERE id=$1`, uid); e != nil {
+				return nil, e
+			}
+			if e = tx.Commit(ctx); e != nil {
+				return nil, e
+			}
+			return nil, uploadPending("dispatched_write_unresolved")
+		}
 		if u["transfer_completed"] == true {
 			return nil, abandonRefused("transfer_completed")
 		}
@@ -286,22 +303,28 @@ func (s *Service) UploadNative(ctx context.Context, a Actor, uid string) (Object
 	return u, cred, e
 }
 
-// RecordUploadProgress persists each accepted tus chunk so a stalled transfer is distinguishable
-// from "client never sent PATCH" and from "server finished but finalize failed". LEAST keeps the
-// received_bytes <= expected_size CHECK intact even if a native offset were ever oversized.
-func (s *Service) RecordUploadProgress(ctx context.Context, uploadID string, offset int64, resourceID string) error {
-	if offset <= 0 {
-		return nil
-	}
-	_, e := s.DB.Exec(ctx, `UPDATE upload_sessions
-		SET received_bytes=GREATEST(received_bytes,LEAST($2,expected_size)),
-		    native_resource_id=CASE WHEN $3='' THEN native_resource_id ELSE $3 END,
-		    transfer_completed=(LEAST($2,expected_size)=expected_size) OR transfer_completed,
-		    updated_at=now()
-		WHERE id=$1 AND state='uploading'`, uploadID, offset, resourceID)
-	return normalizeError(e)
-}
 func (s *Service) FinishUpload(ctx context.Context, a Actor, uid string) (any, error) {
+	if e := access.New(s.deps()).Scope(a, "drive.write"); e != nil {
+		return nil, e
+	}
+	u, e := one(ctx, s.DB, `SELECT to_jsonb(o) FROM upload_sessions u JOIN file_operations o ON o.id=u.operation_id WHERE u.id=$1 AND o.actor_principal_id=$2`, uid, a.Principal.ID)
+	if e != nil {
+		return nil, e
+	}
+	if str(u, "state") == "committed" {
+		return Object{"file_id": str(u, "file_id"), "version_id": str(u, "result_version_id"), "status": "saved"}, nil
+	}
+	token, e := s.claimUploadFinalize(ctx, a, uid)
+	if e != nil {
+		return nil, e
+	}
+	defer s.releaseUploadLease(ctx, uid, token, "finalize_retry")
+	return s.finishUpload(ctx, a, uid, token)
+}
+
+func (s *Service) finishUpload(ctx context.Context, a Actor, uid string, token int64) (any, error) {
+	ctx, stopLease := s.keepUploadLease(ctx, uid, token)
+	defer stopLease()
 	if e := access.New(s.deps()).Scope(a, "drive.write"); e != nil {
 		return nil, e
 	}
@@ -324,6 +347,9 @@ func (s *Service) FinishUpload(ctx context.Context, a Actor, uid string) (any, e
 	if e != nil {
 		return nil, e
 	}
+	if e = s.uploadTransferForFinalize(ctx, u, token, cred); e != nil {
+		return nil, e
+	}
 	if nativeID := str(u, "native_resource_id"); nativeID != "" {
 		ref.ResourceID = nativeID
 	}
@@ -331,7 +357,19 @@ func (s *Service) FinishUpload(ctx context.Context, a Actor, uid string) (any, e
 	if e != nil {
 		return nil, e
 	}
-	rec, e := s.Original.Reconcile(ctx, ports.ReconcileRequest{Upload: ports.UploadInfo{NativeURL: str(u, "native_upload_ref"), OperationID: str(u, "operation_id"), Length: num(u, "expected_size")}, Target: ref, TargetParent: pref, TargetName: str(f, "name"), TransferCompleted: u["transfer_completed"] == true, ExpectedSize: num(u, "expected_size"), Credential: cred})
+	completed := u["transfer_completed"] == true
+	var confirmed struct {
+		Metadata ports.OriginalMetadata `json:"metadata"`
+		Revision ports.RevisionRef      `json:"revision"`
+	}
+	if str(u, "op_state") == "remote_confirmed" {
+		if e = json.Unmarshal(js(u["remote_result"]), &confirmed); e != nil || confirmed.Metadata.ResourceID == "" || confirmed.Metadata.ETag == "" {
+			return nil, uploadPending("remote_confirmation_invalid")
+		}
+		ref.ResourceID = confirmed.Metadata.ResourceID
+		completed = true
+	}
+	rec, e := s.Original.Reconcile(ctx, ports.ReconcileRequest{Upload: ports.UploadInfo{NativeURL: str(u, "native_upload_ref"), OperationID: str(u, "operation_id"), Length: num(u, "expected_size")}, Target: ref, TargetParent: pref, TargetName: str(f, "name"), TransferCompleted: completed, ExpectedSize: num(u, "expected_size"), ExpectedETag: confirmed.Metadata.ETag, NativeRevisionID: confirmed.Revision.RevisionID, Credential: cred})
 	if e != nil {
 		return nil, normalizeError(e)
 	}
@@ -339,7 +377,7 @@ func (s *Service) FinishUpload(ctx context.Context, a Actor, uid string) (any, e
 		if rec.Reason == "transfer_incomplete" {
 			return Object{"operation_id": str(u, "operation_id"), "status": "uploading", "reason": rec.Reason}, nil
 		}
-		_, _ = s.DB.Exec(ctx, `UPDATE file_operations SET state='outcome_unknown',updated_at=now() WHERE id=$1 AND state='executing'`, str(u, "operation_id"))
+		_, _ = s.DB.Exec(ctx, `UPDATE file_operations SET state='outcome_unknown',updated_at=now() WHERE id=$1 AND state='executing' AND lease_token=$2 AND lease_until>now()`, str(u, "operation_id"), token)
 		return Object{"operation_id": str(u, "operation_id"), "status": "outcome_unknown", "reason": rec.Reason}, nil
 	}
 	content, e := s.Original.OpenRevision(ctx, rec.Revision, nil, cred)
@@ -354,12 +392,7 @@ func (s *Service) FinishUpload(ctx context.Context, a Actor, uid string) (any, e
 	}
 	sha := hex.EncodeToString(h.Sum(nil))
 	remote := Object{"metadata": rec.Metadata, "revision": rec.Revision, "sha256": sha}
-	_, e = s.DB.Exec(ctx, `UPDATE file_operations SET state='remote_confirmed',remote_result=$2::jsonb,updated_at=now() WHERE id=$1 AND state IN('executing','outcome_unknown','remote_confirmed')`, str(u, "operation_id"), js(remote))
-	if e != nil {
-		return nil, normalizeError(e)
-	}
-	recipe := s.Recipe()
-	v, e := one(ctx, s.DB, `SELECT to_jsonb(v) FROM commit_content_operation($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10::jsonb) v`, str(u, "operation_id"), id(), n, sha, rec.Metadata.ETag, js(rec.Revision), rec.Metadata.ResourceID, str(f, "content_type"), recipe.Fingerprint, js(recipe))
+	v, e := s.commitUploadResult(ctx, u, f, remote, rec, token, n, sha)
 	if e != nil {
 		return nil, e
 	}
@@ -409,15 +442,13 @@ func (s *Service) CreateText(ctx context.Context, a Actor, in Object) (any, erro
 	if status.Offset > int64(len(body)) {
 		return nil, dependency()
 	}
-	if status.Offset < int64(len(body)) {
-		status, e = uploader.StreamUpload(ctx, info, status.Offset, strings.NewReader(body[status.Offset:]), int64(len(body))-status.Offset, cred)
-		if e != nil {
-			return nil, normalizeError(e)
+	if status.Offset < int64(len(body)) || len(body) == 0 {
+		epoch, err := s.AdmitUploadPatch(ctx, a, str(u, "id"), status.Offset, int64(len(body))-status.Offset)
+		if err != nil {
+			return nil, err
 		}
-	}
-	if status.Offset == int64(len(body)) && status.ResourceID != "" {
-		_, e = s.DB.Exec(ctx, `UPDATE upload_sessions SET received_bytes=$2,native_resource_id=$3,transfer_completed=true,updated_at=now() WHERE id=$1 AND state='uploading'`, str(u, "id"), status.Offset, status.ResourceID)
-		if e != nil {
+		status, e = uploader.StreamUpload(ctx, info, status.Offset, strings.NewReader(body[status.Offset:]), int64(len(body))-status.Offset, cred)
+		if e = s.CompleteUploadPatch(ctx, str(u, "id"), epoch, status, e); e != nil {
 			return nil, e
 		}
 	}

@@ -1047,20 +1047,29 @@ func (s *Service) reconcileUploads(ctx context.Context) error {
 	if e := s.expireUnstartedUploads(ctx); e != nil {
 		return e
 	}
-	// Remote-confirmed uploads can finish immediately; unknown operations are
-	// retried as read-only reconciliation, never by issuing another replacement.
-	rows, e := s.DB.Query(ctx, `SELECT u.id::text,o.actor_principal_id::text,p.issuer,p.subject,COALESCE(u.native_upload_ref,''),u.expected_size,o.state FROM upload_sessions u JOIN file_operations o ON o.id=u.operation_id JOIN principals p ON p.id=o.actor_principal_id WHERE o.kind IN ('create','overwrite') AND o.state IN ('executing','outcome_unknown','remote_confirmed') AND o.updated_at<now()-interval '30 seconds' AND o.retry_at<=now() AND p.status='active' ORDER BY o.retry_at LIMIT 10`)
+	// 原子领取即推进 retry_at，任何身份/凭据/HEAD 失败分支都不会独占队首。
+	rows, e := s.DB.Query(ctx, `WITH candidates AS (
+		SELECT o.id FROM file_operations o JOIN upload_sessions u ON u.operation_id=o.id
+		WHERE o.kind IN ('create','overwrite') AND o.state IN ('executing','outcome_unknown','remote_confirmed')
+		AND o.updated_at<now()-interval '30 seconds' AND o.retry_at<=now() AND (o.lease_until IS NULL OR o.lease_until<=now())
+		ORDER BY (u.transfer_completed OR o.state='remote_confirmed') DESC,o.retry_at,o.id LIMIT 10 FOR UPDATE OF o SKIP LOCKED
+	), claimed AS (
+		UPDATE file_operations o SET retry_at=now()+interval '30 seconds',lease_until=now()+interval '2 minutes',lease_owner=$1,lease_token=o.lease_token+1
+		FROM candidates c WHERE o.id=c.id RETURNING o.*
+	) SELECT u.id::text,o.actor_principal_id::text,p.issuer,p.subject,COALESCE(u.native_upload_ref,''),u.expected_size,o.state,u.transfer_completed,o.lease_token
+	FROM claimed o JOIN upload_sessions u ON u.operation_id=o.id JOIN principals p ON p.id=o.actor_principal_id`, s.Config.NodeID)
 	if e != nil {
 		return e
 	}
 	type task struct {
 		upload, owner, issuer, subject, nativeURL, operationState string
-		expectedSize                                              int64
+		expectedSize, token                                       int64
+		completed                                                 bool
 	}
 	tasks := []task{}
 	for rows.Next() {
 		var t task
-		if e = rows.Scan(&t.upload, &t.owner, &t.issuer, &t.subject, &t.nativeURL, &t.expectedSize, &t.operationState); e != nil {
+		if e = rows.Scan(&t.upload, &t.owner, &t.issuer, &t.subject, &t.nativeURL, &t.expectedSize, &t.operationState, &t.completed, &t.token); e != nil {
 			rows.Close()
 			return e
 		}
@@ -1071,28 +1080,46 @@ func (s *Service) reconcileUploads(ctx context.Context) error {
 		return e
 	}
 	for _, t := range tasks {
-		status, e := s.Identity.SubjectStatus(ctx, t.issuer, t.subject)
-		if e != nil || !status.Enabled {
-			continue
-		}
-		actor := Actor{Principal: domain.Principal{ID: t.owner, Type: domain.ActorUser, Active: true, StatusVerified: true, Scopes: domain.AllScopes()}, Subject: ports.Subject{Issuer: t.issuer, Subject: t.subject}}
-		if t.operationState == "executing" {
-			// A long upload is not an unknown commit. Never close a live tus
-			// session merely because no business update arrived for 30 seconds.
-			if t.nativeURL == "" {
-				continue
+		func() {
+			reason := "upload_reconcile_retry"
+			defer func() { s.releaseUploadLease(ctx, t.upload, t.token, reason) }()
+			probeCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+			defer cancel()
+			status, err := s.Identity.SubjectStatus(probeCtx, t.issuer, t.subject)
+			if err != nil || !status.Enabled {
+				reason = "upload_identity_unavailable"
+				return
 			}
-			cred, err := access.New(s.deps()).Credential(ctx, actor, ports.RevisionRef{})
-			if err != nil {
-				continue
+			actor := Actor{Principal: domain.Principal{ID: t.owner, Type: domain.ActorUser, Active: true, StatusVerified: true, Scopes: domain.AllScopes()}, Subject: ports.Subject{Issuer: t.issuer, Subject: t.subject}}
+			// 持久完成证据走稳定资源；临时 tus URL 只用于仍在传输者。
+			if !t.completed && t.operationState != "remote_confirmed" {
+				if t.nativeURL == "" {
+					reason = "upload_session_unknown"
+					return
+				}
+				cred, err := access.New(s.deps()).Credential(probeCtx, actor, ports.RevisionRef{})
+				if err != nil {
+					reason = "upload_credential_unavailable"
+					return
+				}
+				remote, err := s.Original.StatUpload(probeCtx, ports.UploadInfo{NativeURL: t.nativeURL, Length: t.expectedSize}, cred)
+				if err != nil {
+					reason = "upload_status_unknown"
+					return
+				}
+				if err = s.observeUploadTransfer(ctx, t.upload, t.token, remote); err != nil {
+					reason = "upload_progress_conflict"
+					return
+				}
+				if !remote.Complete {
+					reason = "upload_transfer_incomplete"
+					return
+				}
 			}
-			remote, err := s.Original.StatUpload(ctx, ports.UploadInfo{NativeURL: t.nativeURL, Length: t.expectedSize}, cred)
-			if err != nil || !remote.Complete {
-				continue
+			if _, err = s.finishUpload(ctx, actor, t.upload, t.token); err == nil {
+				reason = "upload_reconciled"
 			}
-		}
-		_, _ = s.FinishUpload(ctx, actor, t.upload)
-		_, _ = s.DB.Exec(ctx, `UPDATE file_operations SET retry_at=now()+interval '30 seconds' WHERE id=(SELECT operation_id FROM upload_sessions WHERE id=$1) AND state NOT IN ('committed','failed_confirmed')`, t.upload)
+		}()
 	}
 	return nil
 }

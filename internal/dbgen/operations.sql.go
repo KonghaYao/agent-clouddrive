@@ -73,7 +73,7 @@ func (q *Queries) BeginFileOperation(ctx context.Context, arg BeginFileOperation
 
 const bindNativeUpload = `-- name: BindNativeUpload :one
 UPDATE upload_sessions SET native_upload_ref = $2,state = 'uploading',updated_at = now()
-WHERE id = $1 AND state = 'created' RETURNING id, operation_id, expected_size, expected_version_id, native_upload_ref, node_id, state, received_bytes, expires_at, created_at, updated_at, native_resource_id, transfer_completed
+WHERE id = $1 AND state = 'created' RETURNING id, operation_id, expected_size, expected_version_id, native_upload_ref, node_id, state, received_bytes, expires_at, created_at, updated_at, native_resource_id, transfer_completed, patch_epoch, in_flight_patches, abandon_requested_at, native_termination_confirmed_at, legacy_dispatch_unknown
 `
 
 type BindNativeUploadParams struct {
@@ -98,6 +98,11 @@ func (q *Queries) BindNativeUpload(ctx context.Context, arg BindNativeUploadPara
 		&i.UpdatedAt,
 		&i.NativeResourceID,
 		&i.TransferCompleted,
+		&i.PatchEpoch,
+		&i.InFlightPatches,
+		&i.AbandonRequestedAt,
+		&i.NativeTerminationConfirmedAt,
+		&i.LegacyDispatchUnknown,
 	)
 	return i, err
 }
@@ -209,7 +214,7 @@ func (q *Queries) CommitContentOperation(ctx context.Context, arg CommitContentO
 
 const createUploadSession = `-- name: CreateUploadSession :one
 INSERT INTO upload_sessions(id,operation_id,expected_size,expected_version_id,node_id,expires_at)
-VALUES($1,$2,$3,$4,$5,$6) RETURNING id, operation_id, expected_size, expected_version_id, native_upload_ref, node_id, state, received_bytes, expires_at, created_at, updated_at, native_resource_id, transfer_completed
+VALUES($1,$2,$3,$4,$5,$6) RETURNING id, operation_id, expected_size, expected_version_id, native_upload_ref, node_id, state, received_bytes, expires_at, created_at, updated_at, native_resource_id, transfer_completed, patch_epoch, in_flight_patches, abandon_requested_at, native_termination_confirmed_at, legacy_dispatch_unknown
 `
 
 type CreateUploadSessionParams struct {
@@ -245,6 +250,11 @@ func (q *Queries) CreateUploadSession(ctx context.Context, arg CreateUploadSessi
 		&i.UpdatedAt,
 		&i.NativeResourceID,
 		&i.TransferCompleted,
+		&i.PatchEpoch,
+		&i.InFlightPatches,
+		&i.AbandonRequestedAt,
+		&i.NativeTerminationConfirmedAt,
+		&i.LegacyDispatchUnknown,
 	)
 	return i, err
 }
@@ -339,7 +349,7 @@ func (q *Queries) GetIdempotentOperation(ctx context.Context, arg GetIdempotentO
 }
 
 const getUploadSession = `-- name: GetUploadSession :one
-SELECT id, operation_id, expected_size, expected_version_id, native_upload_ref, node_id, state, received_bytes, expires_at, created_at, updated_at, native_resource_id, transfer_completed FROM upload_sessions WHERE id = $1
+SELECT id, operation_id, expected_size, expected_version_id, native_upload_ref, node_id, state, received_bytes, expires_at, created_at, updated_at, native_resource_id, transfer_completed, patch_epoch, in_flight_patches, abandon_requested_at, native_termination_confirmed_at, legacy_dispatch_unknown FROM upload_sessions WHERE id = $1
 `
 
 func (q *Queries) GetUploadSession(ctx context.Context, id pgtype.UUID) (UploadSession, error) {
@@ -359,6 +369,11 @@ func (q *Queries) GetUploadSession(ctx context.Context, id pgtype.UUID) (UploadS
 		&i.UpdatedAt,
 		&i.NativeResourceID,
 		&i.TransferCompleted,
+		&i.PatchEpoch,
+		&i.InFlightPatches,
+		&i.AbandonRequestedAt,
+		&i.NativeTerminationConfirmedAt,
+		&i.LegacyDispatchUnknown,
 	)
 	return i, err
 }
