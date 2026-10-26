@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/agentclouddrive/agent-clouddrive/internal/application/access"
 	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
 	"github.com/agentclouddrive/agent-clouddrive/internal/ports"
 	"io"
@@ -38,7 +39,7 @@ func (s *Service) linkFile(ctx context.Context, raw, vid string) (Object, ports.
 		return nil, sub, dependency()
 	}
 	if !status.Enabled {
-		s.observeDisabled(ctx, sub)
+		access.New(s.deps()).ObserveDisabled(ctx, sub)
 	}
 	var g domain.ShareGrant
 	_ = json.Unmarshal(js(row), &g)
@@ -58,7 +59,7 @@ func (s *Service) linkFile(ctx context.Context, raw, vid string) (Object, ports.
 	return f, sub, nil
 }
 func (s *Service) previewFile(ctx context.Context, a Actor, fid string) (Object, ports.Subject, string, error) {
-	f, e := s.owned(ctx, a, fid, domain.ActionPreview)
+	f, e := access.New(s.deps()).Owned(ctx, a, fid, domain.ActionPreview)
 	if e == nil {
 		return f, a.Subject, a.Token, nil
 	}
@@ -89,7 +90,7 @@ func (s *Service) preparePreview(ctx context.Context, f Object, owner ports.Subj
 	if num(version, "size") > s.Config.ConvertMax {
 		return pm, domain.NewError(domain.UploadTooLarge, "preview exceeds configured rendering limit")
 	}
-	c, e := s.originalVersion(ctx, owner, subjectToken, str(f, "id"), vid, nil)
+	c, e := access.New(s.deps()).OriginalVersion(ctx, owner, subjectToken, str(f, "id"), vid, nil)
 	if e != nil {
 		return pm, e
 	}
@@ -193,7 +194,7 @@ func (s *Service) ReadAsset(ctx context.Context, a Actor, aid, asset string) (po
 	if e != nil {
 		return ports.Content{}, e
 	}
-	if _, e = s.owned(ctx, a, str(r, "file_id"), domain.ActionReadHistory); e != nil {
+	if _, e = access.New(s.deps()).Owned(ctx, a, str(r, "file_id"), domain.ActionReadHistory); e != nil {
 		return ports.Content{}, e
 	}
 	if asset == "" || strings.ContainsAny(asset, "/\\") {
@@ -230,14 +231,14 @@ func (s *Service) ReadTicket(ctx context.Context, raw string, rng *ports.ByteRan
 		return ports.Content{}, dependency()
 	}
 	if !status.Enabled {
-		s.observeDisabled(ctx, sub)
+		access.New(s.deps()).ObserveDisabled(ctx, sub)
 		return ports.Content{}, denied()
 	}
 	a := Actor{Principal: domain.Principal{ID: str(r, "principal_id"), Type: domain.ActorUser, Active: true, StatusVerified: true, Scopes: domain.AllScopes()}, Subject: sub}
-	if _, e = s.owned(ctx, a, str(r, "file_id"), domain.ActionDownload); e != nil {
+	if _, e = access.New(s.deps()).Owned(ctx, a, str(r, "file_id"), domain.ActionDownload); e != nil {
 		return ports.Content{}, e
 	}
-	return s.originalVersion(ctx, sub, "", str(r, "file_id"), str(r, "version_id"), rng)
+	return access.New(s.deps()).OriginalVersion(ctx, sub, "", str(r, "file_id"), str(r, "version_id"), rng)
 }
 
 var _ io.Reader

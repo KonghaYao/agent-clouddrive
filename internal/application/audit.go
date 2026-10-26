@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"encoding/json"
+	"github.com/agentclouddrive/agent-clouddrive/internal/application/access"
 	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
 	"github.com/agentclouddrive/agent-clouddrive/internal/ports"
 	"strings"
@@ -51,7 +52,7 @@ func (s *Service) AuditContent(ctx context.Context, a Actor, fid, vid string, rn
 	}
 	// No admin impersonation: native reads still require the owner's lawful,
 	// previously consented delegation. Revoked or disabled grants fail closed.
-	c, e := s.originalVersion(ctx, owner, "", fid, vid, rng)
+	c, e := access.New(s.deps()).OriginalVersion(ctx, owner, "", fid, vid, rng)
 	if e != nil {
 		return ports.Content{}, normalizeError(e)
 	}

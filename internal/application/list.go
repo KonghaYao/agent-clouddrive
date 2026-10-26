@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"github.com/agentclouddrive/agent-clouddrive/internal/application/access"
 	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
 )
 
 func (s *Service) list(ctx context.Context, a Actor, in Object) (any, error) {
-	if e := s.scope(a, "drive.read"); e != nil {
+	if e := access.New(s.deps()).Scope(a, "drive.read"); e != nil {
 		return nil, e
 	}
 	if pid := str(in, "parent_id"); pid != "" {
-		if _, e := s.owned(ctx, a, pid, domain.ActionList); e != nil {
+		if _, e := access.New(s.deps()).Owned(ctx, a, pid, domain.ActionList); e != nil {
 			return nil, e
 		}
 	}
@@ -40,7 +41,7 @@ func (s *Service) list(ctx context.Context, a Actor, in Object) (any, error) {
 		items = items[:limit]
 	}
 	for _, f := range items {
-		if _, e = s.owned(ctx, a, str(f, "id"), domain.ActionList); e == nil {
+		if _, e = access.New(s.deps()).Owned(ctx, a, str(f, "id"), domain.ActionList); e == nil {
 			valid = append(valid, f)
 		}
 	}

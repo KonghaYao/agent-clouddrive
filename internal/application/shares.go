@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"encoding/json"
+	"github.com/agentclouddrive/agent-clouddrive/internal/application/access"
 	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
 	"github.com/agentclouddrive/agent-clouddrive/internal/ports"
 	"strings"
@@ -10,7 +11,7 @@ import (
 )
 
 func (s *Service) RequestShare(ctx context.Context, a Actor, in Object) (any, error) {
-	f, e := s.owned(ctx, a, str(in, "file_id"), domain.ActionRequestShare)
+	f, e := access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), domain.ActionRequestShare)
 	if e != nil {
 		return nil, e
 	}
@@ -55,7 +56,7 @@ func (s *Service) ApproveShare(ctx context.Context, a Actor, rid string) (any, e
 		return nil, e
 	}
 	defer tx.Rollback(ctx)
-	if e = s.scope(a, "drive.share.request"); e != nil {
+	if e = access.New(s.deps()).Scope(a, "drive.share.request"); e != nil {
 		return nil, e
 	}
 	_, e = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtextextended(f.space_id::text,0)) FROM share_approvals r JOIN files f ON f.id=r.file_id WHERE r.id=$1 AND r.requester_principal=$2`, rid, a.Principal.ID)
@@ -124,7 +125,7 @@ func (s *Service) ApproveShare(ctx context.Context, a Actor, rid string) (any, e
 	return grant, nil
 }
 func (s *Service) RevokeShare(ctx context.Context, a Actor, sid string) (any, error) {
-	if e := s.scope(a, "drive.share.request"); e != nil {
+	if e := access.New(s.deps()).Scope(a, "drive.share.request"); e != nil {
 		return nil, e
 	}
 	r, e := s.DB.Exec(ctx, `UPDATE share_grants SET state='revoked',revoked_at=now() WHERE id=$1 AND creator_principal_id=$2 AND state='active'`, sid, a.Principal.ID)
@@ -140,7 +141,7 @@ func (s *Service) Shared(ctx context.Context, a Actor) (any, error) {
 	if a.Principal.Type != domain.ActorUser {
 		return nil, domain.NewError(domain.AccessDenied, "Agent access excludes received shares")
 	}
-	if e := s.scope(a, "drive.read"); e != nil {
+	if e := access.New(s.deps()).Scope(a, "drive.read"); e != nil {
 		return nil, e
 	}
 	groups, e := s.Identity.Groups(ctx, a.Subject.Issuer, a.Subject.Subject)
@@ -158,7 +159,7 @@ func (s *Service) Shared(ctx context.Context, a Actor) (any, error) {
 			return nil, dependency()
 		}
 		if !status.Enabled {
-			s.observeDisabled(ctx, ports.Subject{Issuer: str(r, "issuer"), Subject: str(r, "subject")})
+			access.New(s.deps()).ObserveDisabled(ctx, ports.Subject{Issuer: str(r, "issuer"), Subject: str(r, "subject")})
 		}
 		if status.Enabled {
 			fm, _ := r["file"].(map[string]any)
@@ -182,7 +183,7 @@ func (s *Service) SharedFile(ctx context.Context, a Actor, fid, vid string, acti
 	if a.Principal.Type != domain.ActorUser {
 		return nil, ports.Subject{}, denied()
 	}
-	if e := s.scope(a, "drive.read"); e != nil {
+	if e := access.New(s.deps()).Scope(a, "drive.read"); e != nil {
 		return nil, ports.Subject{}, e
 	}
 	groups, e := s.Identity.Groups(ctx, a.Subject.Issuer, a.Subject.Subject)
@@ -204,7 +205,7 @@ func (s *Service) SharedFile(ctx context.Context, a Actor, fid, vid string, acti
 			return nil, ports.Subject{}, dependency()
 		}
 		if !status.Enabled {
-			s.observeDisabled(ctx, ports.Subject{Issuer: str(row, "owner_issuer"), Subject: str(row, "owner_subject")})
+			access.New(s.deps()).ObserveDisabled(ctx, ports.Subject{Issuer: str(row, "owner_issuer"), Subject: str(row, "owner_subject")})
 		}
 		a.Principal.Groups = groups
 		requestedVersion := vid

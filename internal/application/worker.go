@@ -20,6 +20,7 @@ import (
 
 	converteradapter "github.com/agentclouddrive/agent-clouddrive/internal/adapters/converters"
 	searchadapter "github.com/agentclouddrive/agent-clouddrive/internal/adapters/search"
+	"github.com/agentclouddrive/agent-clouddrive/internal/application/access"
 	"github.com/agentclouddrive/agent-clouddrive/internal/dbgen"
 	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
 	"github.com/agentclouddrive/agent-clouddrive/internal/ports"
@@ -1081,7 +1082,7 @@ func (s *Service) reconcileUploads(ctx context.Context) error {
 			if t.nativeURL == "" {
 				continue
 			}
-			cred, err := s.credential(ctx, actor, ports.RevisionRef{})
+			cred, err := access.New(s.deps()).Credential(ctx, actor, ports.RevisionRef{})
 			if err != nil {
 				continue
 			}

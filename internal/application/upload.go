@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"github.com/agentclouddrive/agent-clouddrive/internal/application/access"
 	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
 	"github.com/agentclouddrive/agent-clouddrive/internal/ports"
 	"github.com/jackc/pgx/v5"
@@ -14,7 +15,7 @@ import (
 )
 
 func (s *Service) BeginUpload(ctx context.Context, a Actor, in Object) (any, error) {
-	if e := s.scope(a, "drive.write"); e != nil {
+	if e := access.New(s.deps()).Scope(a, "drive.write"); e != nil {
 		return nil, e
 	}
 	if _, ok := in["size_bytes"]; !ok {
@@ -53,13 +54,13 @@ func (s *Service) BeginUpload(ctx context.Context, a Actor, in Object) (any, err
 		}
 		return s.uploadView(old), nil
 	}
-	p, pref, e := s.parent(ctx, a, str(in, "parent_id"))
+	p, pref, e := access.New(s.deps()).Parent(ctx, a, str(in, "parent_id"))
 	if e != nil {
 		return nil, normalizeError(e)
 	}
 	var f Object
 	if fid != "" {
-		f, e = s.owned(ctx, a, fid, domain.ActionWrite)
+		f, e = access.New(s.deps()).Owned(ctx, a, fid, domain.ActionWrite)
 		if e != nil {
 			return nil, e
 		}
@@ -130,7 +131,7 @@ func (s *Service) BeginUpload(ctx context.Context, a Actor, in Object) (any, err
 	if e = tx.Commit(ctx); e != nil {
 		return nil, e
 	}
-	cred, e := s.credential(ctx, a, ports.RevisionRef{})
+	cred, e := access.New(s.deps()).Credential(ctx, a, ports.RevisionRef{})
 	if e != nil {
 		s.failPrepared(ctx, opid, uid)
 		return nil, normalizeError(e)
@@ -196,7 +197,7 @@ func (s *Service) uploadPathConflict(ctx context.Context, tx pgx.Tx, a Actor, sp
 // operation must become failed_confirmed before the quota function will release
 // the reservation, and only an invisible placeholder file may leave the path.
 func (s *Service) AbandonUpload(ctx context.Context, a Actor, uid string) (any, error) {
-	if e := s.scope(a, "drive.write"); e != nil {
+	if e := access.New(s.deps()).Scope(a, "drive.write"); e != nil {
 		return nil, e
 	}
 	tx, e := s.DB.Begin(ctx)
@@ -268,7 +269,7 @@ func (s *Service) failPrepared(ctx context.Context, opid, uid string) {
 	_ = tx.Commit(ctx)
 }
 func (s *Service) UploadNative(ctx context.Context, a Actor, uid string) (Object, ports.Credential, error) {
-	if e := s.scope(a, "drive.write"); e != nil {
+	if e := access.New(s.deps()).Scope(a, "drive.write"); e != nil {
 		return nil, ports.Credential{}, e
 	}
 	u, e := one(ctx, s.DB, `SELECT to_jsonb(u)||jsonb_build_object('file_id',o.file_id,'op_state',o.state) FROM upload_sessions u JOIN file_operations o ON o.id=u.operation_id WHERE u.id=$1 AND o.actor_principal_id=$2`, uid, a.Principal.ID)
@@ -278,10 +279,10 @@ func (s *Service) UploadNative(ctx context.Context, a Actor, uid string) (Object
 	if str(u, "state") != "uploading" || str(u, "op_state") != "executing" {
 		return nil, ports.Credential{}, domain.NewError(domain.OperationPending, "upload is not writable; reconcile its operation")
 	}
-	if _, e = s.owned(ctx, a, str(u, "file_id"), domain.ActionWrite); e != nil {
+	if _, e = access.New(s.deps()).Owned(ctx, a, str(u, "file_id"), domain.ActionWrite); e != nil {
 		return nil, ports.Credential{}, e
 	}
-	cred, e := s.credential(ctx, a, ports.RevisionRef{})
+	cred, e := access.New(s.deps()).Credential(ctx, a, ports.RevisionRef{})
 	return u, cred, e
 }
 
@@ -301,7 +302,7 @@ func (s *Service) RecordUploadProgress(ctx context.Context, uploadID string, off
 	return normalizeError(e)
 }
 func (s *Service) FinishUpload(ctx context.Context, a Actor, uid string) (any, error) {
-	if e := s.scope(a, "drive.write"); e != nil {
+	if e := access.New(s.deps()).Scope(a, "drive.write"); e != nil {
 		return nil, e
 	}
 	u, e := one(ctx, s.DB, `SELECT to_jsonb(u)||jsonb_build_object('file_id',o.file_id,'op_state',o.state,'result_version_id',o.result_version_id,'remote_result',o.remote_result) FROM upload_sessions u JOIN file_operations o ON o.id=u.operation_id WHERE u.id=$1 AND o.actor_principal_id=$2`, uid, a.Principal.ID)
@@ -311,22 +312,22 @@ func (s *Service) FinishUpload(ctx context.Context, a Actor, uid string) (any, e
 	if str(u, "op_state") == "committed" {
 		return Object{"file_id": str(u, "file_id"), "version_id": str(u, "result_version_id"), "status": "saved"}, nil
 	}
-	f, e := s.owned(ctx, a, str(u, "file_id"), domain.ActionWrite)
+	f, e := access.New(s.deps()).Owned(ctx, a, str(u, "file_id"), domain.ActionWrite)
 	if e != nil {
 		return nil, e
 	}
-	cred, e := s.credential(ctx, a, ports.RevisionRef{})
+	cred, e := access.New(s.deps()).Credential(ctx, a, ports.RevisionRef{})
 	if e != nil {
 		return nil, normalizeError(e)
 	}
-	ref, e := s.ref(ctx, f)
+	ref, e := access.New(s.deps()).Ref(ctx, f)
 	if e != nil {
 		return nil, e
 	}
 	if nativeID := str(u, "native_resource_id"); nativeID != "" {
 		ref.ResourceID = nativeID
 	}
-	_, pref, e := s.parent(ctx, a, str(f, "parent_id"))
+	_, pref, e := access.New(s.deps()).Parent(ctx, a, str(f, "parent_id"))
 	if e != nil {
 		return nil, e
 	}

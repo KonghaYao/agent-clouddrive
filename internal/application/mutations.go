@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/agentclouddrive/agent-clouddrive/internal/application/access"
 	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
 	"github.com/agentclouddrive/agent-clouddrive/internal/ports"
 	"github.com/jackc/pgx/v5"
@@ -26,7 +27,7 @@ func (s *Service) Mutate(ctx context.Context, a Actor, kind string, in Object) (
 	default:
 		return nil, domain.NewError(domain.InvalidArgument, "unsupported mutation")
 	}
-	if e := s.scope(a, domain.RequiredScope(action)); e != nil {
+	if e := access.New(s.deps()).Scope(a, domain.RequiredScope(action)); e != nil {
 		return nil, e
 	}
 	key := str(in, "idempotency_key")
@@ -59,7 +60,7 @@ func (s *Service) Mutate(ctx context.Context, a Actor, kind string, in Object) (
 		fid = str(trash, "root_file_id")
 	}
 	if kind != "mkdir" {
-		f, e = s.owned(ctx, a, fid, action)
+		f, e = access.New(s.deps()).Owned(ctx, a, fid, action)
 		if e != nil {
 			return nil, e
 		}
@@ -69,7 +70,7 @@ func (s *Service) Mutate(ctx context.Context, a Actor, kind string, in Object) (
 		if e = domain.CheckRevision(fileDomain(f), str(f, "current_version_id"), num(in, "expected_metadata_revision")); e != nil {
 			return nil, e
 		}
-		source, e = s.ref(ctx, f)
+		source, e = access.New(s.deps()).Ref(ctx, f)
 		if e != nil {
 			return nil, e
 		}
@@ -103,7 +104,7 @@ func (s *Service) Mutate(ctx context.Context, a Actor, kind string, in Object) (
 		if e != nil {
 			return nil, e
 		}
-		parent, destination, e = s.parent(ctx, a, parentID)
+		parent, destination, e = access.New(s.deps()).Parent(ctx, a, parentID)
 		if e != nil {
 			return nil, e
 		}
@@ -111,7 +112,7 @@ func (s *Service) Mutate(ctx context.Context, a Actor, kind string, in Object) (
 			return nil, domain.NewError(domain.AccessDenied, "cross-space moves are not supported")
 		}
 	}
-	cred, e := s.credential(ctx, a, ports.RevisionRef{ResourceRef: source})
+	cred, e := access.New(s.deps()).Credential(ctx, a, ports.RevisionRef{ResourceRef: source})
 	if e != nil {
 		return nil, normalizeError(e)
 	}

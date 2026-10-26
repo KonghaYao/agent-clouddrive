@@ -4,11 +4,15 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
-	"github.com/agentclouddrive/agent-clouddrive/internal/ports"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/agentclouddrive/agent-clouddrive/internal/application/access"
+	"github.com/agentclouddrive/agent-clouddrive/internal/application/batch"
+	"github.com/agentclouddrive/agent-clouddrive/internal/application/core"
+	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
+	"github.com/agentclouddrive/agent-clouddrive/internal/ports"
 )
 
 func (s *Service) Execute(ctx context.Context, a Actor, name string, in Object) (any, error) {
@@ -27,7 +31,7 @@ func (s *Service) Execute(ctx context.Context, a Actor, name string, in Object) 
 		return s.list(ctx, a, in)
 	case "stat":
 		var f Object
-		f, err = s.owned(ctx, a, str(in, "file_id"), domain.ActionStat)
+		f, err = access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), domain.ActionStat)
 		shared := false
 		if err != nil {
 			f, _, err = s.SharedFile(ctx, a, str(in, "file_id"), str(in, "version_id"), domain.ActionStat)
@@ -45,7 +49,7 @@ func (s *Service) Execute(ctx context.Context, a Actor, name string, in Object) 
 			}
 		}
 	case "versions":
-		if _, err = s.owned(ctx, a, str(in, "file_id"), domain.ActionReadHistory); err == nil {
+		if _, err = access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), domain.ActionReadHistory); err == nil {
 			var rows []Object
 			rows, err = many(ctx, s.DB, `SELECT (to_jsonb(v)-'native_revision_ref'-'native_etag')||jsonb_build_object('conversion_status',(SELECT j.state FROM conversion_jobs j WHERE j.source_version_id=v.id ORDER BY j.generation DESC LIMIT 1)) FROM file_versions v WHERE file_id=$1 ORDER BY version_seq DESC`, str(in, "file_id"))
 			result = Object{"items": rows}
@@ -67,7 +71,7 @@ func (s *Service) Execute(ctx context.Context, a Actor, name string, in Object) 
 	case "markdown":
 		return s.markdown(ctx, a, in)
 	case "trash":
-		if err = s.scope(a, "drive.read"); err == nil {
+		if err = access.New(s.deps()).Scope(a, "drive.read"); err == nil {
 			var rows []Object
 			rows, err = many(ctx, s.DB, `SELECT to_jsonb(t)||jsonb_build_object('file',to_jsonb(f)-'native_resource_id'-'native_instance') FROM trash_entries t JOIN files f ON f.id=t.root_file_id WHERE f.owner_id=$1 AND t.state<>'restored' ORDER BY t.deleted_at DESC`, a.Principal.ID)
 			result = Object{"items": rows}
@@ -83,7 +87,7 @@ func (s *Service) Execute(ctx context.Context, a Actor, name string, in Object) 
 			if str(op, "kind") == "restore" {
 				scope = "drive.restore"
 			}
-			err = s.scope(a, scope)
+			err = access.New(s.deps()).Scope(a, scope)
 			result = op
 		}
 	case "begin_upload":
@@ -103,18 +107,18 @@ func (s *Service) Execute(ctx context.Context, a Actor, name string, in Object) 
 	case "revoke_share":
 		return s.RevokeShare(ctx, a, str(in, "share_id"))
 	case "share_requests":
-		if err = s.scope(a, "drive.read"); err == nil {
+		if err = access.New(s.deps()).Scope(a, "drive.read"); err == nil {
 			var rows []Object
 			rows, err = many(ctx, s.DB, `SELECT to_jsonb(x) FROM share_approvals x WHERE requester_principal=$1 ORDER BY created_at DESC`, a.Principal.ID)
 			result = Object{"items": rows}
 		}
 	case "share_request":
-		if err = s.scope(a, "drive.read"); err != nil {
+		if err = access.New(s.deps()).Scope(a, "drive.read"); err != nil {
 			break
 		}
 		result, err = one(ctx, s.DB, `SELECT to_jsonb(x) FROM share_approvals x WHERE id=$1 AND requester_principal=$2`, str(in, "request_id"), a.Principal.ID)
 	case "shares":
-		if err = s.scope(a, "drive.read"); err == nil {
+		if err = access.New(s.deps()).Scope(a, "drive.read"); err == nil {
 			var rows []Object
 			rows, err = many(ctx, s.DB, `SELECT to_jsonb(x)-'token_hash' FROM share_grants x WHERE creator_principal_id=$1 ORDER BY created_at DESC`, a.Principal.ID)
 			result = Object{"items": rows}
@@ -124,7 +128,7 @@ func (s *Service) Execute(ctx context.Context, a Actor, name string, in Object) 
 	case "feedback":
 		return s.feedback(ctx, a, in)
 	case "batch":
-		return s.Batch(ctx, a, in)
+		return batch.New(s.deps()).Batch(ctx, a, in, s.Execute)
 	case "get_download":
 		return s.DownloadTicket(ctx, a, in)
 	case "create_text":
@@ -135,7 +139,7 @@ func (s *Service) Execute(ctx context.Context, a Actor, name string, in Object) 
 	return result, normalizeError(err)
 }
 func (s *Service) search(ctx context.Context, a Actor, in Object) (any, error) {
-	if e := s.scope(a, "drive.read"); e != nil {
+	if e := access.New(s.deps()).Scope(a, "drive.read"); e != nil {
 		return nil, e
 	}
 	if s.Search == nil {
@@ -170,7 +174,7 @@ func (s *Service) search(ctx context.Context, a Actor, in Object) (any, error) {
 		more = cand.MayHaveMore
 		startOffset := offset - len(cand.Hits)
 		for hitIndex, hit := range cand.Hits {
-			f, e := s.owned(ctx, a, hit.FileID, domain.ActionSearch)
+			f, e := access.New(s.deps()).Owned(ctx, a, hit.FileID, domain.ActionSearch)
 			if e != nil || str(f, "search_artifact_set_id") != hit.ArtifactSetID {
 				continue
 			}
@@ -198,7 +202,7 @@ func (s *Service) markdown(ctx context.Context, a Actor, in Object) (any, error)
 	if str(in, "artifact_set_id") != "" || str(in, "version_id") != "" {
 		action = domain.ActionReadHistory
 	}
-	f, e := s.owned(ctx, a, str(in, "file_id"), action)
+	f, e := access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), action)
 	if e != nil {
 		return nil, e
 	}
@@ -244,7 +248,7 @@ func (s *Service) markdown(ctx context.Context, a Actor, in Object) (any, error)
 	return Object{"file_id": str(f, "id"), "version_id": str(artifact, "source_version_id"), "artifact_set_id": aid, "completeness": artifact["completeness"], "markdown": string(all[offset:end]), "next_cursor": cursor}, nil
 }
 func (s *Service) reconvert(ctx context.Context, a Actor, in Object) (any, error) {
-	f, e := s.owned(ctx, a, str(in, "file_id"), domain.ActionConvert)
+	f, e := access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), domain.ActionConvert)
 	if e != nil {
 		return nil, e
 	}
@@ -295,12 +299,10 @@ func (s *Service) reconvert(ctx context.Context, a Actor, in Object) (any, error
 }
 
 func (s *Service) Recipe() ports.Recipe {
-	r := ports.Recipe{Engine: "anydoc", EngineVersion: s.Config.PipelineVersion, Model: s.Config.VisionModel, DescribeImages: true, TimeoutSeconds: 300, MaxPages: s.Config.ConvertPages, MaxOutputBytes: 32 << 20, PromptVersion: "image-description-v1", MarkdownVersion: "v1", ChunkVersion: "v1", Config: map[string]any{"convert_max_bytes": s.Config.ConvertMax, "ocr_model_manifest_sha256": s.Config.OCRModelManifest, "vision_provider": s.Config.VisionProvider}}
-	r.Fingerprint = "sha256:" + hash(r)
-	return r
+	return core.Recipe(s.Config)
 }
 func (s *Service) feedback(ctx context.Context, a Actor, in Object) (any, error) {
-	if _, e := s.owned(ctx, a, str(in, "file_id"), domain.ActionFeedback); e != nil {
+	if _, e := access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), domain.ActionFeedback); e != nil {
 		return nil, e
 	}
 	body := str(in, "body")
@@ -311,7 +313,7 @@ func (s *Service) feedback(ctx context.Context, a Actor, in Object) (any, error)
 	return Object{"accepted": e == nil}, normalizeError(e)
 }
 func (s *Service) DownloadTicket(ctx context.Context, a Actor, in Object) (any, error) {
-	f, e := s.owned(ctx, a, str(in, "file_id"), domain.ActionDownload)
+	f, e := access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), domain.ActionDownload)
 	if e != nil {
 		return nil, e
 	}
