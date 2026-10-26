@@ -379,3 +379,29 @@ func TestRepairMCPMkdirParentRevisionTypeValidation(t *testing.T) {
 		t.Fatalf("root mkdir without a revision must pass this validator: %v", e)
 	}
 }
+
+type repairShortStore struct{ ports.ArtifactStore }
+
+type repairShortBody struct {
+	io.Reader
+	io.Closer
+}
+
+func (s repairShortStore) Open(ctx context.Context, key string, r *ports.ByteRange) (ports.Content, error) {
+	c, e := s.ArtifactStore.Open(ctx, key, r)
+	if e != nil {
+		return c, e
+	}
+	c.Body = repairShortBody{io.LimitReader(c.Body, c.Size/2), c.Body}
+	return c, nil
+}
+
+// A store that returns fewer bytes than its advertised range must fail closed:
+// no truncated page may be returned as if it were a complete page.
+func TestRepairReadsShortObjectReadFailsClosed(t *testing.T) {
+	s, actor, fid, old, _ := reviewHistoricalSource(t)
+	aid := repairReadsArtifact(t, s, old, 1, strings.Repeat("z", 1000))
+	s.Artifacts = repairShortStore{ArtifactStore: s.Artifacts}
+	_, e := s.markdown(context.Background(), actor, Object{"file_id": fid, "artifact_set_id": aid})
+	repairRequireCode(t, e, domain.DependencyUnavailable)
+}
