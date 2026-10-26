@@ -58,12 +58,31 @@ func (s *Service) linkFile(ctx context.Context, raw, vid string) (Object, ports.
 	}
 	return f, sub, nil
 }
-func (s *Service) previewFile(ctx context.Context, a Actor, fid string) (Object, ports.Subject, string, error) {
-	f, e := access.New(s.deps()).Owned(ctx, a, fid, domain.ActionPreview)
+func (s *Service) previewFile(ctx context.Context, a Actor, fid, vid string) (Object, ports.Subject, string, error) {
+	if vid == "" {
+		f, e := access.New(s.deps()).Owned(ctx, a, fid, domain.ActionPreview)
+		if e == nil {
+			return f, a.Subject, a.Token, nil
+		}
+		f, sub, e := s.SharedFile(ctx, a, fid, "", domain.ActionPreview)
+		return f, sub, "", e
+	}
+	// An explicit historical preview is an explicit history read, never a
+	// downgrade of the current-version grant. The version must still belong to
+	// this file before its raster assets can be selected.
+	f, e := access.New(s.deps()).Owned(ctx, a, fid, domain.ActionReadHistory)
 	if e == nil {
+		var belongs bool
+		if e = s.DB.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM file_versions WHERE id=$1 AND file_id=$2)`, vid, fid).Scan(&belongs); e != nil {
+			return nil, ports.Subject{}, "", normalizeError(e)
+		}
+		if !belongs {
+			return nil, ports.Subject{}, "", denied()
+		}
+		f["preview_version_id"] = vid
 		return f, a.Subject, a.Token, nil
 	}
-	f, sub, e := s.SharedFile(ctx, a, fid, "", domain.ActionPreview)
+	f, sub, e := s.SharedFile(ctx, a, fid, vid, domain.ActionPreview)
 	return f, sub, "", e
 }
 func (s *Service) preparePreview(ctx context.Context, f Object, owner ports.Subject, subjectToken, vid string) (PreviewManifest, error) {
@@ -138,20 +157,20 @@ func (s *Service) preparePreview(ctx context.Context, f Object, owner ports.Subj
 	_, e = s.Artifacts.Publish(ctx, tmp, key, obj.SHA256)
 	return pm, e
 }
-func (s *Service) PreviewInfo(ctx context.Context, a Actor, fid, raw string) (any, error) {
+func (s *Service) PreviewInfo(ctx context.Context, a Actor, fid, raw, vid string) (any, error) {
 	var f Object
 	var owner ports.Subject
 	var tok string
 	var e error
 	if raw != "" {
-		f, owner, e = s.linkFile(ctx, raw, "")
+		f, owner, e = s.linkFile(ctx, raw, vid)
 	} else {
-		f, owner, tok, e = s.previewFile(ctx, a, fid)
+		f, owner, tok, e = s.previewFile(ctx, a, fid, vid)
 	}
 	if e != nil {
 		return nil, e
 	}
-	vid := str(f, "preview_version_id")
+	vid = str(f, "preview_version_id")
 	pm, e := s.preparePreview(ctx, f, owner, tok, vid)
 	if e != nil {
 		return nil, normalizeError(e)
@@ -172,17 +191,14 @@ func (s *Service) PreviewPage(ctx context.Context, a Actor, fid, raw, vid string
 	if raw != "" {
 		f, _, e = s.linkFile(ctx, raw, vid)
 	} else {
-		f, _, _, e = s.previewFile(ctx, a, fid)
-		expected := str(f, "preview_version_id")
-		if expected == "" {
-			expected = str(f, "current_version_id")
-		}
-		if e == nil && vid != expected {
-			e = denied()
-		}
+		f, _, _, e = s.previewFile(ctx, a, fid, vid)
 	}
 	if e != nil {
 		return ports.Content{}, e
+	}
+	expected := str(f, "preview_version_id")
+	if expected != "" && vid != expected {
+		return ports.Content{}, denied()
 	}
 	if vid == "" || page < 1 {
 		return ports.Content{}, denied()

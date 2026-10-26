@@ -421,7 +421,7 @@ func (a *API) preview(ctx context.Context, c *app.RequestContext) {
 		fail(c, e)
 		return
 	}
-	out, e := a.Service.PreviewInfo(ctx, actor, c.Param("id"), "")
+	out, e := a.Service.PreviewInfo(ctx, actor, c.Param("id"), "", c.Query("version_id"))
 	if e != nil {
 		fail(c, e)
 		return
@@ -448,7 +448,7 @@ func (a *API) previewPage(ctx context.Context, c *app.RequestContext) {
 	stream(c, out)
 }
 func (a *API) publicPreview(ctx context.Context, c *app.RequestContext) {
-	out, e := a.Service.PreviewInfo(ctx, application.Actor{}, "", c.Param("token"))
+	out, e := a.Service.PreviewInfo(ctx, application.Actor{}, "", c.Param("token"), c.Query("version_id"))
 	if e != nil {
 		fail(c, e)
 		return
