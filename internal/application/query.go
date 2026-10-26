@@ -209,7 +209,7 @@ func (s *Service) markdown(ctx context.Context, a Actor, in Object) (any, error)
 	aid := str(in, "artifact_set_id")
 	if aid == "" {
 		if vid := str(in, "version_id"); vid != "" {
-			_ = s.DB.QueryRow(ctx, `SELECT a.id::text FROM artifact_sets a JOIN file_versions v ON v.id=a.source_version_id WHERE v.file_id=$1 AND v.id=$2 AND a.published_at IS NOT NULL ORDER BY a.generation DESC LIMIT 1`, str(f, "id"), vid).Scan(&aid)
+			_ = s.DB.QueryRow(ctx, `SELECT a.id::text FROM artifact_sets a JOIN file_versions v ON v.id=a.source_version_id WHERE v.file_id=$1 AND v.id=$2 AND a.published_at IS NOT NULL ORDER BY a.generation DESC,a.attempt DESC LIMIT 1`, str(f, "id"), vid).Scan(&aid)
 		} else {
 			aid = str(f, "search_artifact_set_id")
 		}

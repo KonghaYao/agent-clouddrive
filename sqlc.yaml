@@ -10,6 +10,7 @@ sql:
       - "db/migrations/000006_identity_state.up.sql"
       - "db/migrations/000007_share_lifecycle.up.sql"
       - "db/migrations/000008_audit_reads.up.sql"
+      - "db/migrations/000011_artifact_visibility_pages.up.sql"
     queries: "db/queries"
     gen:
       go:
