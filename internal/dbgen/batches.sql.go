@@ -11,6 +11,33 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const claimBatchLease = `-- name: ClaimBatchLease :one
+UPDATE batch_operations SET lease_owner=$2,lease_token=lease_token+1,lease_until=now()+interval '2 minutes'
+WHERE id=$1 AND state='running' AND (lease_until IS NULL OR lease_until<=now()) RETURNING id, actor_principal_id, idempotency_key, request_hash, state, created_at, lease_owner, lease_until, lease_token
+`
+
+type ClaimBatchLeaseParams struct {
+	ID         pgtype.UUID `json:"id"`
+	LeaseOwner *string     `json:"lease_owner"`
+}
+
+func (q *Queries) ClaimBatchLease(ctx context.Context, arg ClaimBatchLeaseParams) (BatchOperation, error) {
+	row := q.db.QueryRow(ctx, claimBatchLease, arg.ID, arg.LeaseOwner)
+	var i BatchOperation
+	err := row.Scan(
+		&i.ID,
+		&i.ActorPrincipalID,
+		&i.IdempotencyKey,
+		&i.RequestHash,
+		&i.State,
+		&i.CreatedAt,
+		&i.LeaseOwner,
+		&i.LeaseUntil,
+		&i.LeaseToken,
+	)
+	return i, err
+}
+
 const createBatchItem = `-- name: CreateBatchItem :one
 INSERT INTO batch_items(batch_id,item_id,depends_on,command,input,idempotency_key) VALUES($1,$2,$3,$4,$5,$6) RETURNING batch_id, item_id, depends_on, command, input, idempotency_key, operation_id, status, result
 `
@@ -49,7 +76,7 @@ func (q *Queries) CreateBatchItem(ctx context.Context, arg CreateBatchItemParams
 }
 
 const createBatchOperation = `-- name: CreateBatchOperation :one
-INSERT INTO batch_operations(id,actor_principal_id,idempotency_key,request_hash) VALUES($1,$2,$3,$4) RETURNING id, actor_principal_id, idempotency_key, request_hash, state, created_at
+INSERT INTO batch_operations(id,actor_principal_id,idempotency_key,request_hash) VALUES($1,$2,$3,$4) RETURNING id, actor_principal_id, idempotency_key, request_hash, state, created_at, lease_owner, lease_until, lease_token
 `
 
 type CreateBatchOperationParams struct {
@@ -74,6 +101,9 @@ func (q *Queries) CreateBatchOperation(ctx context.Context, arg CreateBatchOpera
 		&i.RequestHash,
 		&i.State,
 		&i.CreatedAt,
+		&i.LeaseOwner,
+		&i.LeaseUntil,
+		&i.LeaseToken,
 	)
 	return i, err
 }
@@ -91,7 +121,7 @@ func (q *Queries) FinishBatchOperation(ctx context.Context, id pgtype.UUID) (int
 }
 
 const getIdempotentBatch = `-- name: GetIdempotentBatch :one
-SELECT id, actor_principal_id, idempotency_key, request_hash, state, created_at FROM batch_operations WHERE actor_principal_id = $1 AND idempotency_key = $2
+SELECT id, actor_principal_id, idempotency_key, request_hash, state, created_at, lease_owner, lease_until, lease_token FROM batch_operations WHERE actor_principal_id = $1 AND idempotency_key = $2
 `
 
 type GetIdempotentBatchParams struct {
@@ -109,6 +139,9 @@ func (q *Queries) GetIdempotentBatch(ctx context.Context, arg GetIdempotentBatch
 		&i.RequestHash,
 		&i.State,
 		&i.CreatedAt,
+		&i.LeaseOwner,
+		&i.LeaseUntil,
+		&i.LeaseToken,
 	)
 	return i, err
 }

@@ -679,6 +679,7 @@ func (s *Service) runMaintenance(ctx context.Context, stream nats.JetStreamConte
 			return e
 		}},
 		{"identity status reconciliation pending", s.syncPrincipalStatuses},
+		{"retention root reconciliation pending", s.ReconcileRetentionRoots},
 		{"native metadata reconciliation pending", s.ReconcileMutations},
 		{"native upload reconciliation pending", s.reconcileUploads},
 	}

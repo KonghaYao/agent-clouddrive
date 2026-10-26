@@ -78,6 +78,9 @@ type BatchOperation struct {
 	RequestHash      string             `json:"request_hash"`
 	State            string             `json:"state"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	LeaseOwner       *string            `json:"lease_owner"`
+	LeaseUntil       pgtype.Timestamptz `json:"lease_until"`
+	LeaseToken       int64              `json:"lease_token"`
 }
 
 type ConversionHead struct {
@@ -193,6 +196,12 @@ type FileOperation struct {
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 }
 
+type FileOperationHold struct {
+	OperationID pgtype.UUID `json:"operation_id"`
+	FileID      pgtype.UUID `json:"file_id"`
+	HoldKind    string      `json:"hold_kind"`
+}
+
 type FileVersion struct {
 	ID                pgtype.UUID        `json:"id"`
 	FileID            pgtype.UUID        `json:"file_id"`
@@ -287,6 +296,14 @@ type RetentionRoot struct {
 	State            string             `json:"state"`
 	OperationID      pgtype.UUID        `json:"operation_id"`
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	LeaseOwner       *string            `json:"lease_owner"`
+	LeaseUntil       pgtype.Timestamptz `json:"lease_until"`
+	LeaseToken       int64              `json:"lease_token"`
+	RetryAt          pgtype.Timestamptz `json:"retry_at"`
+	Attempt          int32              `json:"attempt"`
+	LastError        *string            `json:"last_error"`
+	DirectoryName    *string            `json:"directory_name"`
+	NativeParentID   *string            `json:"native_parent_id"`
 }
 
 type ReviewerGrant struct {
