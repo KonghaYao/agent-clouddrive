@@ -2,10 +2,10 @@ import { createControlledUploadClient, ensureUploadNonce, preflightUpload, reset
 import Dashboard from '@uppy/react/dashboard';
 import { Alert, Button, Card, Space, Tag } from 'antd';
 import { useEffect, useRef, useState } from 'react';
-import type { API } from './api';
-import { errorText } from './api';
-import { controlledURL, operationDone, operationFailed, operationState } from './security';
-import type { DriveFile, Operation, UploadSession } from './types';
+import type { API } from '../../shared/api';
+import { errorText } from '../../shared/api';
+import { controlledURL, operationDone, operationFailed, operationState } from '../../shared/security';
+import type { DriveFile, Operation, UploadSession } from '../../shared/types';
 import '@uppy/core/css/style.min.css';
 import '@uppy/dashboard/css/style.min.css';
 interface CommitState { session: UploadSession; name: string; status: string; error?: string }

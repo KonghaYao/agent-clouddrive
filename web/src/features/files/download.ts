@@ -1,5 +1,5 @@
-import type { API } from './api';
-import { bytes } from './security';
+import type { API } from '../../shared/api';
+import { bytes } from '../../shared/security';
 interface FileHandle { createWritable(): Promise<WritableStream<Uint8Array>> }
 export async function downloadFile(api: API, path: string, name: string, size: number, onProgress: (value: string) => void): Promise<void> {
   const picker = (window as unknown as { showSaveFilePicker?: (o: { suggestedName: string }) => Promise<FileHandle> }).showSaveFilePicker;

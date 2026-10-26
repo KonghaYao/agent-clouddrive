@@ -1,10 +1,10 @@
 import { App as AntApp } from 'antd';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { SCOPES } from '../types';
+import { SCOPES } from '../shared/types';
 const auth = vi.hoisted(() => ({ configured: true, error: '', login: vi.fn().mockResolvedValue(undefined) }));
-vi.mock('../auth', () => ({ useAuth: () => auth }));
-import { Login } from '../App';
+vi.mock('../features/auth/auth', () => ({ useAuth: () => auth }));
+import { Login } from '../app/App';
 describe('OAuth authorization scope selection', () => {
   it('defaults every scope selected and lets the user reduce operations before PKCE redirect', async () => {
     render(<AntApp><Login /></AntApp>);

@@ -1,6 +1,6 @@
 # Real-browser acceptance driver
 
-This is a prepared, **unexecuted live-acceptance driver**, not evidence that the application passed a real browser test. Its Node unit tests validate the driver only. It does not update `docs/acceptance.json`, rewrite the delivered ZIP, or elevate existing acceptance statuses.
+This is a prepared, **unexecuted live-acceptance driver**, not evidence that the application passed a real browser test. Its Node unit tests validate the driver only. It does not update `docs/acceptance/acceptance.json`, rewrite the delivered ZIP, or elevate existing acceptance statuses.
 
 `npm run test:browser` remains the separately labelled scope-selection/PKCE **mocked discovery smoke**. The new `test:browser:acceptance` suite never routes or mocks requests, supplies fake tokens, or injects authenticated browser storage.
 

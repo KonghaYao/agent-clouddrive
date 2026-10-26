@@ -1,10 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 vi.mock('@uppy/react/dashboard', () => ({ default: () => null }));
-import { API, APIError } from '../api';
-import { mergeUploadError, prepareUploads, UploadConflictAlert, uploadFailureOutcome, type PendingUploadConflict } from '../upload';
-import { createControlledUploadClient, ensureUploadNonce, resetUploadNonce, uploadConflict, uploadIdempotencyKey, uploadSessionWritable } from '../upload-client';
-import type { UploadSession } from '../types';
+import { API, APIError } from '../shared/api';
+import { mergeUploadError, prepareUploads, UploadConflictAlert, uploadFailureOutcome, type PendingUploadConflict } from '../features/upload/upload';
+import { createControlledUploadClient, ensureUploadNonce, resetUploadNonce, uploadConflict, uploadIdempotencyKey, uploadSessionWritable } from '../features/upload/upload-client';
+import type { UploadSession } from '../shared/types';
 
 const incomplete = new APIError(409, { code: 'PATH_CONFLICT', message: 'target path is occupied', details: { reason: 'incomplete_upload', upload_id: 'upload-1', expected_size: 2194, expires_at: '2026-10-27T03:06:12Z' } });
 const nameTaken = new APIError(409, { code: 'PATH_CONFLICT', message: 'target path is occupied', details: { reason: 'name_taken' } });

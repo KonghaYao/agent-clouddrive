@@ -1,11 +1,11 @@
 import { Alert, App, Button, Checkbox, Descriptions, Empty, Form, Input, InputNumber, Modal, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
 import { useEffect, useState } from 'react';
-import type { API } from './api';
-import { errorText } from './api';
-import type { DriveFile, Share, ShareRequest } from './types';
-import { date } from './security';
-import { usePage } from './hooks';
-import { ErrorNotice } from './components';
+import type { API } from '../../shared/api';
+import { errorText } from '../../shared/api';
+import type { DriveFile, Share, ShareRequest } from '../../shared/types';
+import { date } from '../../shared/security';
+import { usePage } from '../../shared/hooks';
+import { ErrorNotice } from '../../shared/components';
 export function ShareRequestModal({ api, file, version, onClose, onCreated }: { api: API; file: DriveFile; version?: string; onClose: () => void; onCreated: (request: ShareRequest) => void }) {
   const [form] = Form.useForm(), recipient = Form.useWatch('audience_type', form);
   const [busy, setBusy] = useState(false), [error, setError] = useState<unknown>();

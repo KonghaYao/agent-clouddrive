@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { InMemoryWebStorage, UserManager, WebStorageStateStore, type User } from 'oidc-client-ts';
-import { API } from './api';
-import { SCOPES, type Me, type Scope } from './types';
+import { API } from '../../shared/api';
+import { SCOPES, type Me, type Scope } from '../../shared/types';
 import {
   SILENT_IFRAME_TIMEOUT_SECONDS, claimSilentRecovery, clearRecoveryMarker, grantedBusinessScopes,
   readRecoveryMarker, recoverSession, scopesForRecovery, writeRecoveryMarker,

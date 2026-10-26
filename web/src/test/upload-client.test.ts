@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { TusOptions, TusBody } from '@uppy/tus';
-import { API } from '../api';
+import { API } from '../shared/api';
 // Select the real browser distribution: Vitest otherwise resolves tus's Node Buffer reader.
 // @ts-expect-error The browser distribution shares its declarations with the package root.
 vi.mock('tus-js-client', () => import('tus-js-client/lib.esm/browser/index.js'));
-import { createControlledUploadClient, ensureUploadNonce, preflightUpload, UploadPreflightError, uploadConflictFromFailure, uploadFailurePayload, uploadFailureText, uploadIdempotencyKey, uploadNonce } from '../upload-client';
+import { createControlledUploadClient, ensureUploadNonce, preflightUpload, UploadPreflightError, uploadConflictFromFailure, uploadFailurePayload, uploadFailureText, uploadIdempotencyKey, uploadNonce } from '../features/upload/upload-client';
 type Stack = NonNullable<TusOptions<Record<string, unknown>, TusBody>['httpStack']>;
 function protocolFixture(length: number, initialOffset = 0, failureStatus?: number) {
   let offset = initialOffset;

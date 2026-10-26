@@ -1,7 +1,7 @@
 import Uppy from '@uppy/core';
 import Tus, { type TusBody, type TusOptions } from '@uppy/tus';
-import { APIError, type API, type APIErrorBody } from './api';
-import { controlledURL } from './security';
+import { APIError, type API, type APIErrorBody } from '../../shared/api';
+import { controlledURL } from '../../shared/security';
 type Meta = Record<string, unknown>;
 export interface UploadConflict { reason: 'incomplete_upload' | 'name_taken'; uploadId?: string; expectedSize?: number; expiresAt?: string }
 /** Only an owner-scoped, zero-byte incomplete upload is actionable; all other path conflicts are name conflicts. */

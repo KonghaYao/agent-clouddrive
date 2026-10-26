@@ -2,11 +2,11 @@ import { App as AntApp, ConfigProvider } from 'antd';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
-import { API } from '../api';
-import { ApproveShareModal } from '../Shares';
-import { SafeMarkdown } from '../Details';
-import { DirectoryPicker } from '../DirectoryPicker';
-import { usePage } from '../hooks';
+import { API } from '../shared/api';
+import { ApproveShareModal } from '../features/shares/Shares';
+import { SafeMarkdown } from '../features/files/Details';
+import { DirectoryPicker } from '../features/files/DirectoryPicker';
+import { usePage } from '../shared/hooks';
 const Wrapper = ({ children }: { children: ReactNode }) => <ConfigProvider theme={{ token: { motion: false } }}><AntApp>{children}</AntApp></ConfigProvider>;
 const request = { id: 'request1', file_id: 'file1', file_name: '合同.pdf', audience_type: 'user', audience_id: 'exact-user-id', rights: ['read', 'download'], version_policy: 'latest', expires_at: '2099-12-31T00:00:00Z', request_expires_at: '2099-10-24T00:00:00Z', status: 'pending' };
 function fakeAPI(get: ReturnType<typeof vi.fn>, post = vi.fn()) { return { get, post } as unknown as API; }

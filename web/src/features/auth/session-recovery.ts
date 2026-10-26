@@ -1,5 +1,5 @@
 import type { User } from 'oidc-client-ts';
-import { SCOPES, type Scope } from './types';
+import { SCOPES, type Scope } from '../../shared/types';
 
 /**
  * Tab-scoped, non-credential hint that this tab completed a login before.

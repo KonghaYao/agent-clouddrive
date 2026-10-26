@@ -4,7 +4,7 @@ import {
   RECOVERY_MARKER_KEY, RECOVERY_MARKER_TTL_MS, SILENT_IFRAME_TIMEOUT_SECONDS, clearRecoveryMarker,
   createAttemptGate, grantedBusinessScopes, readRecoveryMarker, recoverSession, recoveryFailureReason,
   scopesForRecovery, writeRecoveryMarker, type SilentSigninManager,
-} from '../session-recovery';
+} from '../features/auth/session-recovery';
 const issuer = 'http://drive.localhost:8080/identity/realms/clouddrive';
 const clientId = 'clouddrive-web';
 const user = { access_token: 'secret-access-token', id_token: 'secret-id-token', refresh_token: 'secret-refresh-token', token_type: 'Bearer', scope: 'openid profile drive.read', profile: { iss: issuer, sub: 'subject' } } as unknown as User;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { bytes, controlledAsset, controlledURL, operationDone, operationFailed, safeMarkdownURL, validName } from '../security';
-import { APIError, errorText } from '../api';
+import { bytes, controlledAsset, controlledURL, operationDone, operationFailed, safeMarkdownURL, validName } from '../shared/security';
+import { APIError, errorText } from '../shared/api';
 describe('business gateway boundary', () => {
   const origin = 'https://drive.example';
   it.each(['/v1/files/f/content', '/v1/tus/s', '/v1/artifacts/a/assets/p.png', '/v1/preview/f/pages/1'])('accepts controlled resource %s', path => expect(controlledURL(path, origin)).toBe(origin + path));

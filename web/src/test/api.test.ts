@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { API, APIError, query } from '../api';
-import { normalizeResponse } from '../normalize';
+import { API, APIError, query } from '../shared/api';
+import { normalizeResponse } from '../features/files/normalize';
 describe('authenticated API', () => {
   it('sends bearer and CSRF only in headers, with secure browser cookie', async () => {
     const fetch = vi.fn().mockResolvedValue(new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } })); vi.stubGlobal('fetch', fetch);

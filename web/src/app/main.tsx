@@ -1,7 +1,7 @@
 import ReactDOM from 'react-dom/client';
 import { ConfigProvider, App as AntApp } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
-import { AuthProvider, completeSilentCallback, isSilentCallbackPage } from './auth';
+import { AuthProvider, completeSilentCallback, isSilentCallbackPage } from '../features/auth/auth';
 import App from './App';
 import './style.css';
 // A silent-auth iframe must only answer its parent: never mount the app,

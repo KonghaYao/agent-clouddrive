@@ -1,11 +1,11 @@
 import { Breadcrumb, Button, Empty, List, Space, Typography } from 'antd';
 import { FolderOutlined, HomeOutlined, RightOutlined } from '@ant-design/icons';
 import { useState } from 'react';
-import type { API } from './api';
-import { query } from './api';
-import { usePage } from './hooks';
-import { ErrorNotice } from './components';
-import type { DriveFile } from './types';
+import type { API } from '../../shared/api';
+import { query } from '../../shared/api';
+import { usePage } from '../../shared/hooks';
+import { ErrorNotice } from '../../shared/components';
+import type { DriveFile } from '../../shared/types';
 export function DirectoryPicker({ api, onChange, excludedId }: { api: API; onChange: (folder: DriveFile | null) => void; excludedId?: string }) {
   const [path, setPath] = useState<DriveFile[]>([]);
   const current = path.at(-1) ?? null;

@@ -1,5 +1,5 @@
 import { controlledURL } from './security';
-import { normalizeResponse } from './normalize';
+import { normalizeResponse } from '../features/files/normalize';
 export interface APIErrorBody { code?: string; message?: string; operation_id?: string; current_version_id?: string; current_metadata_revision?: number; required_scope?: string; details?: { reason?: string; upload_id?: string; expected_size?: number; expires_at?: string } }
 export class APIError extends Error {
   constructor(public status: number, public detail: APIErrorBody, public retryAfter?: string | null) { super(detail.message || `请求失败 (${status})`); }

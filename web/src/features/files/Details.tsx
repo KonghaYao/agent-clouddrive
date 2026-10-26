@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
-import type { API } from './api';
-import { APIError, errorText, query } from './api';
-import { bytes, controlledAsset, date, safeMarkdownURL } from './security';
+import type { API } from '../../shared/api';
+import { APIError, errorText, query } from '../../shared/api';
+import { bytes, controlledAsset, date, safeMarkdownURL } from '../../shared/security';
 import { downloadFile } from './download';
-import { CompletenessNotice, ErrorNotice, OperationNotice, Status } from './components';
-import type { DriveFile, MarkdownPage, Operation, Page, Version, SharedFile } from './types';
+import { CompletenessNotice, ErrorNotice, OperationNotice, Status } from '../../shared/components';
+import type { DriveFile, MarkdownPage, Operation, Page, Version, SharedFile } from '../../shared/types';
 function ResourceImage({ api, src, alt }: { api: API; src: string; alt?: string }) {
   const [url, setURL] = useState(''), [failed, setFailed] = useState(false);
   useEffect(() => {
