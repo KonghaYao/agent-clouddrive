@@ -364,7 +364,7 @@ func TestRepairReadsUTF8AndEOF(t *testing.T) {
 
 // B07: non-integer parent revisions are rejected at the application boundary,
 // independently of JSON-schema validation in a transport.
-func TestRepairMkdirParentRevisionTypeValidation(t *testing.T) {
+func TestRepairMCPMkdirParentRevisionTypeValidation(t *testing.T) {
 	valid := []any{int64(1), json.Number("2"), 3, float64(2)}
 	for _, v := range valid {
 		if e := validateParentRevision(Object{"expected_parent_revision": v}); e != nil {
