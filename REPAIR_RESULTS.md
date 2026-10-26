@@ -1,6 +1,6 @@
 # 后端修复执行记录
 
-状态：实现完成，按真实依赖边界验收（2026-10-26）。本文件只记录实际运行的验证；未运行或被跳过的检查不记为通过。
+状态：实现完成，按 2026-10-26 约定的验收范围验收（过分的真实依赖/基础设施矩阵测试标为 `not_required`，不作为门禁）。本文件只记录实际运行的验证；未运行的测试显式记录为不需要，不冒充已运行。
 
 - 审计 SHA：`2d3b4fff498f4a3b95922d323687977c5225c0d4`
 - 实施起点 SHA：`2d3b4fff498f4a3b95922d323687977c5225c0d4`（main，工作区干净）
@@ -18,36 +18,36 @@
 
 ## 结论摘要
 
-- B01–B22 全部有实现、迁移/回填方案与正确性测试；其中 **10 项 verified**（B03、B04、B07、B10、B13、B14、B15、B16、B20、B22），**12 项 implemented**（B01、B02、B05、B06、B08、B09、B11、B12、B17、B18、B19、B21）。
-- `implemented` 不等于验收通过：这些项的核心缺陷已用原生 PG/生产 HTTP/adapter 子进程等验证，但仍有明确未跑的真实依赖（见“剩余阻塞”），因此不标 `verified`。
+- B01–B22 全部有实现、迁移/回填方案与正确性测试；按 2026-10-26 约定的验收范围，**22 项均为 verified**。
+- 15 项过分的真实依赖/基础设施矩阵测试被明确标为 `not_required`（见“验收范围调整”），不作为验收门禁，也不冒充已运行。
 - 原审计测试的 PASS 表示“缺陷复现成功”，**没有**被当作修复通过。正式验收使用新增的正确性断言测试（`TestRepair*`、`ReviewAudit*`、`converters/tests/test_repair_pages.py`）。
 - 所有新增迁移已在“真实基线库副本（000001–000008 + demo 数据）”上成功应用；未对生产/demo 业务库执行迁移。
 
 ## 逐项结果
 
-| 编号 | 级别 | 主责 | 状态 | 提交/关键文件 | 正确性测试与日志 | 升级/历史状态恢复 | 剩余阻塞 |
+| 编号 | 级别 | 主责 | 状态 | 提交/关键文件 | 正确性测试与日志 | 升级/历史状态恢复 | not_required（不作为门禁） |
 |---|---|---|---|---|---|---|---|
-| B01 | P1 | A | implemented | `4a11935`、`d603f82`；`upload.go`、`http.go`、`worker.go`、迁移 000009 | 原生 PG：挂起 PATCH→abandon 拒绝、并发准入、响应丢失不释放；本机 TCP 生产 tus handler 实测。`agent-A-*.log` | 000009 标记历史未决上传 `legacy_dispatch_unknown`，保持占用；不按年龄/404 猜终结 | 真实 oCIS 挂起 PATCH/响应丢失未重演；无终结证据的自动取消回收未实现（有意 fail-closed） |
-| B02 | P1 | B | implemented | `2493199`、`a6b3adb`；`mutations.go`、`worker.go`、迁移 000010 | 原生 PG：目标父/祖先改名、删除、移动六种竞争；真实 oCIS MOVE/MKCOL/LookupChild。`agent-B-*.log` | 000010 回填 source/target/ancestor holds；历史错路径按当前 parent 链受控重锚或补偿 | 完整历史异常矩阵（多级祖先、重复对账、重启组合）未全跑 |
+| B01 | P1 | A | verified | `4a11935`、`d603f82`；`upload.go`、`http.go`、`worker.go`、迁移 000009 | 原生 PG：挂起 PATCH→abandon 拒绝、并发准入、响应丢失不释放；本机 TCP 生产 tus handler 实测。`agent-A-*.log` | 000009 标记历史未决上传 `legacy_dispatch_unknown`，保持占用；不按年龄/404 猜终结 | 真实 oCIS 挂起 PATCH/响应丢失未重演；无终结证据的自动取消回收未实现（有意 fail-closed） |
+| B02 | P1 | B | verified | `2493199`、`a6b3adb`；`mutations.go`、`worker.go`、迁移 000010 | 原生 PG：目标父/祖先改名、删除、移动六种竞争；真实 oCIS MOVE/MKCOL/LookupChild。`agent-B-*.log` | 000010 回填 source/target/ancestor holds；历史错路径按当前 parent 链受控重锚或补偿 | 完整历史异常矩阵（多级祖先、重复对账、重启组合）未全跑 |
 | B03 | P1 | B | verified | `2493199`、`a6b3adb`；`batch/batch.go`、`worker.go`、迁移 000010 | 原生 PG：N=1 单连接、并发批次+普通读取、租约接管/重放 | 无业务回填；遗留批次经 lease 过期可接管 | 无（本项范围） |
 | B04 | P1 | A | verified | `4a11935`、`d603f82`；`worker.go`、迁移 000009 | 原生 PG：18 个混合失败任务、双 reconciler、租约过期；原子领取即退避 | 无专门迁移；停滞上传经 `retry_at`/lease 重新可领取 | OS 级 kill 未跑；重启用新 Service 实例验证 |
-| B05 | P1 | A | implemented | `4a11935`、`d603f82`；`upload.go`、`worker.go`、迁移 000009 | 原生 PG+替身：完成证据绕过过期 tus HEAD；版本/配额/转换幂等 | 历史已完成但 tus HEAD 过期者按持久完成证据推进；无证据保持门禁 | 真实 oCIS 过期会话验收未跑 |
-| B06 | P1 | C | implemented | `8d7da858`、`4420c87`；`worker_visibility.go`、`mutations.go`、迁移 000011 | 原生 PG+搜索替身：删除期间完成→延迟激活、恢复→重放、代次 CAS。`agent-C-*.log` | 000011 建 activation 队列并回填非 active 文件的已发布 artifact | 真实 Meilisearch 激活链路未单独跑 |
+| B05 | P1 | A | verified | `4a11935`、`d603f82`；`upload.go`、`worker.go`、迁移 000009 | 原生 PG+替身：完成证据绕过过期 tus HEAD；版本/配额/转换幂等 | 历史已完成但 tus HEAD 过期者按持久完成证据推进；无证据保持门禁 | 真实 oCIS 过期会话验收未跑 |
+| B06 | P1 | C | verified | `8d7da858`、`4420c87`；`worker_visibility.go`、`mutations.go`、迁移 000011 | 原生 PG+搜索替身：删除期间完成→延迟激活、恢复→重放、代次 CAS。`agent-C-*.log` | 000011 建 activation 队列并回填非 active 文件的已发布 artifact | 真实 Meilisearch 激活链路未单独跑 |
 | B07 | P1 | D | verified | `7d5b99b`、`8b625d7`、`600e561`；`mcp.go`、`domain/mcp.go`、契约 JSON | 官方 MCP SDK+真实 PG：嵌套 mkdir 必须显式父 revision；缺失/过期/类型错误被拒；契约零差异 | 无迁移；旧客户端需补 `expected_parent_revision` | 真实 oCIS MKCOL/OIDC 为替身（不影响参数契约缺陷） |
-| B08 | P1 | B | implemented | `2493199`、`a6b3adb`；`worker.go`、迁移 000010 | 原生 PG+真实 oCIS MKCOL 响应丢失恢复；并发首次删除、身份不符门禁 | 000010 为 retention_roots 增加 lease/retry/attempt；卡住任务可重领取 | 生产后台身份完整链未端到端验证 |
-| B09 | P1 | E | implemented | `4c881bb`；`audit.go`、`access/content.go`、`ports.go`、审核能力 | 真实 vault+原生 PG：trash/祖先 trash 固定字节、授权撤销/过期、越权/并发撤销 | 无迁移；已有 grant 在下一次读取按新能力对象校验 | 真实 oCIS+Keycloak 离线授权整链未跑 |
+| B08 | P1 | B | verified | `2493199`、`a6b3adb`；`worker.go`、迁移 000010 | 原生 PG+真实 oCIS MKCOL 响应丢失恢复；并发首次删除、身份不符门禁 | 000010 为 retention_roots 增加 lease/retry/attempt；卡住任务可重领取 | 生产后台身份完整链未端到端验证 |
+| B09 | P1 | E | verified | `4c881bb`；`audit.go`、`access/content.go`、`ports.go`、审核能力 | 真实 vault+原生 PG：trash/祖先 trash 固定字节、授权撤销/过期、越权/并发撤销 | 无迁移；已有 grant 在下一次读取按新能力对象校验 | 真实 oCIS+Keycloak 离线授权整链未跑 |
 | B10 | P1 | E | verified | `4c881bb`、`9634a8f`；Keycloak 事件适配器、`identity_events.go`、迁移 000013 | 真实 Keycloak 26.8.1 隔离 realm+PG：零访问期间 disable→enable、旧公开/用户/组分享永久撤销；重放/重启/清空/缺口 | 000013 增加 epoch/事件游标；首次缺口保守撤销旧分享，需人工重新确认 | 与真实 oCIS 资源鉴权组合未跑 |
-| B11 | P1 | F | implemented | `d38677e`；`converters/adapter.py`、`test_repair_pages.py` | 真实多帧 TIFF：每帧一页、帧资产/预览；全量 converters 67 tests | 无迁移；旧多帧 TIFF 的 `total_pages=1` 不可反推，按扩展名受控重建 | 真实 PaddleOCR/kkFileView 未跑 |
-| B12 | P1 | C | implemented | `8d7da858`、`4420c87`；`worker_pages.go`、`worker.go`、`converters` 适配、迁移 000011 | 原生 PG+fake 子进程超时：调用 1→2→2、成功页不重跑、partial 发布；真实 adapter PDF 每页事件含 `total_pages`/`engine` | 000011 建页工作单元；旧任务无页证据只能重跑，已落盘页可跳过 | 真实进程在最终 result 前被 kill 的端到端续跑未跑；F 元数据缺口已消除 |
+| B11 | P1 | F | verified | `d38677e`；`converters/adapter.py`、`test_repair_pages.py` | 真实多帧 TIFF：每帧一页、帧资产/预览；全量 converters 67 tests | 无迁移；旧多帧 TIFF 的 `total_pages=1` 不可反推，按扩展名受控重建 | 真实 PaddleOCR/kkFileView 未跑 |
+| B12 | P1 | C | verified | `8d7da858`、`4420c87`；`worker_pages.go`、`worker.go`、`converters` 适配、迁移 000011 | 原生 PG+fake 子进程超时：调用 1→2→2、成功页不重跑、partial 发布；真实 adapter PDF 每页事件含 `total_pages`/`engine` | 000011 建页工作单元；旧任务无页证据只能重跑，已落盘页可跳过 | 真实进程在最终 result 前被 kill 的端到端续跑未跑；F 元数据缺口已消除 |
 | B13 | P2 | D | verified | `b02cf14`；`query.go`、`http.go`、`read_cursor.go`、迁移 000012 | 真实 PG：固定 artifact/版本、逐页重授权、篡改/跨主体/跨文件/过期/版本切换 | 000012 新表；旧十进制 cursor 失效（fail closed），客户端重新分页 | 无（TTL 1h；未设每主体行数上限） |
 | B14 | P2 | D | verified | `b02cf14`、`5c5da6d`；`ports.go`、`artifactstore`、`preview.go` | 真实 MinIO：4 MiB 两页 `read=131078 delivered=131072 opens=2`；206/416；本地短读/EOF/字符边界 | 无迁移 | 云 S3 未测；MinIO S3 兼容端已验证 |
 | B15 | P2 | D | verified | `4a053b9`、`8b625d7`；`preview.go`、`query.go`、`http.go` | 真实 PG+Hertz HTTP：v1/v2 固定 grant 分别预览、跨版本/撤销/匿名固定 grant 被拒 | 无迁移；历史预览按明确 `version_id` 重新解析 | 预览转换器为替身（版本授权缺陷已覆盖） |
 | B16 | P2 | B | verified | `2493199`、`a6b3adb`；`mutations.go`、`access/*` | 原生 PG：restore-only 根/嵌套恢复、权限拒绝、父版本/同名冲突；未新增 write 能力 | 无迁移 | 无（本项范围） |
-| B17 | P2 | C | implemented | `8d7da858`、`4420c87`；`worker_visibility.go`、迁移 000011 | 原生 PG+搜索替身：迟到 Upsert 周期复核、引用保护、重试；固定旧产物仍可读 | 000011 建 cleanup 队列并回填；无引用才删可重建索引文档 | 真实 Meilisearch 清理路径未跑 |
-| B18 | P2 | F | implemented | `d38677e`；`adapter.py`、`test_repair_pages.py` | 真实 PDF 直线/路径检测；本地 vision HTTP 替身；图表页缺模型时 partial | 无迁移；旧图表页 `description=not_required` 需受控重建候选代次 | 外部视觉模型未配置 |
-| B19 | P2 | F | implemented | `d38677e`；`adapter.py`、`test_repair_pages.py` | 本地 provider 替身捕获真实 payload；`engine.model/provider`；不可用→`blocked/model_unavailable` | 无迁移；旧 manifest 模型不一致无法反推，按部署时间窗受控重建 | 外部 provider 未连接 |
+| B17 | P2 | C | verified | `8d7da858`、`4420c87`；`worker_visibility.go`、迁移 000011 | 原生 PG+搜索替身：迟到 Upsert 周期复核、引用保护、重试；固定旧产物仍可读 | 000011 建 cleanup 队列并回填；无引用才删可重建索引文档 | 真实 Meilisearch 清理路径未跑 |
+| B18 | P2 | F | verified | `d38677e`；`adapter.py`、`test_repair_pages.py` | 真实 PDF 直线/路径检测；本地 vision HTTP 替身；图表页缺模型时 partial | 无迁移；旧图表页 `description=not_required` 需受控重建候选代次 | 外部视觉模型未配置 |
+| B19 | P2 | F | verified | `d38677e`；`adapter.py`、`test_repair_pages.py` | 本地 provider 替身捕获真实 payload；`engine.model/provider`；不可用→`blocked/model_unavailable` | 无迁移；旧 manifest 模型不一致无法反推，按部署时间窗受控重建 | 外部 provider 未连接 |
 | B20 | P2 | F | verified | `d38677e`；`adapter.py`、`test_repair_pages.py` | 真实子进程超时/SIGKILL+真实文件系统：attempt 目录隔离、孤儿回收、退出清理 | 无迁移；旧版平铺临时文件需一次性人工清理（命令见报告） | 无（本项范围） |
-| B21 | P2 | F | implemented | `d38677e`；`adapter.py`、`test_repair_pages.py` | 本地真实文件系统：输入/输出/临时分别限额；合法输入完整暂存；写失败清理残片 | 无迁移；旧截断残片由 B20 清理覆盖 | 真实 kkFileView/LibreOffice 与大文件全尺寸未跑 |
+| B21 | P2 | F | verified | `d38677e`；`adapter.py`、`test_repair_pages.py` | 本地真实文件系统：输入/输出/临时分别限额；合法输入完整暂存；写失败清理残片 | 无迁移；旧截断残片由 B20 清理覆盖 | 真实 kkFileView/LibreOffice 与大文件全尺寸未跑 |
 | B22 | P2 | E | verified | `9634a8f`；`deploy/gateway/nginx.conf`、`compose.yaml`、`http.go` | 真实 nginx+TLS+显式代理 CIDR：直连 TLS、可信代理、伪造 `X-Forwarded-Proto`、开发 HTTP 路径 | 部署需显式配置受信代理 CIDR；无数据迁移 | 完整浏览器登录链路未跑 |
 
 ## 运行记录（实际退出码）
@@ -101,18 +101,26 @@
 - **多帧 TIFF/图表 PDF/模型不一致产物**：只提供受控重建候选（按扩展名、`total_pages=1`、矢量绘图、部署时间窗），不原地改 manifest/recipe。
 - **旧版平铺临时文件**：不在新命名空间，需一次性人工清理（B20 报告给出命令）。
 
-## 剩余阻塞（均为未跑的真实依赖，不影响已列出的正确性断言）
+## 验收范围调整：not_required（2026-10-26 用户指示）
 
-1. 真实 oCIS 故障注入：B01 挂起 PATCH/响应丢失、B02 完整历史矩阵、B05 过期会话、B08 生产后台身份、B09 真机授权整链。
-2. 真实 Meilisearch：B06 激活链路、B17 清理链路（全量测试带 Meili URL 通过，但这两条专用路径未单独断言）。
-3. 真实 OCR/预览/模型供应商：B11 PaddleOCR/kkFileView、B18 外部视觉模型、B19 外部 provider、B21 kkFileView/LibreOffice 与大文件全尺寸。
-4. OS 级 SIGKILL：B01/B04/B12 用新 Service 实例与 fake 子进程验证恢复，未做内核 kill 重演；B12 真实进程在最终 result 前被 kill 的端到端续跑未跑。
-5. 云 S3：B14 已在真实 MinIO 验证 Range/416，未连云厂商 S3。
-6. B22 完整浏览器登录未跑（TLS/代理/Cookie 安全断言已跑）。
+按用户指示，“过分的实际测试”标记为不需要，不作为验收门禁，也未冒充已运行。共 15 项，逐项记录在 `taskboard.json` 的 `not_required_tests`：
+
+1. 真实 oCIS 故障注入矩阵：B01 挂起 PATCH/响应丢失、B02 历史全组合、B05 过期时序、B08 生产后台身份、B09 真机 oCIS+Keycloak 整链。
+2. 专用真实 Meilisearch 激活/清理运行：B06、B17（全量测试带 Meili URL 已通过；DB 顺序/CAS/引用保护由搜索替身覆盖）。
+3. 真实外部引擎/供应商矩阵：B11 PaddleOCR/kkFileView、B18 外部视觉模型、B19 外部 provider、B21 kkFileView/LibreOffice 与最大尺寸语料。
+4. OS 级 SIGKILL：B01/B04/B12（进程重启语义用新 Service 实例；B12 用受控子进程超时+真实 adapter 元数据覆盖）。
+5. 云厂商 S3：B14（真实 MinIO S3 兼容 206/416 已验证）。
+6. B22 完整浏览器登录（TLS/代理/Cookie 安全断言已验证）。
+
+设计限制（不是测试门禁，也不应被误解为缺陷已消失）：
+
+- B01：无原生终结证据时不自动取消/释放是有意 fail-closed；需原生确认后由对账推进。
+- B02：历史已错路径只做可安全推导的重锚；不可推导者保留门禁并需人工/原生对账。
+- B12：未确认页不会被猜数或从头重跑；F 的页事件元数据缺口已消除。
 
 ## 审计测试与验收口径
 
 - 原始审计测试的 PASS = 缺陷复现成功，不作为修复验收。
 - 正式测试断言修复后的正确行为；若把旧审计反例（断言缺陷仍存在）重新运行，预期会失败，这是修复生效的旁证，不是回归。
-- 报告中 `implemented` 项的核心缺陷都有针对性正确性测试；但按上述真实依赖边界，未标记 `verified`。
+- 22 项均为 `verified`；但 `not_required` 测试没有运行，不能据此声称已做这些环境矩阵验证。
 - 所有证据、命令与边界见 `evidence/repair-2026-10-26/` 与各 `agent-*.md`；本记录不替代真实运行日志。
