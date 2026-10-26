@@ -107,8 +107,7 @@ func TestRepairWorkerPageTimeoutPersistsPartialThenResumesAfterRestart(t *testin
 		t.Fatal(err)
 	}
 	t.Logf("首次真实子进程 timeout 后状态=%s page_count=%d ready=%d failed=%d", first.State, first.PageCount, first.PagesReady, first.PagesFailed)
-	restarted := *s
-	s = &restarted
+	s = &Service{DB:s.DB,Config:s.Config,Original:s.Original,Artifacts:s.Artifacts,Identity:s.Identity,Search:s.Search,Converter:s.Converter}
 	repairSQL(t, s, `UPDATE conversion_jobs SET retry_at=now() WHERE id=$1`, job.ID)
 	second := repairProcess(t, s, job)
 	if second.State != "ready" || second.PagesReady != 2 || second.PagesFailed != 0 || second.Attempt != 2 {

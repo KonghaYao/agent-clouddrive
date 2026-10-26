@@ -229,8 +229,7 @@ func TestRepairWorkerActivationFailureRestartAndDeleteRace(t *testing.T) {
 	}
 	index.failWait = false
 	// 新 Service 对象代表 worker 重启，任务不依赖原进程内存。
-	restarted := *s
-	s = &restarted
+	s = &Service{DB:s.DB,Config:s.Config,Original:s.Original,Artifacts:s.Artifacts,Identity:s.Identity,Search:s.Search,Converter:s.Converter}
 	repairSQL(t, s, `UPDATE artifact_activation_tasks SET retry_at=now()`)
 	index.onUpsert = func() error {
 		_, err := s.DB.Exec(ctx, `UPDATE files SET lifecycle='trashed' WHERE current_version_id=$1`, job.SourceVersionID)
@@ -327,8 +326,7 @@ func TestRepairWorkerLoserCleanupRestartAndLateUpsert(t *testing.T) {
 		t.Fatal(err)
 	}
 	index.failDelete = false
-	restarted := *s
-	s = &restarted
+	s = &Service{DB:s.DB,Config:s.Config,Original:s.Original,Artifacts:s.Artifacts,Identity:s.Identity,Search:s.Search,Converter:s.Converter}
 	repairSQL(t, s, `UPDATE artifact_cleanup_tasks SET retry_at=now()`)
 	if err = s.reconcileArtifactVisibility(ctx); err != nil {
 		t.Fatal(err)
