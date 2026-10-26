@@ -292,11 +292,28 @@ class PageReporter:
     def __init__(self, enabled=False, stream=None):
         self.enabled = bool(enabled)
         self.stream = stream or sys.stdout
+        self.total_pages = None
+        self.engine = None
+
+    def document(self, total_pages, engine=None):
+        """Publish document metadata before the first page event.
+
+        A backend that loses the child process must still be able to enumerate
+        the missing pages, so total_pages and the engine identity are repeated
+        on every event instead of only on the final result.
+        """
+        self.total_pages = int(total_pages)
+        if engine is not None:
+            self.engine = dict(engine)
 
     def emit(self, page, stage, state, result_ref=None, error=None):
         if not self.enabled:
             return
         event = {"type": "page", "page": page, "stage": stage, "state": state}
+        if self.total_pages is not None:
+            event["total_pages"] = self.total_pages
+        if self.engine is not None:
+            event["engine"] = self.engine
         if result_ref is not None:
             event["result_ref"] = result_ref
         if error is not None:
@@ -389,6 +406,7 @@ def convert_raster(data, ext, request, preview=False, reporter=None):
         with Image.open(io.BytesIO(data)) as image:
             total = int(getattr(image, "n_frames", 1) or 1)
             result["completeness"]["total_pages"] = total
+            reporter.document(total, result["engine"])
             if total > request["recipe"]["max_pages"]:
                 raise AdapterError("limit_exceeded", "render")
             indices, _, not_processed = selected_pages(request, total)
@@ -947,6 +965,7 @@ def convert_pdf(data, request, preview=False, reporter=None):
             raise AdapterError("encrypted", "pdf")
         total = len(reader.pages)
         result["completeness"]["total_pages"] = total
+        reporter.document(total, result["engine"])
         if total > recipe["max_pages"]:
             raise AdapterError("limit_exceeded", "pdf")
         indices, _, not_processed = selected_pages(request, total)

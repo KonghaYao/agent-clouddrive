@@ -3,8 +3,8 @@
 --- PASS: TestRepairWorkerRealFPageProtocolPersistence (0.54s)
 === RUN   TestRepairWorkerPageTimeoutPersistsPartialThenResumesAfterRestart
     repair_worker_pages_test.go:109: 首次真实子进程 timeout 后状态=partial page_count=2 ready=1 failed=1
-    repair_worker_pages_test.go:137: 重启后仅重试缺失页 2，调用记录="1\n2\n2"；旧 partial 与完整产物均保留
---- PASS: TestRepairWorkerPageTimeoutPersistsPartialThenResumesAfterRestart (1.37s)
+    repair_worker_pages_test.go:136: 重启后仅重试缺失页 2，调用记录="1\n2\n2"；旧 partial 与完整产物均保留
+--- PASS: TestRepairWorkerPageTimeoutPersistsPartialThenResumesAfterRestart (1.51s)
 === RUN   TestRepairWorkerCompletionDuringTrashAndRestore
 === RUN   TestRepairWorkerCompletionDuringTrashAndRestore/before_delete
     repair_worker_visibility_test.go:204: 真实 PG、真实 delete/restore、激活不重读原件、默认 Markdown/搜索一致
@@ -12,32 +12,32 @@
     repair_worker_visibility_test.go:204: 真实 PG、真实 delete/restore、激活不重读原件、默认 Markdown/搜索一致
 === RUN   TestRepairWorkerCompletionDuringTrashAndRestore/during_restore
     repair_worker_visibility_test.go:204: 真实 PG、真实 delete/restore、激活不重读原件、默认 Markdown/搜索一致
---- PASS: TestRepairWorkerCompletionDuringTrashAndRestore (0.97s)
-    --- PASS: TestRepairWorkerCompletionDuringTrashAndRestore/before_delete (0.32s)
-    --- PASS: TestRepairWorkerCompletionDuringTrashAndRestore/during_trash (0.32s)
-    --- PASS: TestRepairWorkerCompletionDuringTrashAndRestore/during_restore (0.33s)
+--- PASS: TestRepairWorkerCompletionDuringTrashAndRestore (1.19s)
+    --- PASS: TestRepairWorkerCompletionDuringTrashAndRestore/before_delete (0.39s)
+    --- PASS: TestRepairWorkerCompletionDuringTrashAndRestore/during_trash (0.41s)
+    --- PASS: TestRepairWorkerCompletionDuringTrashAndRestore/during_restore (0.40s)
 === RUN   TestRepairWorkerActivationFailureRestartAndDeleteRace
---- PASS: TestRepairWorkerActivationFailureRestartAndDeleteRace (0.30s)
+--- PASS: TestRepairWorkerActivationFailureRestartAndDeleteRace (0.33s)
 === RUN   TestRepairWorkerAncestorRestoreWithOldPointer
---- PASS: TestRepairWorkerAncestorRestoreWithOldPointer (0.38s)
+--- PASS: TestRepairWorkerAncestorRestoreWithOldPointer (0.43s)
 === RUN   TestRepairWorkerLoserCleanupRestartAndLateUpsert
-    repair_worker_visibility_test.go:368: 新代先完成、旧代晚到、删除失败/重启、迟到 Upsert 均收敛；固定旧产物可读
---- PASS: TestRepairWorkerLoserCleanupRestartAndLateUpsert (0.42s)
+    repair_worker_visibility_test.go:366: 新代先完成、旧代晚到、删除失败/重启、迟到 Upsert 均收敛；固定旧产物可读
+--- PASS: TestRepairWorkerLoserCleanupRestartAndLateUpsert (0.34s)
 === RUN   TestRepairWorkerMigrationReentrantAndPageFence
---- PASS: TestRepairWorkerMigrationReentrantAndPageFence (0.20s)
+--- PASS: TestRepairWorkerMigrationReentrantAndPageFence (0.21s)
 PASS
-ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	5.730s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/application	6.336s
 === RUN   TestRepairConversionHTTPStreamsPagesBeforeResult
 --- PASS: TestRepairConversionHTTPStreamsPagesBeforeResult (0.00s)
 === RUN   TestRepairConversionProcessTimeoutKillAndBounds
---- PASS: TestRepairConversionProcessTimeoutKillAndBounds (1.02s)
+--- PASS: TestRepairConversionProcessTimeoutKillAndBounds (1.03s)
 === RUN   TestRepairConversionRealAdapterSyntheticPDF
     repair_pages_test.go:137: 真实 PDF 文本提取：status=ready pages=2 engine=pdf-page-pipeline/pypdf-6.10.0/pdfium-5.14.0（OCR/视觉 not_run）
     repair_pages_test.go:138: 真实 adapter=/Users/konghayao/code/ai/agent-clouddrive-F/converters/adapter.py，page events=4
     repair_pages_test.go:160: pretty-print 完整 result 已消费：行数=41
---- PASS: TestRepairConversionRealAdapterSyntheticPDF (0.31s)
+--- PASS: TestRepairConversionRealAdapterSyntheticPDF (0.37s)
 PASS
-ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/converters	3.187s
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/converters	2.746s
 testing: warning: no tests to run
 PASS
-ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/search	2.175s [no tests to run]
+ok  	github.com/agentclouddrive/agent-clouddrive/internal/adapters/search	2.170s [no tests to run]

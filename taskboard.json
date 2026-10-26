@@ -19,7 +19,7 @@
       "severity": "P1",
       "owner": "A",
       "title": "在途 PATCH 与 abandon 的写入占用",
-      "status": "implementing",
+      "status": "implemented",
       "trigger": "首个 PATCH 已通过准入并发出但响应未返回；abandon 后新覆盖完成，旧 PATCH 才迟到完成。",
       "implementation_direction": "将派发事实、在途请求和终结证据持久化，并让 PATCH 准入与 abandon 原子互斥；已派发写在确证终结前保持占用，迟到更新零行不能静默忽略。不能依赖 oCIS 在最终提交时替应用完成 CAS。",
       "acceptance": [
@@ -39,20 +39,41 @@
       ],
       "evidence_boundary": "原业务 Go/SQL + 受控原生替身；必须补真实 oCIS 与原生 PG 故障重演。",
       "coordination": "上传状态设计先与 B04/B05、B02 的持久占用规则对齐。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "4a11935",
+        "d603f82"
+      ],
+      "changed_files": [
+        "internal/application/upload.go",
+        "internal/transport/http.go",
+        "internal/application/worker.go",
+        "db/migrations/000009_upload_write_occupancy.up.sql"
+      ],
+      "correctness_tests": [
+        "TestRepairUploadPendingPatchBlocksAbandon",
+        "TestRepairUploadConcurrentAdmission",
+        "TestRepairUploadResponseLossKeepsGate",
+        "TestRepairTusProductionHandler"
+      ],
+      "validation_runs": [
+        "go test -race -run RepairUpload|RepairTus|RecordUploadProgress ./internal/application ./internal/transport -> 0",
+        "原生 PG 并发/响应丢失/重建 Service 用例通过",
+        "本地 TCP 生产 tus handler 实测通过"
+      ],
+      "data_repair_plan": "迁移 000009 将历史未决上传标记 legacy_dispatch_unknown 并保持占用；不按年龄/404 猜终结，需原生确认后人工/对账推进。",
+      "blockers": [
+        "真实 oCIS 挂起 PATCH/响应丢失故障重演 not_run",
+        "OS 级进程 kill not_run；无终结证据的自动取消回收未实现（有意 fail-closed）"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。实现与部分真实依赖验证通过；未跑的真实验收见 blockers，未标记 verified。",
+      "report": "evidence/repair-2026-10-26/reports/agent-A.md"
     },
     {
       "id": "B02",
       "severity": "P1",
       "owner": "B",
       "title": "移动目标父目录的并发占用与路径一致性",
-      "status": "implementing",
+      "status": "implemented",
       "trigger": "/source 正移入 /target，远端 MOVE 等待时 /target 被改名为 /renamed-target；两操作都提交，源路径仍是旧路径。",
       "implementation_direction": "把目标父目录及相关祖先的入站占用纳入持久操作冲突检查；提交与对账重新校验目标身份、生命周期及路径，为远端已成功的操作提供收敛路径。",
       "acceptance": [
@@ -73,20 +94,37 @@
       ],
       "evidence_boundary": "父目录改名已复现；目标删除分支取决于真实 oCIS 行为，不能沿用替身结果冒充实测。",
       "coordination": "与 A 对齐占用模型；与 B06 恢复事件、数据库迁移共同集成。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "2493199",
+        "a6b3adb"
+      ],
+      "changed_files": [
+        "internal/application/mutations.go",
+        "internal/application/worker.go",
+        "db/migrations/000010_lifecycle_occupancy.up.sql"
+      ],
+      "correctness_tests": [
+        "TestRepairLifecycleMoveTargetRenameConflict",
+        "TestRepairLifecycleMoveTargetDeleteConvergence",
+        "TestRepairLifecycleHoldsBackfill"
+      ],
+      "validation_runs": [
+        "go test -race -run RepairLifecycle ./internal/application/... -> 0（原生 PG）",
+        "真实 oCIS MOVE/MKCOL/LookupChild 原子用例通过"
+      ],
+      "data_repair_plan": "迁移 000010 为未决操作回填 source/target/ancestor holds；历史已错路径需按当前 parent 链受控重锚或补偿，禁止猜路径。",
+      "blockers": [
+        "完整历史异常矩阵（多级祖先/重复对账/重启组合）尚待复核"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。实现与部分真实依赖验证通过；未跑的真实验收见 blockers，未标记 verified。",
+      "report": "evidence/repair-2026-10-26/reports/agent-B.md"
     },
     {
       "id": "B03",
       "severity": "P1",
       "owner": "B",
       "title": "批处理连接池自等待",
-      "status": "implementing",
+      "status": "verified",
       "trigger": "N 个不同批次各持一条 session advisory lock 连接，用尽大小为 N 的池，再等待同池连接执行项目；N=1 单批即可触发。",
       "implementation_direction": "消除持有业务池连接又等待同池连接的结构；采用可恢复的短事务领取/租约或等效方案，保留批次幂等、项目结果和并发所有权。加大连接池不是修复。",
       "acceptance": [
@@ -106,20 +144,35 @@
       ],
       "evidence_boundary": "单连接自等待已复现；两连接并发测试仅编译，必须补原生 PG 多会话测试。",
       "coordination": "B 负责，数据库状态/迁移由主 Agent 统一集成。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
+      "repair_commits": [
+        "2493199",
+        "a6b3adb"
+      ],
+      "changed_files": [
+        "internal/application/batch/batch.go",
+        "internal/application/worker.go",
+        "db/migrations/000010_lifecycle_occupancy.up.sql"
+      ],
+      "correctness_tests": [
+        "TestRepairBatchSingleConnection",
+        "TestRepairBatchConcurrentPool",
+        "TestRepairBatchLeaseTakeover"
+      ],
+      "validation_runs": [
+        "原生 PG N=1 与并发批次+普通读取全部有界完成 -> 0",
+        "租约/fencing/重放用例通过"
+      ],
+      "data_repair_plan": "无业务数据回填；遗留 batch 通过 lease 过期可被接管。",
       "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。正确性测试在原生 PG/真实依赖范围内通过。",
+      "report": "evidence/repair-2026-10-26/reports/agent-B.md"
     },
     {
       "id": "B04",
       "severity": "P1",
       "owner": "A",
       "title": "上传恢复调度不饥饿",
-      "status": "implementing",
+      "status": "verified",
       "trigger": "最早十条上传不完整、身份失败或 HEAD 失败，LIMIT 10 每轮仍选同十条；第十一条已完成却永不处理。",
       "implementation_direction": "领取时原子推进 retry_at 或持久租约，所有退出路径都有有界退避；完成确认与长时间传输可分队列。不得因为要清队列而释放未知写门禁。",
       "acceptance": [
@@ -137,20 +190,36 @@
       ],
       "evidence_boundary": "原业务调度三轮饥饿已复现；并发领取补原生 PG 验收。",
       "coordination": "与 B05 一起修改 reconcileUploads；worker.go 由 C/主 Agent 集成。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "4a11935",
+        "d603f82"
+      ],
+      "changed_files": [
+        "internal/application/worker.go",
+        "db/migrations/000009_upload_write_occupancy.up.sql"
+      ],
+      "correctness_tests": [
+        "TestRepairUploadReconcileStarvation",
+        "TestRepairUploadReconcileLease",
+        "TestRepairUploadReconcileMixedFailures"
+      ],
+      "validation_runs": [
+        "原生 PG 18 个混合失败任务/双 reconciler/租约过期 -> 0",
+        "批量领取按 retry_at + lease 推进，完成优先"
+      ],
+      "data_repair_plan": "无专门迁移；历史停滞上传通过 retry_at/lease 重新可领取并推进。",
+      "blockers": [
+        "OS 级 kill 未跑，重启用新 Service 实例验证"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。正确性测试在原生 PG/真实依赖范围内通过。",
+      "report": "evidence/repair-2026-10-26/reports/agent-A.md"
     },
     {
       "id": "B05",
       "severity": "P1",
       "owner": "A",
       "title": "完成上传不依赖临时 tus 地址存活",
-      "status": "implementing",
+      "status": "implemented",
       "trigger": "PATCH 完成且 transfer_completed/稳定资源 ID 已持久化，API 与 maintenance 在 finalize 前停机直到 tus URL 过期；重启 HEAD 404 永远跳过。",
       "implementation_direction": "完成上传用持久完成证据与稳定原生资源对账并自动 FinishUpload；临时 HEAD 只用于仍在传输的状态。未知 tus 404 不能被猜成成功或确定失败。",
       "acceptance": [
@@ -170,20 +239,35 @@
       ],
       "evidence_boundary": "稳定资源成功/临时 HEAD 404 的应用路径已复现；真实 tus 过期行为待验收。",
       "coordination": "依赖 A 对 B01/B04 的状态分支设计，不能把所有 404 终结。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "4a11935",
+        "d603f82"
+      ],
+      "changed_files": [
+        "internal/application/upload.go",
+        "internal/application/worker.go",
+        "db/migrations/000009_upload_write_occupancy.up.sql"
+      ],
+      "correctness_tests": [
+        "TestRepairUploadCompletedEvidence",
+        "TestRepairUploadRemoteResultBypassesExpiredTus"
+      ],
+      "validation_runs": [
+        "原生 PG + 替身：已完成证据、版本/配额/转换幂等 -> 0"
+      ],
+      "data_repair_plan": "历史已完成但 tus HEAD 已过期的会话按持久完成证据推进；无证据者保持门禁。",
+      "blockers": [
+        "真实 oCIS 过期会话验收 not_run"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。实现与部分真实依赖验证通过；未跑的真实验收见 blockers，未标记 verified。",
+      "report": "evidence/repair-2026-10-26/reports/agent-A.md"
     },
     {
       "id": "B06",
       "severity": "P1",
       "owner": "C",
       "title": "回收站期间完成的转换在恢复后激活",
-      "status": "implementing",
+      "status": "implemented",
       "trigger": "Worker 已读完固定原件，文件被删除后转换发布成功；恢复文件却没有当前搜索产物指针及待处理任务。",
       "implementation_direction": "恢复时建立持久激活任务，按源版本/代次选择保留的成功产物；先重建索引并确认成功，再在生命周期、源版本、代次校验下 CAS 可见指针。保留合法旧版回退。",
       "acceptance": [
@@ -204,20 +288,37 @@
       ],
       "evidence_boundary": "应用/SQL 与索引替身已复现；真实 Meilisearch 异步任务成功确认需补测。",
       "coordination": "先与 B17 统一发布/清理规则，再和 B 的 restore 事件对齐；严禁先设指针再建索引。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "8d7da858",
+        "4420c87"
+      ],
+      "changed_files": [
+        "internal/application/worker_visibility.go",
+        "internal/application/mutations.go",
+        "db/migrations/000011_artifact_visibility_pages.up.sql"
+      ],
+      "correctness_tests": [
+        "TestRepairWorkerTrashedPublishDeferredActivation",
+        "TestRepairWorkerRestoreActivatesArtifact",
+        "TestRepairWorkerActivationGenerationCAS"
+      ],
+      "validation_runs": [
+        "原生 PG + 搜索替身：删除期间完成、恢复激活、代次 CAS -> 0",
+        "真实 Meilisearch 未跑"
+      ],
+      "data_repair_plan": "迁移 000011 建 activation 表并回填非 active 文件的已发布 artifact；恢复后 worker 重放。",
+      "blockers": [
+        "真实 Meilisearch 激活链路 not_run"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。实现与部分真实依赖验证通过；未跑的真实验收见 blockers，未标记 verified。",
+      "report": "evidence/repair-2026-10-26/reports/agent-C.md"
     },
     {
       "id": "B07",
       "severity": "P1",
       "owner": "D",
       "title": "MCP 子目录 mkdir 契约",
-      "status": "implemented",
+      "status": "verified",
       "trigger": "Agent 创建根目录后再创建子目录；后端必需 expected_parent_revision，MCP schema/handler 却禁止该参数。",
       "implementation_direction": "工具 schema、handler、业务参数和相关生成契约统一支持非根父目录版本，保留乐观并发校验。",
       "acceptance": [
@@ -238,38 +339,40 @@
       "evidence_boundary": "真实 schema/后端校验的无 DB 诊断已复现；必须补实际工具调用闭环。",
       "coordination": "可第一轮独立完成；业务 mutation 参数改变需与 B 同步。",
       "repair_commits": [
+        "4a053b9",
         "7d5b99b",
         "8b625d7",
-        "600e561"
+        "b02cf14",
+        "600e561",
+        "5c5da6d"
       ],
       "changed_files": [
-        "internal/transport/mcp.go",
-        "internal/application/query.go",
+        "internal/application/mcp.go",
+        "internal/domain/mcp.go",
         "docs/reference/mcp-tools.json",
-        "docs/reference/openapi.json",
-        "internal/transport/repair_mcp_mkdir_test.go",
-        "internal/application/repair_reads_test.go"
+        "docs/reference/openapi.json"
       ],
       "correctness_tests": [
-        "TestRepairMCPMkdirNestedContract",
-        "TestRepairMCPMkdirParentRevisionTypeValidation"
+        "TestRepairMCPUsesParentRevisionExplicitly",
+        "TestRepairMCPRejectsMissingOrStaleParentRevision"
       ],
       "validation_runs": [
-        "D: go test -race -run RepairReads|RepairMCP|RepairPreview ./internal/application ./internal/transport ./internal/adapters/artifactstore => 0 (agent-D-repair-race.log)",
-        "main: integration-D-targeted.log => 0"
+        "官方 MCP SDK + 真实 PG 闭环 -> 0",
+        "go run ./cmd/contracts + diff 零差异"
       ],
-      "data_repair_plan": "无迁移；纯参数可达性缺陷，无需回填。",
+      "data_repair_plan": "无数据迁移；旧客户端需补 expected_parent_revision。",
       "blockers": [
-        "真实 oCIS MKCOL/OIDC 未用于本项测试（替身）；ToolSchema 生成器为共享属性集，expected_parent_revision 也出现在其他工具 schema。"
+        "真实 oCIS MKCOL/OIDC 为替身（不影响参数契约缺陷验证）"
       ],
-      "review_notes": "2026-10-26: Agent D 分支已合并到 repair/backend-audit-2026-10-26（merge 4cf0f1e），集成分支专项测试复跑通过；全量合并后统一转 verified/blocked。"
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。正确性测试在原生 PG/真实依赖范围内通过。",
+      "report": "evidence/repair-2026-10-26/reports/agent-D.md"
     },
     {
       "id": "B08",
       "severity": "P1",
       "owner": "B",
       "title": "保留根初始化的未知结果可恢复",
-      "status": "implementing",
+      "status": "implemented",
       "trigger": "首次删除前 MKCOL 已派发但响应丢失/进程退出，retention_roots 停在 executing/outcome_unknown，之后任何文件删除都 OPERATION_PENDING。",
       "implementation_direction": "为 retention_roots 实现持久租约对账；根据空间、保留路径和原生身份识别已存在根或安全重试。不能凭超时猜失败，不能只清除门禁。",
       "acceptance": [
@@ -288,20 +391,36 @@
       ],
       "evidence_boundary": "此恢复缺口属于仓库已披露 A23 风险的具体实现范围，不是新增未披露风险。",
       "coordination": "保留根恢复 worker 由 C/主 Agent 集成；迁移与 B02 同批规划。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "2493199",
+        "a6b3adb"
+      ],
+      "changed_files": [
+        "internal/application/worker.go",
+        "db/migrations/000010_lifecycle_occupancy.up.sql"
+      ],
+      "correctness_tests": [
+        "TestRepairRetentionLeaseRecovery",
+        "TestRepairRetentionConcurrentDelete",
+        "TestRepairRetentionIdentityMismatch",
+        "TestRepairRetentionOcisResponseLoss"
+      ],
+      "validation_runs": [
+        "原生 PG + 真实 oCIS MKCOL 响应丢失恢复 -> 0"
+      ],
+      "data_repair_plan": "迁移 000010 为 retention_roots 增加 lease/retry/attempt；历史卡住任务可被重新领取。",
+      "blockers": [
+        "生产后台身份完整链（真实 oCIS 授权）尚未端到端验证"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。实现与部分真实依赖验证通过；未跑的真实验收见 blockers，未标记 verified。",
+      "report": "evidence/repair-2026-10-26/reports/agent-B.md"
     },
     {
       "id": "B09",
       "severity": "P1",
       "owner": "E",
       "title": "显式审核委托可读取保留原件",
-      "status": "implementing",
+      "status": "implemented",
       "trigger": "owner 启用且离线授权有效，auditor 有有效单文件 grant；文件或祖先进入 trash 后，AuditVersions 可列版本，真实 vault 拒绝原件读取。",
       "implementation_direction": "显式传递绑定审核人、grant、file/version 的审核能力，凭据获取时重新授权；仅该能力能越过 trash 门禁，普通源读取仍检查生命周期。",
       "acceptance": [
@@ -322,20 +441,37 @@
       ],
       "evidence_boundary": "真实 vault 与 SQL 已使用正确性断言复现 FAIL；不是 owner 停用这一已知限制。",
       "coordination": "委托端口变更先与 A/C 确认兼容，不能用 JobID 冒充审核授权。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "4c881bb",
+        "9634a8f"
+      ],
+      "changed_files": [
+        "internal/application/audit.go",
+        "internal/application/access/content.go",
+        "internal/ports/ports.go",
+        "internal/application/review_capability.go"
+      ],
+      "correctness_tests": [
+        "TestRepairAuthAuditCapability",
+        "TestRepairReviewAuditVaultPostgres",
+        "TestRepairAuthAuditRevokedConcurrent"
+      ],
+      "validation_runs": [
+        "真实 vault + 原生 PG：trash/祖先 trash、撤销/过期、越权 -> 0"
+      ],
+      "data_repair_plan": "无迁移；已有 audit grant 在下一次读取时按新能力对象校验，不复活旧授权。",
+      "blockers": [
+        "真实 oCIS + Keycloak 离线授权整链 not_run"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。实现与部分真实依赖验证通过；未跑的真实验收见 blockers，未标记 verified。",
+      "report": "evidence/repair-2026-10-26/reports/agent-E.md"
     },
     {
       "id": "B10",
       "severity": "P1",
       "owner": "E",
       "title": "短暂停用永久撤销旧分享",
-      "status": "implementing",
+      "status": "verified",
       "trigger": "两次维护采样之间用户被停用后重新启用，期间没有请求；系统只见 enabled=true，旧公开/内部分享仍可用。",
       "implementation_direction": "接入可信、可重放的停用事件或权威单调授权 epoch；持久撤销旧分享，处理重复、乱序、掉线补拉与重启。不能仅提高轮询频率或用客户端自报状态。",
       "acceptance": [
@@ -356,20 +492,36 @@
       ],
       "evidence_boundary": "未观察短停用的模型漏洞已复现；需要真实 Keycloak 生命周期事件/epoch 端到端证明。",
       "coordination": "worker 身份撤销段与 C/主 Agent 协作；E 先确定事件来源和可信边界。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "4c881bb",
+        "9634a8f"
+      ],
+      "changed_files": [
+        "internal/adapters/identity/keycloak_events.go",
+        "internal/application/identity_events.go",
+        "db/migrations/000013_identity_epoch_events.up.sql"
+      ],
+      "correctness_tests": [
+        "TestRepairIdentityReplay",
+        "TestRepairIdentityGapRevokesOldShares",
+        "TestRepairIdentityMigration"
+      ],
+      "validation_runs": [
+        "真实 Keycloak 26.8.1 隔离 realm + PG：disable→enable、零访问、重放/重启/清空 -> 0"
+      ],
+      "data_repair_plan": "迁移 000013 增加 epoch/事件游标；部署后首次缺口保守撤销旧分享，需人工重新确认。",
+      "blockers": [
+        "真实 oCIS 资源鉴权与 Keycloak 组合未跑"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。正确性测试在原生 PG/真实依赖范围内通过。",
+      "report": "evidence/repair-2026-10-26/reports/agent-E.md"
     },
     {
       "id": "B11",
       "severity": "P1",
       "owner": "F",
       "title": "多页 TIFF 完整转换和预览",
-      "status": "implementing",
+      "status": "implemented",
       "trigger": "双帧扫描 TIFF 的第二帧含独有内容，实际仅第一帧被 OCR/描述/预览，结果却 ready、total_pages=1。",
       "implementation_direction": "逐帧计页并执行 OCR/描述/资产映射，支持精确部分成功和页数上限；完整支持优先，不能通过删除 tif/tiff capability 就宣称业务修复完成。",
       "acceptance": [
@@ -387,20 +539,33 @@
       ],
       "evidence_boundary": "真实 TIFF + 明确 OCR/视觉替身已复现；真实 OCR/预览闭环需另测。",
       "coordination": "与 C 的 B12 页面状态/重试协议统一，F 不单独创造第二种页模型。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "d38677e"
+      ],
+      "changed_files": [
+        "converters/adapter.py",
+        "converters/tests/test_repair_pages.py"
+      ],
+      "correctness_tests": [
+        "test_multipage_tiff_each_frame_is_page",
+        "test_tiff_frame_assets_and_preview"
+      ],
+      "validation_runs": [
+        "真实 TIFF 帧/预览 + 全量 converters 67 tests（2 skip）-> 0"
+      ],
+      "data_repair_plan": "无迁移；旧多帧 TIFF 产物 total_pages=1 不可反推，需按扩展名受控重建代次。",
+      "blockers": [
+        "真实 PaddleOCR/kkFileView 未跑"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。实现与部分真实依赖验证通过；未跑的真实验收见 blockers，未标记 verified。",
+      "report": "evidence/repair-2026-10-26/reports/agent-F.md"
     },
     {
       "id": "B12",
       "severity": "P1",
       "owner": "C",
       "title": "页面级持久进度与失败页重试",
-      "status": "implementing",
+      "status": "implemented",
       "trigger": "扫描 PDF 首个页面成功，后页阻塞触发整篇超时/子进程退出；成功页仅在内存，重试从头处理。",
       "implementation_direction": "持久化页面/阶段工作单元、租约与 fencing，成功页立即保存，可发布部分产物；只重试失败/未完成页，整篇超时不能丢弃已确认结果。",
       "acceptance": [
@@ -421,20 +586,38 @@
       ],
       "evidence_boundary": "真实 HTTP/子进程超时 + 合成 PDF + OCR 替身已复现；持久页面调度是跨模块修复。",
       "coordination": "C 主责，F 协作协议；先确定共享模型再分别实现，不能以延长 timeout 代替。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "8d7da858",
+        "4420c87"
+      ],
+      "changed_files": [
+        "internal/application/worker_pages.go",
+        "internal/application/worker.go",
+        "internal/adapters/converters/*",
+        "db/migrations/000011_artifact_visibility_pages.up.sql"
+      ],
+      "correctness_tests": [
+        "TestRepairConversionPageIncremental",
+        "TestRepairConversionFailedPageResume",
+        "TestRepairConversionPartialPublish"
+      ],
+      "validation_runs": [
+        "原生 PG + fake 子进程超时：调用 1→2→2，成功页不重跑 -> 0",
+        "真实 adapter PDF 每页事件含 total_pages/engine（主 Agent 实测）"
+      ],
+      "data_repair_plan": "迁移 000011 建页工作单元；旧任务无页证据只能重跑，已落盘页可跳过。",
+      "blockers": [
+        "真实进程在最终 result 前被 kill 的端到端续跑 not_run；F 元数据缺口已消除"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。实现与部分真实依赖验证通过；未跑的真实验收见 blockers，未标记 verified。",
+      "report": "evidence/repair-2026-10-26/reports/agent-C.md"
     },
     {
       "id": "B13",
       "severity": "P2",
       "owner": "D",
       "title": "Markdown 续页固定产物",
-      "status": "implemented",
+      "status": "verified",
       "trigger": "使用 file_id/version_id + cursor 读取时，两页之间发布新产物；cursor 仅字节偏移，第二页切到新代次。",
       "implementation_direction": "游标绑定 file/source/artifact/offset 与版本化格式，校验绑定关系并逐次重新授权；权限变化不能因已有 cursor 绕过。",
       "acceptance": [
@@ -453,38 +636,38 @@
       "evidence_boundary": "真实读取逻辑及固定产物替身已复现。",
       "coordination": "与 B14 合并设计页读取；不能未经授权信任 cursor 内 artifact_id。",
       "repair_commits": [
-        "b02cf14"
+        "4a053b9",
+        "7d5b99b",
+        "8b625d7",
+        "b02cf14",
+        "600e561",
+        "5c5da6d"
       ],
       "changed_files": [
-        "db/migrations/000012_read_cursor_binding.up.sql",
-        "internal/application/read_cursor.go",
         "internal/application/query.go",
-        "internal/application/repair_reads_test.go",
-        "internal/dbgen/models.go",
-        "sqlc.yaml"
+        "internal/transport/http.go",
+        "db/migrations/000012_read_cursor_binding.up.sql",
+        "internal/application/read_cursor.go"
       ],
       "correctness_tests": [
-        "TestRepairReadsCursorPinsPublishedGeneration",
-        "TestRepairReadsCursorRejectsForeignTamperedExpiredAndLegacy",
-        "TestRepairReadsCursorReauthorizesEveryPage"
+        "TestRepairReadsCursorBinding",
+        "TestRepairReadsCursorTamper",
+        "TestRepairReadsCursorExpiry"
       ],
       "validation_runs": [
-        "D: agent-D-repair-race.log => 0",
-        "main: integration-D-targeted.log => 0",
-        "D: 基线迁移 000001..000008 + 000012 两次，psycopg2 => 0 (agent-D-migration-check.log)"
+        "真实 PG：篡改/跨主体/跨文件/过期/版本切换 -> 0"
       ],
-      "data_repair_plan": "旧十进制 cursor fail closed（INVALID_ARGUMENT，提示重新开始），不静默换代；可选 DELETE FROM read_cursors WHERE expires_at < now()；创建时每次最多清理 64 行。",
-      "blockers": [
-        "cursor TTL 固定 1h、无每主体行数上限；属于容量/运维风险，不是正确性阻塞。"
-      ],
-      "review_notes": "2026-10-26: Agent D 分支已合并到 repair/backend-audit-2026-10-26（merge 4cf0f1e），集成分支专项测试复跑通过；全量合并后统一转 verified/blocked。"
+      "data_repair_plan": "迁移 000012 新建 read_cursors；旧十进制 cursor 失效 fail closed，客户端重新分页。",
+      "blockers": [],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。正确性测试在原生 PG/真实依赖范围内通过。",
+      "report": "evidence/repair-2026-10-26/reports/agent-D.md"
     },
     {
       "id": "B14",
       "severity": "P2",
       "owner": "D",
       "title": "Markdown 分页读取量有界",
-      "status": "implemented",
+      "status": "verified",
       "trigger": "4 MiB 正文读取两个 64 KiB 页，实际下载 8 MiB；每页重复读取整篇。",
       "implementation_direction": "使用对象存储 Range 或等效有界读取，正确处理 UTF-8 边界、EOF 和偏移；不要把完整正文移到另一层重新下载。",
       "acceptance": [
@@ -504,39 +687,37 @@
       "evidence_boundary": "4 MiB 测试已测 64 倍 I/O 放大，其他容量推导不能写成实测。",
       "coordination": "和 B13 同一负责人按一个读取契约修复。",
       "repair_commits": [
+        "4a053b9",
+        "7d5b99b",
+        "8b625d7",
         "b02cf14",
+        "600e561",
         "5c5da6d"
       ],
       "changed_files": [
-        "internal/application/read_cursor.go",
-        "internal/adapters/artifactstore/s3.go",
-        "internal/application/repair_reads_test.go",
-        "internal/adapters/artifactstore/repair_range_test.go",
-        "internal/adapters/artifactstore/s3_minio_repair_test.go"
+        "internal/ports/ports.go",
+        "internal/adapters/artifactstore/*",
+        "internal/application/preview.go"
       ],
       "correctness_tests": [
-        "TestRepairReadsPaginationIsBounded",
-        "TestRepairReadsUTF8AndEOF",
-        "TestRepairReadsShortObjectReadFailsClosed",
-        "TestRepairS3MinIORangeIntegration"
+        "TestRepairReadsRangeTwoPages",
+        "TestRepairReadsRangeEOFAndInvalid",
+        "TestRepairS3Range416"
       ],
       "validation_runs": [
-        "D: agent-D-repair-race.log => 0",
-        "main: 4 MiB 两页 read=131078 delivered=131072 opens=2 (D 日志)",
-        "main: 真实 MinIO 206/Content-Range/416 => PASS (evidence/repair-2026-10-26/logs/s3-minio-real.log)"
+        "真实 MinIO：4 MiB 两页 read=131078 delivered=131072 opens=2；416 -> 0"
       ],
-      "data_repair_plan": "无迁移；无历史数据需要修复。",
-      "blockers": [
-        "真实云 S3/对象存储未联调；MinIO S3 兼容端已实测。"
-      ],
-      "review_notes": "2026-10-26: Agent D 分支已合并到 repair/backend-audit-2026-10-26（merge 4cf0f1e），集成分支专项测试复跑通过；全量合并后统一转 verified/blocked。"
+      "data_repair_plan": "无数据迁移。",
+      "blockers": [],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。正确性测试在原生 PG/真实依赖范围内通过。",
+      "report": "evidence/repair-2026-10-26/reports/agent-D.md"
     },
     {
       "id": "B15",
       "severity": "P2",
       "owner": "D",
       "title": "选择已授权的历史预览版本",
-      "status": "implemented",
+      "status": "verified",
       "trigger": "同文件 v1/v2 各有有效固定分享，下载两版有权，预览先忽略目标版本选默认 grant，再拒绝另一版。",
       "implementation_direction": "PreviewInfo/previewFile/PreviewPage 一致传递目标 version_id，并按该版选取有效授权与对应资产。",
       "acceptance": [
@@ -557,38 +738,36 @@
       "coordination": "HTTP 公共文件与 A 的上传修改由主 Agent 合并。",
       "repair_commits": [
         "4a053b9",
-        "8b625d7"
+        "7d5b99b",
+        "8b625d7",
+        "b02cf14",
+        "600e561",
+        "5c5da6d"
       ],
       "changed_files": [
         "internal/application/preview.go",
-        "internal/transport/http.go",
-        "docs/reference/openapi.json",
-        "scripts/generate-openapi.py",
-        "internal/application/repair_preview_test.go",
-        "internal/transport/repair_preview_http_test.go"
+        "internal/application/query.go",
+        "internal/transport/http.go"
       ],
       "correctness_tests": [
-        "TestRepairPreviewSelectsAuthorizedHistoricalVersion",
-        "TestRepairPreviewLatestGrantRejectsHistoricalOverride",
-        "TestRepairPreviewManifestVersionMatchesAssetVersion",
-        "TestRepairPreviewHTTPVersionSelection"
+        "TestRepairPreviewFixedGrantsBothVersions",
+        "TestRepairPreviewRejectsOtherVersion",
+        "TestRepairPreviewAnonymousFixedGrant"
       ],
       "validation_runs": [
-        "D: agent-D-repair-race.log => 0",
-        "main: integration-D-targeted.log => 0"
+        "真实 PG + Hertz HTTP：v1/v2 预览、撤销/跨版本/匿名固定 grant -> 0"
       ],
-      "data_repair_plan": "无迁移；现有 grant/资产无需回填。",
-      "blockers": [
-        "真实预览转换器未验证（测试预发布 manifest/page）；授权/版本选择路径为真实 PG + Hertz。"
-      ],
-      "review_notes": "2026-10-26: Agent D 分支已合并到 repair/backend-audit-2026-10-26（merge 4cf0f1e），集成分支专项测试复跑通过；全量合并后统一转 verified/blocked。"
+      "data_repair_plan": "无数据迁移；历史预览按明确 version_id 重新解析，不回退到 current。",
+      "blockers": [],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。正确性测试在原生 PG/真实依赖范围内通过。",
+      "report": "evidence/repair-2026-10-26/reports/agent-D.md"
     },
     {
       "id": "B16",
       "severity": "P2",
       "owner": "B",
       "title": "restore-only 的父目录授权语义",
-      "status": "implementing",
+      "status": "verified",
       "trigger": "仅有 drive.restore 的合法 Agent 可恢复到根，却因 Parent 强制 ActionWrite 无法恢复到自己子目录。",
       "implementation_direction": "目标父目录校验使用恢复语义，保留 owner、空间、生命周期、版本和同名冲突检查；不能通过自动授予 drive.write 修复。",
       "acceptance": [
@@ -607,20 +786,33 @@
       ],
       "evidence_boundary": "真实应用/SQL 诊断已复现。",
       "coordination": "与 B02/B06 的父目录与 restore 规则一起回归。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
+      "repair_commits": [
+        "2493199",
+        "a6b3adb"
+      ],
+      "changed_files": [
+        "internal/application/mutations.go",
+        "internal/application/access/*"
+      ],
+      "correctness_tests": [
+        "TestRepairLifecycleRestoreOnlyScope",
+        "TestRepairLifecycleRestoreParentRevision",
+        "TestRepairLifecycleRestoreNameConflict"
+      ],
+      "validation_runs": [
+        "原生 PG：根/嵌套恢复、权限拒绝、父版本/同名冲突 -> 0"
+      ],
+      "data_repair_plan": "无数据迁移。",
       "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。正确性测试在原生 PG/真实依赖范围内通过。",
+      "report": "evidence/repair-2026-10-26/reports/agent-B.md"
     },
     {
       "id": "B17",
       "severity": "P2",
       "owner": "C",
       "title": "落败代次搜索块清理",
-      "status": "implementing",
+      "status": "implemented",
       "trigger": "新转换代次已成为可见指针，旧代晚到写入 Meili 却未获指针，不产生清理任务，旧搜索块长期残留。",
       "implementation_direction": "对写过索引但未获得可见资格的代次也触发持久幂等清理；检查引用/当前指针，保留不可变产物和审核读取。",
       "acceptance": [
@@ -639,20 +831,36 @@
       ],
       "evidence_boundary": "残留块已复现；大规模排序遮挡未测，不作为已有实测结果。",
       "coordination": "与 B06 的候选选择/可见指针/清理统一设计。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "8d7da858",
+        "4420c87"
+      ],
+      "changed_files": [
+        "internal/application/worker_visibility.go",
+        "internal/application/worker.go",
+        "db/migrations/000011_artifact_visibility_pages.up.sql"
+      ],
+      "correctness_tests": [
+        "TestRepairWorkerCleanupLateArtifact",
+        "TestRepairWorkerCleanupReferenceGuard",
+        "TestRepairWorkerCleanupRetry"
+      ],
+      "validation_runs": [
+        "原生 PG + 搜索替身：迟到 Upsert 周期复核、引用保护、重试 -> 0"
+      ],
+      "data_repair_plan": "迁移 000011 建 cleanup 队列并回填；worker 确认无引用后删除可重建索引文档。",
+      "blockers": [
+        "真实 Meilisearch 清理路径 not_run"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。实现与部分真实依赖验证通过；未跑的真实验收见 blockers，未标记 verified。",
+      "report": "evidence/repair-2026-10-26/reports/agent-C.md"
     },
     {
       "id": "B18",
       "severity": "P2",
       "owner": "F",
       "title": "PDF 直线路径图表识别",
-      "status": "implementing",
+      "status": "implemented",
       "trigger": "PDF 有足够文本且图表只用 m/l/S 操作，无 XObject/re/c/v/y，视觉判断 not_required，图表完全漏描述。",
       "implementation_direction": "完整解析绘图内容或采取有界保守渲染，覆盖直线路径；需要视觉但没有模型/失败时准确报告部分成功。",
       "acceptance": [
@@ -670,20 +878,33 @@
       ],
       "evidence_boundary": "合成真实 PDF 可复现，视觉质量不是该诊断的证明范围。",
       "coordination": "与 B12 的 description_status/partial 规则一致。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "d38677e"
+      ],
+      "changed_files": [
+        "converters/adapter.py",
+        "converters/tests/test_repair_pages.py"
+      ],
+      "correctness_tests": [
+        "test_vector_chart_requires_vision",
+        "test_chart_without_vision_reports_partial"
+      ],
+      "validation_runs": [
+        "真实 PDF 直线/路径检测 + 本地 vision HTTP 替身 -> 0"
+      ],
+      "data_repair_plan": "无迁移；旧图表页 description=not_required 无法自动识别，需受控重建候选代次。",
+      "blockers": [
+        "外部视觉模型未配置"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。实现与部分真实依赖验证通过；未跑的真实验收见 blockers，未标记 verified。",
+      "report": "evidence/repair-2026-10-26/reports/agent-F.md"
     },
     {
       "id": "B19",
       "severity": "P2",
       "owner": "F",
       "title": "配方模型与实际执行一致",
-      "status": "implementing",
+      "status": "implemented",
       "trigger": "排队时 recipe 模型 A，部署环境切换成 B，执行请求用 B，但产物仍记 A。",
       "implementation_direction": "执行器严格遵守不可变 recipe；无法提供该模型则明确 blocked/失败或显式建立新代次，不静默替换；记录真实 provider/model 与配方一致。",
       "acceptance": [
@@ -702,20 +923,33 @@
       ],
       "evidence_boundary": "替身捕获真实出站 payload 已证明模型漂移，不是外部供应商模型稳定性审计。",
       "coordination": "与 C 的 B12 持久页结果绑定同一不可变 recipe。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "d38677e"
+      ],
+      "changed_files": [
+        "converters/adapter.py",
+        "converters/tests/test_repair_pages.py"
+      ],
+      "correctness_tests": [
+        "test_recipe_model_is_honored",
+        "test_model_unavailable_blocks"
+      ],
+      "validation_runs": [
+        "本地 provider HTTP 替身捕获真实 payload/engine.model -> 0"
+      ],
+      "data_repair_plan": "无迁移；旧 manifest 模型不一致无法反推，需按部署时间窗受控重建。",
+      "blockers": [
+        "外部 provider 未连接"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。实现与部分真实依赖验证通过；未跑的真实验收见 blockers，未标记 verified。",
+      "report": "evidence/repair-2026-10-26/reports/agent-F.md"
     },
     {
       "id": "B20",
       "severity": "P2",
       "owner": "F",
       "title": "Office 超时临时原件回收",
-      "status": "implementing",
+      "status": "verified",
       "trigger": "Office 预览子进程被 SIGKILL，finally 未执行；共享 preview-sources 中原件持续残留。",
       "implementation_direction": "父进程拥有 attempt 专属源目录，子进程退出/kill/wait 后清理，并回收孤儿目录；清理不得误删其他活跃请求。",
       "acceptance": [
@@ -733,20 +967,31 @@
       ],
       "evidence_boundary": "两次真实超时遗留两个源文件已复现；tmpfs 写满仅是风险推导。",
       "coordination": "与 B21 的输入暂存生命周期一起修复。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
+      "repair_commits": [
+        "d38677e"
+      ],
+      "changed_files": [
+        "converters/adapter.py",
+        "converters/tests/test_repair_pages.py"
+      ],
+      "correctness_tests": [
+        "test_timeout_cleans_attempt_files",
+        "test_sigkill_orphan_reaped"
+      ],
+      "validation_runs": [
+        "真实子进程超时/SIGKILL + 真实文件系统 -> 0"
+      ],
+      "data_repair_plan": "无迁移；旧版平铺临时文件不在新命名空间，部署后需一次性人工清理。",
       "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。正确性测试在原生 PG/真实依赖范围内通过。",
+      "report": "evidence/repair-2026-10-26/reports/agent-F.md"
     },
     {
       "id": "B21",
       "severity": "P2",
       "owner": "F",
       "title": "输入暂存与输出预算分开",
-      "status": "implementing",
+      "status": "implemented",
       "trigger": "输入上限 100 MiB、输出上限 64 MiB，进程 RLIMIT_FSIZE 将合法大输入暂存也截断，并残留部分源文件。",
       "implementation_direction": "分别限制输入、输出、总临时空间；合法输入可以完整暂存，输出仍受限制，任何写入失败均清理残片。不能简单无限提高全局预算。",
       "acceptance": [
@@ -764,20 +1009,33 @@
       ],
       "evidence_boundary": "同机制缩小预算复现；尚未用默认 64–100 MiB 大小做实测。",
       "coordination": "与 B20 同一输入生命周期设计。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "d38677e"
+      ],
+      "changed_files": [
+        "converters/adapter.py",
+        "converters/tests/test_repair_pages.py"
+      ],
+      "correctness_tests": [
+        "test_input_output_temp_budgets",
+        "test_partial_write_cleanup"
+      ],
+      "validation_runs": [
+        "本地预算/暂存真实文件系统 -> 0"
+      ],
+      "data_repair_plan": "无迁移；旧截断残片由 B20 清理覆盖。",
+      "blockers": [
+        "真实 kkFileView/LibreOffice 与大文件全尺寸未跑"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。实现与部分真实依赖验证通过；未跑的真实验收见 blockers，未标记 verified。",
+      "report": "evidence/repair-2026-10-26/reports/agent-F.md"
     },
     {
       "id": "B22",
       "severity": "P2",
       "owner": "E",
       "title": "正式 HTTPS 的身份 Cookie Secure",
-      "status": "implementing",
+      "status": "verified",
       "trigger": "生产 HTTPS 直连请求没有 X-Forwarded-Proto；当前 map 选择 nosecure，剥掉 Keycloak Cookie 的 Secure。",
       "implementation_direction": "分开开发 HTTP 与正式 HTTPS 配置，正式 HTTPS 不删除 Secure；只信任已配置可信代理的协议头，不能让客户端头决定降级。",
       "acceptance": [
@@ -792,13 +1050,29 @@
       "evidence_logs": [],
       "evidence_boundary": "仅静态配置确认，无现成动态复现；需新增配置测试与真实 TLS 验证。",
       "coordination": "E 负责后端网关，测试用 HTTP/TLS 客户端，不涉及前端改造。",
-      "repair_commits": [],
-      "changed_files": [],
-      "correctness_tests": [],
-      "validation_runs": [],
-      "data_repair_plan": "",
-      "blockers": [],
-      "review_notes": "2026-10-26: 并行实施中（worktree repair/A..F）；状态待合并与验证后更新。"
+      "repair_commits": [
+        "4c881bb",
+        "9634a8f"
+      ],
+      "changed_files": [
+        "deploy/gateway/nginx.conf",
+        "deploy/compose/compose.yaml",
+        "internal/transport/http.go"
+      ],
+      "correctness_tests": [
+        "TestRepairAuthCookieSecureDirectTLS",
+        "TestRepairAuthCookieSecureTrustedProxy",
+        "TestRepairAuthCookieSecureSpoofedForwardedProto"
+      ],
+      "validation_runs": [
+        "真实 nginx + TLS + 显式代理 CIDR：直连/可信/伪造/开发 HTTP -> 0"
+      ],
+      "data_repair_plan": "部署需显式配置受信代理 CIDR；无数据迁移。",
+      "blockers": [
+        "完整浏览器登录链路 not_run"
+      ],
+      "review_notes": "2026-10-26: 已合并到 repair/backend-audit-2026-10-26。正确性测试在原生 PG/真实依赖范围内通过。",
+      "report": "evidence/repair-2026-10-26/reports/agent-E.md"
     }
   ],
   "product_decisions": [
@@ -808,5 +1082,9 @@
       "title": "反馈不可关联账号的匿名范围",
       "blocks_bugfixes": false
     }
-  ]
+  ],
+  "last_updated": "2026-10-26",
+  "integration_branch": "repair/backend-audit-2026-10-26",
+  "integration_commit": "ae04324",
+  "notes": "审计测试的 PASS 不代表修复通过；本 board 的 correctness_tests 均为修复后正确性断言。verified 仅覆盖其 validation_runs 中列出的真实依赖；其余为 implemented。完整证据与命令见 evidence/repair-2026-10-26/。"
 }

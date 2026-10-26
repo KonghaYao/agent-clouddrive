@@ -1,0 +1,8 @@
+.................................ss.................../Users/konghayao/.pyenv/versions/3.12.8/lib/python3.12/base64.py:408: ResourceWarning: unclosed <socket.socket [closed] fd=4, family=2, type=1, proto=6>
+  curr_append(x)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.............
+----------------------------------------------------------------------
+Ran 67 tests in 19.611s
+
+OK (skipped=2)
