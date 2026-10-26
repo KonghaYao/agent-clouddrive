@@ -96,7 +96,12 @@ func (s *Service) Execute(ctx context.Context, a Actor, name string, in Object) 
 		return s.AbandonUpload(ctx, a, str(in, "upload_id"))
 	case "finish_upload":
 		return s.FinishUpload(ctx, a, str(in, "upload_id"))
-	case "mkdir", "move", "rename", "delete", "restore":
+	case "mkdir":
+		if err = validateParentRevision(in); err != nil {
+			return nil, err
+		}
+		return s.Mutate(ctx, a, name, in)
+	case "move", "rename", "delete", "restore":
 		return s.Mutate(ctx, a, name, in)
 	case "reconvert":
 		return s.reconvert(ctx, a, in)
@@ -138,6 +143,45 @@ func (s *Service) Execute(ctx context.Context, a Actor, name string, in Object) 
 	}
 	return result, normalizeError(err)
 }
+
+// validateParentRevision makes the mandatory non-root mkdir concurrency input
+// explicit on every entry point (REST, MCP and batch) instead of letting a
+// mistyped value degrade to zero and surface as an unrelated "required" error.
+func validateParentRevision(in Object) error {
+	raw, ok := in["expected_parent_revision"]
+	if !ok {
+		return nil
+	}
+	var revision int64
+	switch v := raw.(type) {
+	case json.Number:
+		n, e := v.Int64()
+		if e != nil {
+			return invalidParentRevision()
+		}
+		revision = n
+	case int:
+		revision = int64(v)
+	case int64:
+		revision = v
+	case float64:
+		if v < 1 || v > float64(1<<62) || v != float64(int64(v)) {
+			return invalidParentRevision()
+		}
+		revision = int64(v)
+	default:
+		return invalidParentRevision()
+	}
+	if revision < 1 {
+		return invalidParentRevision()
+	}
+	return nil
+}
+
+func invalidParentRevision() error {
+	return domain.NewError(domain.InvalidArgument, "expected_parent_revision must be an integer >= 1")
+}
+
 func (s *Service) search(ctx context.Context, a Actor, in Object) (any, error) {
 	if e := access.New(s.deps()).Scope(a, "drive.read"); e != nil {
 		return nil, e
@@ -198,54 +242,108 @@ func (s *Service) search(ctx context.Context, a Actor, in Object) (any, error) {
 	return Object{"items": out, "next_cursor": cursor}, nil
 }
 func (s *Service) markdown(ctx context.Context, a Actor, in Object) (any, error) {
-	action := domain.ActionReadMarkdown
-	if str(in, "artifact_set_id") != "" || str(in, "version_id") != "" {
-		action = domain.ActionReadHistory
+	fid := str(in, "file_id")
+	if fid == "" {
+		return nil, domain.NewError(domain.InvalidArgument, "file_id is required")
 	}
-	f, e := access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), action)
-	if e != nil {
-		return nil, e
-	}
-	aid := str(in, "artifact_set_id")
-	if aid == "" {
-		if vid := str(in, "version_id"); vid != "" {
-			_ = s.DB.QueryRow(ctx, `SELECT a.id::text FROM artifact_sets a JOIN file_versions v ON v.id=a.source_version_id WHERE v.file_id=$1 AND v.id=$2 AND a.published_at IS NOT NULL ORDER BY a.generation DESC LIMIT 1`, str(f, "id"), vid).Scan(&aid)
-		} else {
-			aid = str(f, "search_artifact_set_id")
+	explicitArtifact := str(in, "artifact_set_id")
+	explicitVersion := str(in, "version_id")
+
+	// A continuation is never allowed to fall back to the current visible
+	// pointer. It resumes the exact immutable artifact recorded in the cursor,
+	// and any caller-supplied binding must agree with it.
+	var bound readCursor
+	hasCursor := str(in, "cursor") != ""
+	if hasCursor {
+		var e error
+		bound, e = s.loadReadCursor(ctx, str(in, "cursor"))
+		if e != nil {
+			return nil, e
+		}
+		if bound.PrincipalID != a.Principal.ID || bound.FileID != fid {
+			return nil, invalidReadCursor()
+		}
+		if explicitArtifact != "" && explicitArtifact != bound.ArtifactSetID {
+			return nil, domain.NewError(domain.InvalidArgument, "cursor does not match artifact_set_id")
+		}
+		if explicitVersion != "" && explicitVersion != bound.SourceVersionID {
+			return nil, domain.NewError(domain.InvalidArgument, "cursor does not match version_id")
+		}
+		if _, ok := in["offset"]; ok && num(in, "offset") != bound.Offset {
+			return nil, domain.NewError(domain.InvalidArgument, "cursor does not match offset")
 		}
 	}
-	artifact, e := one(ctx, s.DB, `SELECT to_jsonb(a) FROM artifact_sets a JOIN file_versions v ON v.id=a.source_version_id WHERE a.id=$1 AND v.file_id=$2 AND a.published_at IS NOT NULL`, aid, str(f, "id"))
+
+	// Every page is authorized from scratch. A cursor only selects a pinned
+	// artifact; it never carries authority, so scope loss, account disablement
+	// and lifecycle changes are re-evaluated here.
+	scope := "current"
+	if hasCursor {
+		scope = bound.Scope
+	} else if explicitArtifact != "" || explicitVersion != "" {
+		scope = "history"
+	}
+	action := domain.ActionReadMarkdown
+	if scope == "history" {
+		action = domain.ActionReadHistory
+	}
+	f, e := access.New(s.deps()).Owned(ctx, a, fid, action)
 	if e != nil {
 		return nil, e
 	}
-	c, e := s.Artifacts.Open(ctx, str(artifact, "markdown_key"), nil)
-	if e != nil {
-		return nil, normalizeError(e)
+
+	var artifact Object
+	if hasCursor {
+		artifact, e = one(ctx, s.DB, `SELECT to_jsonb(a) FROM artifact_sets a JOIN file_versions v ON v.id=a.source_version_id WHERE a.id=$1 AND a.source_version_id=$2 AND v.file_id=$3 AND a.published_at IS NOT NULL`, bound.ArtifactSetID, bound.SourceVersionID, fid)
+	} else {
+		aid := explicitArtifact
+		if aid == "" {
+			if explicitVersion != "" {
+				_ = s.DB.QueryRow(ctx, `SELECT a.id::text FROM artifact_sets a JOIN file_versions v ON v.id=a.source_version_id WHERE v.file_id=$1 AND v.id=$2 AND a.published_at IS NOT NULL ORDER BY a.generation DESC LIMIT 1`, fid, explicitVersion).Scan(&aid)
+				if aid == "" {
+					return nil, domain.NewError(domain.NotFound, "no published artifact for the requested version")
+				}
+			} else {
+				aid = str(f, "search_artifact_set_id")
+				if aid == "" {
+					return nil, domain.NewError(domain.NotFound, "no published artifact for this file")
+				}
+			}
+		}
+		artifact, e = one(ctx, s.DB, `SELECT to_jsonb(a) FROM artifact_sets a JOIN file_versions v ON v.id=a.source_version_id WHERE a.id=$1 AND v.file_id=$2 AND a.published_at IS NOT NULL`, aid, fid)
+		if e == nil && explicitVersion != "" && str(artifact, "source_version_id") != explicitVersion {
+			return nil, domain.NewError(domain.InvalidArgument, "artifact_set_id does not belong to version_id")
+		}
 	}
-	defer c.Body.Close()
-	all, e := readBounded(c.Body, 64<<20)
 	if e != nil {
 		return nil, e
 	}
-	offset := int(num(in, "offset"))
-	if cursor := str(in, "cursor"); cursor != "" {
-		offset, _ = strconv.Atoi(cursor)
+	versionID := str(artifact, "source_version_id")
+	artifactID := str(artifact, "id")
+	offset := num(in, "offset")
+	if hasCursor {
+		offset = bound.Offset
 	}
-	if offset < 0 || offset > len(all) {
-		return nil, domain.NewError(domain.InvalidArgument, "invalid offset")
+	page, end, total, e := s.readMarkdownPage(ctx, str(artifact, "markdown_key"), offset)
+	if e != nil {
+		return nil, e
 	}
-	end := offset + 65536
-	if end > len(all) {
-		end = len(all)
+	result := Object{
+		"file_id":         str(f, "id"),
+		"version_id":      versionID,
+		"artifact_set_id": artifactID,
+		"completeness":    artifact["completeness"],
+		"markdown":        string(page),
+		"next_cursor":     nil,
 	}
-	for end < len(all) && end > offset && (all[end]&0xc0) == 0x80 {
-		end--
+	if end < total {
+		cursor, e := s.createReadCursor(ctx, a, fid, versionID, artifactID, scope, end)
+		if e != nil {
+			return nil, e
+		}
+		result["next_cursor"] = cursor
 	}
-	var cursor any
-	if end < len(all) {
-		cursor = strconv.Itoa(end)
-	}
-	return Object{"file_id": str(f, "id"), "version_id": str(artifact, "source_version_id"), "artifact_set_id": aid, "completeness": artifact["completeness"], "markdown": string(all[offset:end]), "next_cursor": cursor}, nil
+	return result, nil
 }
 func (s *Service) reconvert(ctx context.Context, a Actor, in Object) (any, error) {
 	f, e := access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), domain.ActionConvert)

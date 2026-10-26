@@ -248,6 +248,19 @@ type QuotaReservation struct {
 	ResolvedAt pgtype.Timestamptz `json:"resolved_at"`
 }
 
+type ReadCursor struct {
+	TokenHash       []byte             `json:"token_hash"`
+	FormatVersion   int32              `json:"format_version"`
+	PrincipalID     pgtype.UUID        `json:"principal_id"`
+	FileID          pgtype.UUID        `json:"file_id"`
+	SourceVersionID pgtype.UUID        `json:"source_version_id"`
+	ArtifactSetID   pgtype.UUID        `json:"artifact_set_id"`
+	ReadScope       string             `json:"read_scope"`
+	ByteOffset      int64              `json:"byte_offset"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+}
+
 type RetentionRoot struct {
 	SpaceID          pgtype.UUID        `json:"space_id"`
 	NativeResourceID *string            `json:"native_resource_id"`
