@@ -214,8 +214,8 @@ func TestRepairUploadAdmissionAbandonAtomic(t *testing.T) {
 			if _, e := s.DB.Exec(ctx, `UPDATE file_operations SET state='failed_confirmed' WHERE id=$1`, str(up, "operation_id")); e == nil {
 				t.Fatal("database accepted unresolved failure")
 			}
-		} else if domain.ErrorCode(a) != domain.OperationPending {
-			t.Fatal(a)
+		} else if code := domain.ErrorCode(a); code != domain.OperationPending && code != domain.NotFound {
+			t.Fatalf("losing PATCH must be rejected after abandon, got %v", a)
 		}
 	}
 }

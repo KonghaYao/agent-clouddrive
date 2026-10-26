@@ -16,6 +16,24 @@ import (
 	"github.com/agentclouddrive/agent-clouddrive/internal/ports"
 )
 
+func repairWorkerPython(t *testing.T, modules ...string) string {
+	t.Helper()
+	python := os.Getenv("DRIVE_TEST_PYTHON")
+	if python == "" {
+		var err error
+		python, err = exec.LookPath("python3")
+		if err != nil {
+			t.Skip("python3 unavailable for converter subprocess test")
+		}
+	}
+	if len(modules) > 0 {
+		if err := exec.Command(python, "-c", "import "+strings.Join(modules, ",")).Run(); err != nil {
+			t.Skipf("converter python dependencies unavailable: %v", err)
+		}
+	}
+	return python
+}
+
 func TestRepairWorkerRealFPageProtocolPersistence(t *testing.T) {
 	adapter := os.Getenv("DRIVE_TEST_CONVERTER_ADAPTER")
 	if adapter == "" {
@@ -23,7 +41,7 @@ func TestRepairWorkerRealFPageProtocolPersistence(t *testing.T) {
 	}
 	s, _, queued, _, _ := workerFixture(t)
 	job := repairClaim(t, s, queued)
-	python := "/tmp/repair-venv/bin/python"
+	python := repairWorkerPython(t, "reportlab")
 	pdf, err := exec.Command(python, "-c", `import io,sys
 from reportlab.pdfgen import canvas
 b=io.BytesIO();c=canvas.Canvas(b)
@@ -82,7 +100,7 @@ func TestRepairWorkerPageTimeoutPersistsPartialThenResumesAfterRestart(t *testin
 	if err := os.WriteFile(script, []byte(repairPageProcess), 0600); err != nil {
 		t.Fatal(err)
 	}
-	s.Converter = &converteradapter.Process{Command: "/tmp/repair-venv/bin/python", Args: []string{script, log}, MaxResponseBytes: 1 << 20}
+	s.Converter = &converteradapter.Process{Command: repairWorkerPython(t), Args: []string{script, log}, MaxResponseBytes: 1 << 20}
 	recipe := s.Recipe()
 	recipe.TimeoutSeconds = 1
 	q := dbgen.New(s.DB)
@@ -107,7 +125,7 @@ func TestRepairWorkerPageTimeoutPersistsPartialThenResumesAfterRestart(t *testin
 		t.Fatal(err)
 	}
 	t.Logf("首次真实子进程 timeout 后状态=%s page_count=%d ready=%d failed=%d", first.State, first.PageCount, first.PagesReady, first.PagesFailed)
-	s = &Service{DB:s.DB,Config:s.Config,Original:s.Original,Artifacts:s.Artifacts,Identity:s.Identity,Search:s.Search,Converter:s.Converter}
+	s = &Service{DB: s.DB, Config: s.Config, Original: s.Original, Artifacts: s.Artifacts, Identity: s.Identity, Search: s.Search, Converter: s.Converter}
 	repairSQL(t, s, `UPDATE conversion_jobs SET retry_at=now() WHERE id=$1`, job.ID)
 	second := repairProcess(t, s, job)
 	if second.State != "ready" || second.PagesReady != 2 || second.PagesFailed != 0 || second.Attempt != 2 {

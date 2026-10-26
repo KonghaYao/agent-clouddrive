@@ -18,6 +18,24 @@ import (
 	"github.com/agentclouddrive/agent-clouddrive/internal/ports"
 )
 
+func repairTestPython(t *testing.T, modules ...string) string {
+	t.Helper()
+	python := os.Getenv("DRIVE_TEST_PYTHON")
+	if python == "" {
+		var err error
+		python, err = exec.LookPath("python3")
+		if err != nil {
+			t.Skip("python3 unavailable for converter subprocess test")
+		}
+	}
+	if len(modules) > 0 {
+		if err := exec.Command(python, "-c", "import "+strings.Join(modules, ",")).Run(); err != nil {
+			t.Skipf("converter python dependencies unavailable: %v", err)
+		}
+	}
+	return python
+}
+
 func TestRepairConversionHTTPStreamsPagesBeforeResult(t *testing.T) {
 	pageSent := make(chan struct{})
 	release := make(chan struct{})
@@ -69,7 +87,7 @@ time.sleep(10)
 	if err := os.WriteFile(script, []byte(body), 0600); err != nil {
 		t.Fatal(err)
 	}
-	p := &Process{Command: "/tmp/repair-venv/bin/python", Args: []string{script}, MaxResponseBytes: 4096}
+	p := &Process{Command: repairTestPython(t), Args: []string{script}, MaxResponseBytes: 4096}
 	for _, attempt := range []string{"timeout", "kill"} {
 		calls := 0
 		_, err := p.ExecutePages(context.Background(), ports.ConversionRequest{JobID: "j", AttemptID: attempt, Recipe: ports.Recipe{MaxPages: 2, TimeoutSeconds: 1}}, func(page ports.PageEvent) error { calls++; return nil })
@@ -99,7 +117,7 @@ time.sleep(10)
 // 合成 PDF 使用 reportlab，转换使用真实 --execute，不含 OCR/视觉替身。
 // 本分支旧 adapter 返回单 JSON：本测试验证兼容与真实文本 PDF，不冒充 v2 集成。
 func TestRepairConversionRealAdapterSyntheticPDF(t *testing.T) {
-	python := "/tmp/repair-venv/bin/python"
+	python := repairTestPython(t, "pypdf", "pypdfium2", "PIL", "cairosvg", "reportlab")
 	pdf, err := exec.Command(python, "-c", `import io,sys
 from reportlab.pdfgen import canvas
 b=io.BytesIO();c=canvas.Canvas(b)

@@ -42,6 +42,11 @@ jobs:
         run: go build ./...
       - name: Vet
         run: go vet ./...
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install converter test dependencies
+        run: python -m pip install -r converters/requirements.txt reportlab==4.4.9
       - name: Test
         run: go test ./...
 
