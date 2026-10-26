@@ -1103,7 +1103,7 @@
   ],
   "last_updated": "2026-10-26",
   "integration_branch": "repair/backend-audit-2026-10-26",
-  "integration_commit": "ae04324",
+  "integration_commit": "87d9252",
   "notes": "审计测试的 PASS 不代表修复通过；correctness_tests 均为修复后正确性断言。22 项状态为 verified（按 2026-10-26 缩减后的验收范围）；not_required_tests 列出被明确排除的基础设施/供应商矩阵。",
   "verification_scope": {
     "policy": "2026-10-26 用户指示：过分的实际测试标记为不需要。这些测试未运行不构成阻塞，也不冒充已运行；它们在 not_required_tests 中显式记录。",
