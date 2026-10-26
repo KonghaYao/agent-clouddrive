@@ -3,6 +3,8 @@ package application
 import (
 	"context"
 	"testing"
+
+	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
 )
 
 func TestRecordUploadProgressPersistsEachAcceptedChunk(t *testing.T) {
@@ -23,30 +25,33 @@ func TestRecordUploadProgressPersistsEachAcceptedChunk(t *testing.T) {
 		}
 		return received, completed, native
 	}
-	if err = s.RecordUploadProgress(ctx, uid, 4, ""); err != nil {
+	epoch, err := s.AdmitUploadPatch(ctx, owner, uid, 0, 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = s.RecordUploadProgress(ctx, uid, epoch, 4, ""); err != nil {
 		t.Fatal(err)
 	}
 	if received, completed, native := read(); received != 4 || completed || native != nil {
 		t.Fatalf("partial progress = %d completed=%v native=%v", received, completed, native)
 	}
-	// A late/duplicate chunk with a smaller offset must never move progress backwards.
-	if err = s.RecordUploadProgress(ctx, uid, 3, ""); err != nil {
-		t.Fatal(err)
+	// 旧 epoch、重复响应、回退和越界都必须明确冲突，不得截断为成功。
+	for _, offset := range []int64{3, 4, 99} {
+		if err = s.RecordUploadProgress(ctx, uid, epoch, offset, ""); domain.ErrorCode(err) != domain.OperationPending {
+			t.Fatalf("late offset %d: %v", offset, err)
+		}
 	}
 	if received, _, _ := read(); received != 4 {
-		t.Fatalf("progress regressed to %d", received)
+		t.Fatalf("progress changed to %d", received)
 	}
-	if err = s.RecordUploadProgress(ctx, uid, 10, "native-resource"); err != nil {
+	epoch, err = s.AdmitUploadPatch(ctx, owner, uid, 4, 6)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = s.RecordUploadProgress(ctx, uid, epoch, 10, "native-resource"); err != nil {
 		t.Fatal(err)
 	}
 	if received, completed, native := read(); received != 10 || !completed || native == nil || *native != "native-resource" {
 		t.Fatalf("completed progress = %d completed=%v native=%v", received, completed, native)
-	}
-	// Even an impossible native offset must not violate received_bytes <= expected_size.
-	if err = s.RecordUploadProgress(ctx, uid, 99, ""); err != nil {
-		t.Fatalf("oversized offset: %v", err)
-	}
-	if received, completed, _ := read(); received != 10 || !completed {
-		t.Fatalf("oversized progress = %d completed=%v", received, completed)
 	}
 }
