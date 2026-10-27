@@ -152,7 +152,8 @@ func (a *API) MCPHandler() http.Handler {
 			}
 		}
 		bearer := strings.TrimPrefix(authorization, "Bearer ")
-		if in, ok := a.masterKeyRequest(bearer, r.Header.Get("X-Key-Id"), r.Header.Get("X-On-Behalf-Of"), remoteIP(r.RemoteAddr), "mcp"); ok {
+		source := a.sourceIP(r.RemoteAddr, r.Header.Get)
+		if in, ok := a.masterKeyRequest(bearer, r.Header.Get("X-Key-Id"), r.Header.Get("X-On-Behalf-Of"), source, "mcp"); ok {
 			in.Agent = true
 			in.ReadOnly = feedback
 			actor, e = a.Service.AuthenticateMasterKey(r.Context(), in)

@@ -72,7 +72,8 @@ func (a *API) actor(ctx context.Context, c *app.RequestContext) (application.Act
 	}
 	bearer := strings.TrimPrefix(h, "Bearer ")
 	route := string(c.Path())
-	if in, ok := a.masterKeyRequest(bearer, string(c.GetHeader("X-Key-Id")), string(c.GetHeader("X-On-Behalf-Of")), remoteIP(c.RemoteAddr().String()), route); ok {
+	source := a.sourceIP(c.RemoteAddr().String(), func(k string) string { return string(c.GetHeader(k)) })
+	if in, ok := a.masterKeyRequest(bearer, string(c.GetHeader("X-Key-Id")), string(c.GetHeader("X-On-Behalf-Of")), source, route); ok {
 		in.ReadOnly = route == "/v1/feedback"
 		return a.Service.AuthenticateMasterKey(ctx, in)
 	}
