@@ -59,7 +59,7 @@ func Open(ctx context.Context) (*application.Service, func(), error) {
 		transport.TLSClientConfig = &tls.Config{RootCAs: roots, MinVersion: tls.VersionTLS12}
 	}
 	client := &http.Client{Transport: transport, Timeout: 0}
-	original, e := ocis.New(ocis.Config{URL: cfg.OCISURL, Instance: cfg.OCISURL, Client: client, MaxUploadChunkBytes: 100 << 20, VerifiedRevisionRead: cfg.AllowUnverifiedOCIS, VerifiedMoveHistory: cfg.AllowUnverifiedOCIS, VerifiedConditionalOverwrite: cfg.AllowUnverifiedOCIS})
+	original, e := ocis.New(ocis.Config{URL: cfg.OCISURL, Instance: cfg.OCISURL, InstanceAliases: []string{cfg.SpaceProvisionerNativeInstance}, Client: client, MaxUploadChunkBytes: 100 << 20, VerifiedRevisionRead: cfg.AllowUnverifiedOCIS, VerifiedMoveHistory: cfg.AllowUnverifiedOCIS, VerifiedConditionalOverwrite: cfg.AllowUnverifiedOCIS})
 	if e != nil {
 		closeFn()
 		return nil, nil, e
@@ -86,6 +86,15 @@ func Open(ctx context.Context) (*application.Service, func(), error) {
 			return nil, nil, er
 		}
 		writeProvider = provider
+	}
+	var spaceProvisioner ports.SpaceProvisioner
+	if cfg.SpaceProvisionerEnabled {
+		provider, er := ocis.NewSpaceProvisioner(ocis.SpaceProvisionerConfig{URL: cfg.OCISURL, Instance: cfg.SpaceProvisionerNativeInstance, TokenURL: cfg.SpaceProvisionerTokenURL, ClientID: cfg.SpaceProvisionerClientID, ClientSecret: cfg.SpaceProvisionerClientSecret, Audience: cfg.SpaceProvisionerAudience, Scopes: cfg.SpaceProvisionerScopes, Verified: cfg.SpaceProvisionerVerified, Client: client})
+		if er != nil {
+			closeFn()
+			return nil, nil, er
+		}
+		spaceProvisioner = provider
 	}
 	externalWriteIssuers := map[string]bool{}
 	for _, issuer := range cfg.ExternalWriteIssuers {
@@ -157,6 +166,6 @@ func Open(ctx context.Context) (*application.Service, func(), error) {
 		identityPort = wrapped
 		delegationConfig = &application.DelegationConfig{ClientID: creds.BackgroundClientID, ClientSecret: creds.BackgroundClientSecret, AuthorizationURL: cfg.OIDCIssuer + "/protocol/openid-connect/auth", TokenURL: tokenURL, CallbackURL: cfg.PublicURL + "/v1/delegation/callback", Key: key, HTTP: client}
 	}
-	svc := &application.Service{DB: pool, Config: cfg, Original: original, Artifacts: artifacts, Identity: identityPort, Search: index, Converter: conv, Preview: preview, Delegation: delegationConfig, MasterKeyStatus: core.NewMasterKeyStatusCache()}
+	svc := &application.Service{DB: pool, Config: cfg, Original: original, Artifacts: artifacts, Identity: identityPort, Search: index, Converter: conv, Preview: preview, Delegation: delegationConfig, MasterKeyStatus: core.NewMasterKeyStatusCache(), SpaceProvisioner: spaceProvisioner}
 	return svc, closeFn, nil
 }

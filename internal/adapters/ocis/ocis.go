@@ -20,6 +20,7 @@ import (
 
 type Config struct {
 	URL, Instance                                                           string
+	InstanceAliases                                                         []string
 	Client                                                                  *http.Client
 	MaxMetadataBytes, MaxUploadChunkBytes                                   int64
 	VerifiedRevisionRead, VerifiedMoveHistory, VerifiedConditionalOverwrite bool
@@ -38,6 +39,23 @@ func New(cfg Config) (*Store, error) {
 	if cfg.Instance == "" {
 		cfg.Instance = u.Host
 	}
+	aliases := make([]string, 0, len(cfg.InstanceAliases))
+	for _, alias := range cfg.InstanceAliases {
+		if alias == "" || alias == cfg.Instance || strings.ContainsAny(alias, "\x00\r\n") {
+			continue
+		}
+		duplicate := false
+		for _, existing := range aliases {
+			if existing == alias {
+				duplicate = true
+				break
+			}
+		}
+		if !duplicate {
+			aliases = append(aliases, alias)
+		}
+	}
+	cfg.InstanceAliases = aliases
 	if cfg.MaxMetadataBytes <= 0 {
 		cfg.MaxMetadataBytes = 4 << 20
 	}
@@ -62,13 +80,21 @@ func safeSegment(s string) bool {
 	return s != "" && s != "." && s != ".." && !strings.ContainsAny(s, "/\\\x00\r\n")
 }
 func (s *Store) resource(r ports.ResourceRef) error {
-	if r.Instance != "" && r.Instance != s.cfg.Instance {
+	if r.Instance != "" && r.Instance != s.cfg.Instance && !s.instanceAlias(r.Instance) {
 		return ports.ErrInvalid
 	}
 	if !safeSegment(r.ResourceID) || !safeSegment(r.SpaceID) {
 		return ports.ErrInvalid
 	}
 	return nil
+}
+func (s *Store) instanceAlias(instance string) bool {
+	for _, alias := range s.cfg.InstanceAliases {
+		if alias == instance {
+			return true
+		}
+	}
+	return false
 }
 func (s *Store) endpoint(p string) string {
 	u := *s.base

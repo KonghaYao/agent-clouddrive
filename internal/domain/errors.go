@@ -29,7 +29,10 @@ const (
 	LeaseLost             Code = "LEASE_LOST"
 	PublicationSuperseded Code = "PUBLICATION_SUPERSEDED"
 	DependencyUnavailable Code = "DEPENDENCY_UNAVAILABLE"
-	RateLimited           Code = "RATE_LIMITED"
+	// SpaceProvisionerUnavailable means an external identity has no native
+	// space mapping and the configured provisioner cannot create one.
+	SpaceProvisionerUnavailable Code = "SPACE_PROVISIONER_UNAVAILABLE"
+	RateLimited                 Code = "RATE_LIMITED"
 )
 
 type Error struct {
@@ -66,7 +69,7 @@ func HTTPStatus(err error) int {
 		return http.StatusUnprocessableEntity
 	case RateLimited:
 		return http.StatusTooManyRequests
-	case DependencyUnavailable:
+	case DependencyUnavailable, SpaceProvisionerUnavailable:
 		return http.StatusServiceUnavailable
 	default:
 		return http.StatusInternalServerError

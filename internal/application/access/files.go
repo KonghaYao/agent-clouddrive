@@ -32,9 +32,17 @@ func (s *Service) Owned(ctx context.Context, a core.Actor, fid string, action do
 	return f, nil
 }
 func (s *Service) Space(ctx context.Context, a core.Actor) (core.Object, error) {
-	sp, e := core.One(ctx, s.d.DB, `SELECT to_jsonb(s) FROM spaces s WHERE owner_id=$1`, a.Principal.ID)
+	sp, e := s.spaceByOwner(ctx, a.Principal.ID)
 	if e == nil {
 		return sp, nil
+	}
+	if domain.ErrorCode(e) != domain.NotFound {
+		return nil, e
+	}
+	if s.externalSpaceIssuer(a.Subject.Issuer) {
+		// Never fall back to /me/drives for an externally asserted identity: that
+		// would expose the service account's own personal space.
+		return s.provisionExternalSpace(ctx, a)
 	}
 	resolver, ok := s.d.Original.(ports.PersonalSpaceResolver)
 	if !ok {
@@ -48,7 +56,7 @@ func (s *Service) Space(ctx context.Context, a core.Actor) (core.Object, error) 
 	if e != nil {
 		return nil, e
 	}
-	return core.One(ctx, s.d.DB, `INSERT INTO spaces(owner_id,native_instance,native_space_id,native_root_resource_id) VALUES($1,$2,$3,$4) ON CONFLICT(owner_id) DO UPDATE SET owner_id=excluded.owner_id RETURNING to_jsonb(spaces)`, a.Principal.ID, s.d.Config.OCISURL, native.SpaceID, native.RootResourceID)
+	return s.insertSpace(ctx, a.Principal.ID, s.d.Config.OCISURL, native.SpaceID, native.RootResourceID)
 }
 func (s *Service) Ref(ctx context.Context, f core.Object) (ports.ResourceRef, error) {
 	var sid, instance string

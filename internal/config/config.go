@@ -53,14 +53,27 @@ type Config struct {
 	OCISWriteServiceScopes       []string
 	OCISWriteServiceTTL          time.Duration
 	OCISWriteServiceVerified     bool
+
+	// The space provisioner creates native project spaces for externally
+	// asserted identities. It is a separate high-privilege client.
+	ExternalSpaceIssuers           []string
+	SpaceProvisionerEnabled        bool
+	SpaceProvisionerTokenURL       string
+	SpaceProvisionerClientID       string
+	SpaceProvisionerClientSecret   string
+	SpaceProvisionerAudience       string
+	SpaceProvisionerScopes         []string
+	SpaceProvisionerVerified       bool
+	SpaceProvisionerNativeInstance string
 }
 
 const (
 	// These are the optional drive scopes configured on the interactive web
 	// client in deploy/compose/keycloak/clouddrive-realm.template.json.
-	defaultDriveScopes        = "drive.read,drive.write,drive.delete,drive.restore,drive.convert,drive.share.request,drive.feedback"
-	defaultServiceScope       = "drive.read"
-	defaultWriteServiceScopes = "drive.read,drive.write"
+	defaultDriveScopes           = "drive.read,drive.write,drive.delete,drive.restore,drive.convert,drive.share.request,drive.feedback"
+	defaultServiceScope          = "drive.read"
+	defaultWriteServiceScopes    = "drive.read,drive.write"
+	defaultSpaceProvisionerScope = "openid"
 )
 
 func env(k, d string) string {
@@ -234,6 +247,49 @@ func Load() (Config, error) {
 		}
 		if !c.OCISWriteServiceVerified {
 			return c, errors.New("DRIVE_EXTERNAL_WRITE_ENABLED requires DRIVE_OCIS_WRITE_SERVICE_VERIFIED=true")
+		}
+	}
+	c.ExternalSpaceIssuers = list("DRIVE_EXTERNAL_SPACE_ISSUERS", "fenix")
+	c.SpaceProvisionerEnabled = os.Getenv("DRIVE_SPACE_PROVISIONER_ENABLED") == "true"
+	c.SpaceProvisionerTokenURL = strings.TrimRight(env("DRIVE_SPACE_PROVISIONER_TOKEN_URL", ""), "/")
+	c.SpaceProvisionerClientID = env("DRIVE_SPACE_PROVISIONER_CLIENT_ID", "")
+	c.SpaceProvisionerClientSecret, e = Secret("DRIVE_SPACE_PROVISIONER_CLIENT_SECRET")
+	if e != nil {
+		return c, e
+	}
+	c.SpaceProvisionerAudience = env("DRIVE_SPACE_PROVISIONER_AUDIENCE", "ocis")
+	c.SpaceProvisionerScopes = scopeList("DRIVE_SPACE_PROVISIONER_SCOPES", defaultSpaceProvisionerScope)
+	c.SpaceProvisionerVerified = os.Getenv("DRIVE_SPACE_PROVISIONER_VERIFIED") == "true"
+	c.SpaceProvisionerNativeInstance = strings.TrimSpace(env("DRIVE_SPACE_PROVISIONER_NATIVE_INSTANCE", "ocis"))
+	if c.SpaceProvisionerNativeInstance == "" || len(c.SpaceProvisionerNativeInstance) > 128 || strings.ContainsAny(c.SpaceProvisionerNativeInstance, " \t\r\n\x00") {
+		return c, errors.New("DRIVE_SPACE_PROVISIONER_NATIVE_INSTANCE must be a non-empty instance name")
+	}
+	provisionerConfigured := c.SpaceProvisionerTokenURL != "" || c.SpaceProvisionerClientID != "" || c.SpaceProvisionerClientSecret != ""
+	if provisionerConfigured {
+		if c.SpaceProvisionerTokenURL == "" || c.SpaceProvisionerClientID == "" || c.SpaceProvisionerClientSecret == "" || c.SpaceProvisionerAudience == "" {
+			return c, errors.New("DRIVE_SPACE_PROVISIONER_TOKEN_URL, DRIVE_SPACE_PROVISIONER_CLIENT_ID and DRIVE_SPACE_PROVISIONER_CLIENT_SECRET must be configured together")
+		}
+		if !httpBaseURL(c.SpaceProvisionerTokenURL) {
+			return c, errors.New("DRIVE_SPACE_PROVISIONER_TOKEN_URL must be an http(s) URL without credentials, query or fragment")
+		}
+		if len(c.SpaceProvisionerScopes) == 0 {
+			return c, errors.New("DRIVE_SPACE_PROVISIONER_SCOPES must be openid")
+		}
+		for _, scope := range c.SpaceProvisionerScopes {
+			if scope != defaultSpaceProvisionerScope {
+				return c, errors.New("DRIVE_SPACE_PROVISIONER_SCOPES must be openid")
+			}
+		}
+	}
+	if c.SpaceProvisionerEnabled {
+		if len(c.ExternalSpaceIssuers) == 0 {
+			return c, errors.New("DRIVE_EXTERNAL_SPACE_ISSUERS must not be empty when DRIVE_SPACE_PROVISIONER_ENABLED=true")
+		}
+		if !provisionerConfigured {
+			return c, errors.New("DRIVE_SPACE_PROVISIONER_ENABLED requires a configured provisioner client")
+		}
+		if !c.SpaceProvisionerVerified {
+			return c, errors.New("DRIVE_SPACE_PROVISIONER_ENABLED requires DRIVE_SPACE_PROVISIONER_VERIFIED=true")
 		}
 	}
 	if c.MasterKeyStatusToken, e = Secret("DRIVE_MASTER_KEY_STATUS_TOKEN"); e != nil {

@@ -20,17 +20,18 @@ type Object = core.Object
 type DelegationConfig = core.DelegationConfig
 
 type Service struct {
-	DB              *pgxpool.Pool
-	Config          config.Config
-	Original        ports.OriginalStore
-	Artifacts       ports.ArtifactStore
-	Identity        ports.IdentityAdapter
-	Search          ports.SearchIndex
-	Converter       ports.Converter
-	Preview         ports.Converter
-	Delegation      *DelegationConfig
-	MasterKeyStatus *core.MasterKeyStatusCache
-	feedbackRate    anonymousRate
+	DB               *pgxpool.Pool
+	Config           config.Config
+	Original         ports.OriginalStore
+	Artifacts        ports.ArtifactStore
+	Identity         ports.IdentityAdapter
+	Search           ports.SearchIndex
+	Converter        ports.Converter
+	Preview          ports.Converter
+	Delegation       *DelegationConfig
+	MasterKeyStatus  *core.MasterKeyStatusCache
+	SpaceProvisioner ports.SpaceProvisioner
+	feedbackRate     anonymousRate
 }
 
 // Forwarding shims keep the not-yet-migrated facade files and tests compiling
@@ -104,7 +105,7 @@ func (s *Service) deps() core.Deps {
 		DB: s.DB, Config: s.Config, Original: s.Original,
 		Artifacts: s.Artifacts, Identity: s.Identity, Search: s.Search,
 		Converter: s.Converter, Preview: s.Preview, Delegation: s.Delegation,
-		MasterKeyStatus: s.MasterKeyStatus,
+		MasterKeyStatus: s.MasterKeyStatus, SpaceProvisioner: s.SpaceProvisioner,
 	}
 }
 

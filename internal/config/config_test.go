@@ -32,7 +32,7 @@ func baseConfigEnv(t *testing.T) {
 	t.Helper()
 	t.Setenv("DRIVE_DATABASE_URL", "postgres://example")
 	t.Setenv("DRIVE_STORAGE_MODE", "local")
-	for _, k := range []string{"DRIVE_MASTER_KEYS", "DRIVE_MASTER_KEYS_FILE", "DRIVE_MASTER_KEY_DEFAULT_ID", "DRIVE_MASTER_KEY_ALLOWED_CIDRS", "DRIVE_MASTER_KEY_STATUS_URL", "DRIVE_MASTER_KEY_STATUS_TOKEN", "DRIVE_MASTER_KEY_STATUS_TTL_SECONDS", "DRIVE_MASTER_KEY_SCOPES", "DRIVE_MASTER_KEY_INTERACTIVE_CLIENT_ID", "DRIVE_JOB_CREDENTIAL_MODE", "DRIVE_OCIS_SERVICE_TOKEN_URL", "DRIVE_OCIS_SERVICE_CLIENT_ID", "DRIVE_OCIS_SERVICE_CLIENT_SECRET", "DRIVE_OCIS_SERVICE_CLIENT_SECRET_FILE", "DRIVE_OCIS_SERVICE_AUDIENCE", "DRIVE_OCIS_SERVICE_SCOPES", "DRIVE_JOB_CREDENTIAL_TTL_SECONDS", "DRIVE_EXTERNAL_WRITE_ENABLED", "DRIVE_EXTERNAL_WRITE_ISSUERS", "DRIVE_OCIS_WRITE_SERVICE_TOKEN_URL", "DRIVE_OCIS_WRITE_SERVICE_CLIENT_ID", "DRIVE_OCIS_WRITE_SERVICE_CLIENT_SECRET", "DRIVE_OCIS_WRITE_SERVICE_CLIENT_SECRET_FILE", "DRIVE_OCIS_WRITE_SERVICE_AUDIENCE", "DRIVE_OCIS_WRITE_SERVICE_SCOPES", "DRIVE_OCIS_WRITE_SERVICE_TTL_SECONDS", "DRIVE_OCIS_WRITE_SERVICE_VERIFIED"} {
+	for _, k := range []string{"DRIVE_MASTER_KEYS", "DRIVE_MASTER_KEYS_FILE", "DRIVE_MASTER_KEY_DEFAULT_ID", "DRIVE_MASTER_KEY_ALLOWED_CIDRS", "DRIVE_MASTER_KEY_STATUS_URL", "DRIVE_MASTER_KEY_STATUS_TOKEN", "DRIVE_MASTER_KEY_STATUS_TTL_SECONDS", "DRIVE_MASTER_KEY_SCOPES", "DRIVE_MASTER_KEY_INTERACTIVE_CLIENT_ID", "DRIVE_JOB_CREDENTIAL_MODE", "DRIVE_OCIS_SERVICE_TOKEN_URL", "DRIVE_OCIS_SERVICE_CLIENT_ID", "DRIVE_OCIS_SERVICE_CLIENT_SECRET", "DRIVE_OCIS_SERVICE_CLIENT_SECRET_FILE", "DRIVE_OCIS_SERVICE_AUDIENCE", "DRIVE_OCIS_SERVICE_SCOPES", "DRIVE_JOB_CREDENTIAL_TTL_SECONDS", "DRIVE_EXTERNAL_WRITE_ENABLED", "DRIVE_EXTERNAL_WRITE_ISSUERS", "DRIVE_OCIS_WRITE_SERVICE_TOKEN_URL", "DRIVE_OCIS_WRITE_SERVICE_CLIENT_ID", "DRIVE_OCIS_WRITE_SERVICE_CLIENT_SECRET", "DRIVE_OCIS_WRITE_SERVICE_CLIENT_SECRET_FILE", "DRIVE_OCIS_WRITE_SERVICE_AUDIENCE", "DRIVE_OCIS_WRITE_SERVICE_SCOPES", "DRIVE_OCIS_WRITE_SERVICE_TTL_SECONDS", "DRIVE_OCIS_WRITE_SERVICE_VERIFIED", "DRIVE_EXTERNAL_SPACE_ISSUERS", "DRIVE_SPACE_PROVISIONER_ENABLED", "DRIVE_SPACE_PROVISIONER_TOKEN_URL", "DRIVE_SPACE_PROVISIONER_CLIENT_ID", "DRIVE_SPACE_PROVISIONER_CLIENT_SECRET", "DRIVE_SPACE_PROVISIONER_CLIENT_SECRET_FILE", "DRIVE_SPACE_PROVISIONER_AUDIENCE", "DRIVE_SPACE_PROVISIONER_SCOPES", "DRIVE_SPACE_PROVISIONER_VERIFIED", "DRIVE_SPACE_PROVISIONER_NATIVE_INSTANCE"} {
 		t.Setenv(k, "")
 	}
 }
@@ -84,6 +84,9 @@ func TestMasterKeyDefaults(t *testing.T) {
 	}
 	if c.ExternalWriteEnabled || len(c.ExternalWriteIssuers) != 1 || c.ExternalWriteIssuers[0] != "fenix" || c.OCISWriteServiceTokenURL != "" || c.OCISWriteServiceAudience != "ocis" || len(c.OCISWriteServiceScopes) != 2 || c.OCISWriteServiceScopes[0] != "drive.read" || c.OCISWriteServiceScopes[1] != "drive.write" || c.OCISWriteServiceTTL.Seconds() != 300 || c.OCISWriteServiceVerified {
 		t.Fatalf("external write defaults: %+v", c)
+	}
+	if len(c.ExternalSpaceIssuers) != 1 || c.ExternalSpaceIssuers[0] != "fenix" || c.SpaceProvisionerEnabled || c.SpaceProvisionerTokenURL != "" || c.SpaceProvisionerAudience != "ocis" || len(c.SpaceProvisionerScopes) != 1 || c.SpaceProvisionerScopes[0] != "openid" || c.SpaceProvisionerVerified || c.SpaceProvisionerNativeInstance != "ocis" {
+		t.Fatalf("space provisioner defaults: %+v", c)
 	}
 }
 
@@ -149,6 +152,78 @@ func TestExternalWriteConfigRejectsUnsafeValues(t *testing.T) {
 			}
 			if _, e := Load(); e == nil {
 				t.Fatal("unsafe external write configuration accepted")
+			}
+		})
+	}
+}
+
+func TestSpaceProvisionerConfig(t *testing.T) {
+	baseConfigEnv(t)
+	t.Setenv("DRIVE_SPACE_PROVISIONER_ENABLED", "true")
+	t.Setenv("DRIVE_EXTERNAL_SPACE_ISSUERS", "fenix,partner")
+	t.Setenv("DRIVE_SPACE_PROVISIONER_TOKEN_URL", "https://identity.test/token")
+	t.Setenv("DRIVE_SPACE_PROVISIONER_CLIENT_ID", "provisioner-client")
+	t.Setenv("DRIVE_SPACE_PROVISIONER_CLIENT_SECRET", "provisioner-secret")
+	t.Setenv("DRIVE_SPACE_PROVISIONER_SCOPES", "openid")
+	t.Setenv("DRIVE_SPACE_PROVISIONER_VERIFIED", "true")
+	t.Setenv("DRIVE_SPACE_PROVISIONER_NATIVE_INSTANCE", "ocis")
+	c, e := Load()
+	if e != nil {
+		t.Fatal(e)
+	}
+	if !c.SpaceProvisionerEnabled || !c.SpaceProvisionerVerified || c.SpaceProvisionerNativeInstance != "ocis" {
+		t.Fatalf("space provisioner enablement: %+v", c)
+	}
+	if len(c.ExternalSpaceIssuers) != 2 || c.ExternalSpaceIssuers[1] != "partner" || len(c.SpaceProvisionerScopes) != 1 || c.SpaceProvisionerScopes[0] != "openid" {
+		t.Fatalf("space provisioner lists: %+v", c)
+	}
+}
+
+func TestSpaceProvisionerConfigRejectsUnsafeValues(t *testing.T) {
+	full := map[string]string{
+		"DRIVE_SPACE_PROVISIONER_ENABLED":       "true",
+		"DRIVE_SPACE_PROVISIONER_TOKEN_URL":     "https://identity.test/token",
+		"DRIVE_SPACE_PROVISIONER_CLIENT_ID":     "provisioner-client",
+		"DRIVE_SPACE_PROVISIONER_CLIENT_SECRET": "provisioner-secret",
+		"DRIVE_SPACE_PROVISIONER_VERIFIED":      "true",
+	}
+	cases := []struct {
+		name string
+		env  map[string]string
+	}{
+		{"enabled without client", map[string]string{"DRIVE_SPACE_PROVISIONER_ENABLED": "true"}},
+		{"enabled without verification", map[string]string{"DRIVE_SPACE_PROVISIONER_ENABLED": "true", "DRIVE_SPACE_PROVISIONER_TOKEN_URL": "https://identity.test/token", "DRIVE_SPACE_PROVISIONER_CLIENT_ID": "provisioner-client", "DRIVE_SPACE_PROVISIONER_CLIENT_SECRET": "provisioner-secret"}},
+		{"enabled without issuers", map[string]string{"DRIVE_SPACE_PROVISIONER_ENABLED": "true", "DRIVE_EXTERNAL_SPACE_ISSUERS": " ", "DRIVE_SPACE_PROVISIONER_TOKEN_URL": "https://identity.test/token", "DRIVE_SPACE_PROVISIONER_CLIENT_ID": "provisioner-client", "DRIVE_SPACE_PROVISIONER_CLIENT_SECRET": "provisioner-secret", "DRIVE_SPACE_PROVISIONER_VERIFIED": "true"}},
+		{"partial client", map[string]string{"DRIVE_SPACE_PROVISIONER_TOKEN_URL": "https://identity.test/token"}},
+		{"invalid token url", func() map[string]string {
+			m := cloneEnv(full)
+			m["DRIVE_SPACE_PROVISIONER_TOKEN_URL"] = "file:///etc/passwd"
+			return m
+		}()},
+		{"non-openid scope", func() map[string]string {
+			m := cloneEnv(full)
+			m["DRIVE_SPACE_PROVISIONER_SCOPES"] = "openid,drive.read"
+			return m
+		}()},
+		{"empty scopes", func() map[string]string {
+			m := cloneEnv(full)
+			m["DRIVE_SPACE_PROVISIONER_SCOPES"] = " "
+			return m
+		}()},
+		{"blank instance", func() map[string]string {
+			m := cloneEnv(full)
+			m["DRIVE_SPACE_PROVISIONER_NATIVE_INSTANCE"] = " "
+			return m
+		}()},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			baseConfigEnv(t)
+			for k, v := range tc.env {
+				t.Setenv(k, v)
+			}
+			if _, e := Load(); e == nil {
+				t.Fatal("unsafe space provisioner configuration accepted")
 			}
 		})
 	}

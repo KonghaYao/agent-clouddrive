@@ -408,6 +408,24 @@ type PersonalSpaceResolver interface {
 	ResolvePersonalSpace(context.Context, Credential) (PersonalSpace, error)
 }
 
+// SpaceProvisioner creates a native project space for an externally asserted
+// identity. It is a high-privilege administrative capability and must never be
+// used for file reads or writes.
+type ProvisionSpaceRequest struct {
+	OwnerIssuer  string
+	OwnerSubject string
+	// Name must be stable across retries for the same owner.
+	Name string
+}
+type ProvisionedSpace struct {
+	NativeInstance       string
+	NativeSpaceID        string
+	NativeRootResourceID string
+}
+type SpaceProvisioner interface {
+	ProvisionSpace(context.Context, ProvisionSpaceRequest) (ProvisionedSpace, error)
+}
+
 // UploadStreamer is optional. The application supplies the persisted upload only.
 type UploadStreamer interface {
 	StreamUpload(context.Context, UploadInfo, int64, io.Reader, int64, Credential) (UploadStatus, error)
