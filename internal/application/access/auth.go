@@ -44,14 +44,28 @@ func (s *Service) authenticate(ctx context.Context, bearer string, agent, readOn
 		return a, core.Dependency()
 	}
 	if !status.Enabled {
-		if !readOnly {
-			_, _ = s.d.DB.Exec(ctx, `UPDATE principals SET status='disabled',disabled_reason='identity',updated_at=now() WHERE issuer=$1 AND subject=$2`, sub.Issuer, sub.Subject)
-			_, _ = s.d.DB.Exec(ctx, `UPDATE share_grants SET state='disabled',disabled_reason='account_disabled' WHERE creator_principal_id IN(SELECT id FROM principals WHERE issuer=$1 AND subject=$2) AND state='active'`, sub.Issuer, sub.Subject)
-		}
+		s.disableIdentity(ctx, sub, readOnly)
 		return a, domain.NewError(domain.AccessDenied, "account disabled")
 	}
+	return s.finishAuthentication(ctx, sub, bearer, agent, readOnly)
+}
+
+// disableIdentity revokes local access after an authoritative identity source
+// reports the account disabled. Read-only feedback never mutates durable state.
+func (s *Service) disableIdentity(ctx context.Context, sub ports.Subject, readOnly bool) {
+	if readOnly {
+		return
+	}
+	_, _ = s.d.DB.Exec(ctx, `UPDATE principals SET status='disabled',disabled_reason='identity',updated_at=now() WHERE issuer=$1 AND subject=$2`, sub.Issuer, sub.Subject)
+	_, _ = s.d.DB.Exec(ctx, `UPDATE share_grants SET state='disabled',disabled_reason='account_disabled' WHERE creator_principal_id IN(SELECT id FROM principals WHERE issuer=$1 AND subject=$2) AND state='active'`, sub.Issuer, sub.Subject)
+}
+
+// finishAuthentication runs the identity-independent principal, quota and actor
+// projection shared by OIDC and trusted master-key authentication.
+func (s *Service) finishAuthentication(ctx context.Context, sub ports.Subject, token string, agent, readOnly bool) (core.Actor, error) {
+	var a core.Actor
 	var pid, local string
-	e = s.d.DB.QueryRow(ctx, `SELECT id::text,status FROM principals WHERE issuer=$1 AND subject=$2`, sub.Issuer, sub.Subject).Scan(&pid, &local)
+	e := s.d.DB.QueryRow(ctx, `SELECT id::text,status FROM principals WHERE issuer=$1 AND subject=$2`, sub.Issuer, sub.Subject).Scan(&pid, &local)
 	if e != nil {
 		if !errors.Is(e, pgx.ErrNoRows) || readOnly {
 			return a, domain.NewError(domain.Unauthenticated, "initialize your personal space before submitting feedback")
@@ -82,6 +96,6 @@ func (s *Service) authenticate(ctx context.Context, bearer string, agent, readOn
 	if agent || sub.ClientID != s.d.Config.WebClientID {
 		typ = domain.ActorAgent
 	}
-	a = core.Actor{Principal: domain.Principal{ID: pid, Type: typ, Active: true, StatusVerified: true, Scopes: domain.ParseScopes(strings.Join(sub.Scopes, " "))}, Subject: sub, Token: bearer}
+	a = core.Actor{Principal: domain.Principal{ID: pid, Type: typ, Active: true, StatusVerified: true, Scopes: domain.ParseScopes(strings.Join(sub.Scopes, " "))}, Subject: sub, Token: token}
 	return a, nil
 }

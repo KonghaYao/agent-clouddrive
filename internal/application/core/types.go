@@ -12,15 +12,16 @@ import (
 )
 
 type Deps struct {
-	DB         *pgxpool.Pool
-	Config     config.Config
-	Original   ports.OriginalStore
-	Artifacts  ports.ArtifactStore
-	Identity   ports.IdentityAdapter
-	Search     ports.SearchIndex
-	Converter  ports.Converter
-	Preview    ports.Converter
-	Delegation *DelegationConfig
+	DB              *pgxpool.Pool
+	Config          config.Config
+	Original        ports.OriginalStore
+	Artifacts       ports.ArtifactStore
+	Identity        ports.IdentityAdapter
+	Search          ports.SearchIndex
+	Converter       ports.Converter
+	Preview         ports.Converter
+	Delegation      *DelegationConfig
+	MasterKeyStatus *MasterKeyStatusCache
 }
 
 type Object = map[string]any

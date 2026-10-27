@@ -86,7 +86,7 @@ func TestRepairTusLiveHTTPDispatchBeforeAbandon(t *testing.T) {
 	s := &application.Service{DB: pool, Identity: repairTusIdentity{}, Config: config.Config{Listen: address, UploadMax: 1024, NodeID: "repair-tus", WebClientID: "test"}}
 	u := &repairTusStore{s: s, entered: make(chan struct{}), release: make(chan struct{}), admissionError: make(chan error, 1)}
 	s.Original = u
-	actor := application.Actor{Principal: domain.Principal{ID: pid, Type: domain.ActorUser, Active: true, StatusVerified: true, Scopes: domain.AllScopes()}, Subject: ports.Subject{Issuer: "repair-tus", Subject: "owner"}}
+	actor := application.Actor{Principal: domain.Principal{ID: pid, Type: domain.ActorUser, Active: true, StatusVerified: true, Scopes: domain.AllScopes()}, Subject: ports.Subject{Issuer: "repair-tus", Subject: "owner"}, Token: "fixture-user-token"}
 	out, e := s.BeginUpload(ctx, actor, application.Object{"name": "live.bin", "size_bytes": int64(7), "idempotency_key": "live"})
 	if e != nil {
 		t.Fatal(e)

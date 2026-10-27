@@ -174,7 +174,7 @@ func mutationFixture(t *testing.T) (*Service, Actor, *mutationStore) {
 	}
 	store := &mutationStore{objects: map[string]ports.OriginalMetadata{}}
 	service := &Service{DB: pool, Config: config.Config{OCISAudience: "ocis", TrashDir: ".retained"}, Original: store, Identity: mutationIdentity{}}
-	actor := Actor{Principal: domain.Principal{ID: owner, Type: domain.ActorUser, Active: true, StatusVerified: true, Scopes: domain.AllScopes()}, Subject: ports.Subject{Issuer: "test", Subject: "owner"}}
+	actor := Actor{Principal: domain.Principal{ID: owner, Type: domain.ActorUser, Active: true, StatusVerified: true, Scopes: domain.AllScopes()}, Subject: ports.Subject{Issuer: "test", Subject: "owner"}, Token: "test-user-token"}
 	return service, actor, store
 }
 func mutationCreate(t *testing.T, s *Service, a Actor, name string) Object {

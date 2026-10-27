@@ -132,7 +132,7 @@ func (s *Service) BeginUpload(ctx context.Context, a Actor, in Object) (any, err
 	if e = tx.Commit(ctx); e != nil {
 		return nil, e
 	}
-	cred, e := access.New(s.deps()).Credential(ctx, a, ports.RevisionRef{})
+	cred, e := access.New(s.deps()).CredentialForWrite(access.WithWriteOperation(ctx, "begin_upload"), a, ports.RevisionRef{})
 	if e != nil {
 		s.failPrepared(ctx, opid, uid)
 		return nil, normalizeError(e)
@@ -299,7 +299,7 @@ func (s *Service) UploadNative(ctx context.Context, a Actor, uid string) (Object
 	if _, e = access.New(s.deps()).Owned(ctx, a, str(u, "file_id"), domain.ActionWrite); e != nil {
 		return nil, ports.Credential{}, e
 	}
-	cred, e := access.New(s.deps()).Credential(ctx, a, ports.RevisionRef{})
+	cred, e := access.New(s.deps()).CredentialForWrite(access.WithWriteOperation(ctx, "upload_native"), a, ports.RevisionRef{})
 	return u, cred, e
 }
 
@@ -319,10 +319,10 @@ func (s *Service) FinishUpload(ctx context.Context, a Actor, uid string) (any, e
 		return nil, e
 	}
 	defer s.releaseUploadLease(ctx, uid, token, "finalize_retry")
-	return s.finishUpload(ctx, a, uid, token)
+	return s.finishUpload(ctx, a, uid, token, true)
 }
 
-func (s *Service) finishUpload(ctx context.Context, a Actor, uid string, token int64) (any, error) {
+func (s *Service) finishUpload(ctx context.Context, a Actor, uid string, token int64, interactive bool) (any, error) {
 	ctx, stopLease := s.keepUploadLease(ctx, uid, token)
 	defer stopLease()
 	if e := access.New(s.deps()).Scope(a, "drive.write"); e != nil {
@@ -339,7 +339,14 @@ func (s *Service) finishUpload(ctx context.Context, a Actor, uid string, token i
 	if e != nil {
 		return nil, e
 	}
-	cred, e := access.New(s.deps()).Credential(ctx, a, ports.RevisionRef{})
+	var cred ports.Credential
+	if interactive {
+		cred, e = access.New(s.deps()).CredentialForWrite(access.WithWriteOperation(ctx, "finish_upload"), a, ports.RevisionRef{})
+	} else {
+		// The reconciliation worker must never receive the write-only service
+		// credential. It keeps the existing grant/read-service behavior.
+		cred, e = access.New(s.deps()).Credential(ctx, a, ports.RevisionRef{})
+	}
 	if e != nil {
 		return nil, normalizeError(e)
 	}

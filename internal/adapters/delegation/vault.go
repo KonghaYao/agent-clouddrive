@@ -26,6 +26,11 @@ type Config struct {
 	Key                                      []byte
 	Client                                   *http.Client
 	Verified                                 bool
+	JobCredentialMode                        string
+	JobCredentialProvider                    ports.JobCredentialProvider
+	WriteCredential                          ports.JobCredentialProvider
+	ExternalWriteIssuers                     map[string]bool
+	ExternalWriteEnabled                     bool
 }
 type Wrapper struct {
 	cfg    Config
@@ -36,6 +41,14 @@ type Wrapper struct {
 func New(cfg Config) (*Wrapper, error) {
 	u, e := url.Parse(cfg.TokenURL)
 	if e != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || cfg.Base == nil || cfg.DB == nil || cfg.Issuer == "" || cfg.ClientID == "" || cfg.ClientSecret == "" || len(cfg.Key) != 32 {
+		return nil, ports.ErrInvalid
+	}
+	if cfg.JobCredentialMode == "" {
+		cfg.JobCredentialMode = "auto"
+	}
+	switch cfg.JobCredentialMode {
+	case "auto", "delegation", "service", "disabled":
+	default:
 		return nil, ports.ErrInvalid
 	}
 	block, e := aes.NewCipher(cfg.Key)
@@ -81,9 +94,34 @@ func (w *Wrapper) ValidateToken(ctx context.Context, raw string, req ports.Token
 	return w.cfg.Base.ValidateToken(ctx, raw, req)
 }
 func (w *Wrapper) SubjectStatus(ctx context.Context, issuer, subject string) (ports.SubjectStatus, error) {
+	if issuer != w.cfg.Issuer {
+		// An externally asserted trust domain has no live IdP here. The local
+		// principal registry is the only authoritative state this deployment can
+		// verify without consulting the asserting caller again.
+		return w.localSubjectStatus(ctx, issuer, subject)
+	}
 	return w.cfg.Base.SubjectStatus(ctx, issuer, subject)
 }
+func (w *Wrapper) localSubjectStatus(ctx context.Context, issuer, subject string) (ports.SubjectStatus, error) {
+	if issuer == "" || len(issuer) > 512 || subject == "" || len(subject) > 256 || strings.ContainsAny(issuer+subject, "\x00\r\n") {
+		return ports.SubjectStatus{}, ports.ErrUnauthorized
+	}
+	var status string
+	e := w.cfg.DB.QueryRow(ctx, `SELECT status FROM principals WHERE issuer=$1 AND subject=$2`, issuer, subject).Scan(&status)
+	if errors.Is(e, pgx.ErrNoRows) {
+		return ports.SubjectStatus{Enabled: false}, nil
+	}
+	if e != nil {
+		return ports.SubjectStatus{}, e
+	}
+	return ports.SubjectStatus{Enabled: status == "active"}, nil
+}
 func (w *Wrapper) IdentityEvents(ctx context.Context, issuer, anchor string) (ports.IdentityEventBatch, error) {
+	if issuer != w.cfg.Issuer {
+		// This deployment has no authoritative admin-event feed for an external
+		// trust domain; the caller must skip it without inventing a gap.
+		return ports.IdentityEventBatch{}, ports.ErrUnsupportedIssuer
+	}
 	source, ok := w.cfg.Base.(ports.IdentityEventSource)
 	if !ok {
 		return ports.IdentityEventBatch{}, ports.ErrUnverified
@@ -91,11 +129,33 @@ func (w *Wrapper) IdentityEvents(ctx context.Context, issuer, anchor string) (po
 	return source.IdentityEvents(ctx, issuer, anchor)
 }
 func (w *Wrapper) Groups(ctx context.Context, issuer, subject string) ([]string, error) {
+	if issuer != w.cfg.Issuer {
+		// No group directory exists for an externally asserted trust domain.
+		// Returning an empty set denies group-audience shares safely.
+		status, e := w.localSubjectStatus(ctx, issuer, subject)
+		if e != nil {
+			return nil, e
+		}
+		if !status.Enabled {
+			return nil, ports.ErrUnauthorized
+		}
+		return []string{}, nil
+	}
 	return w.cfg.Base.Groups(ctx, issuer, subject)
 }
 func (w *Wrapper) active(ctx context.Context, subject ports.Subject) error {
-	if subject.Issuer != w.cfg.Issuer || subject.Subject == "" {
+	if subject.Issuer == "" || subject.Subject == "" {
 		return ports.ErrUnauthorized
+	}
+	if subject.Issuer != w.cfg.Issuer {
+		status, e := w.localSubjectStatus(ctx, subject.Issuer, subject.Subject)
+		if e != nil {
+			return e
+		}
+		if !status.Enabled {
+			return ports.ErrUnauthorized
+		}
+		return nil
 	}
 	status, e := w.cfg.Base.SubjectStatus(ctx, subject.Issuer, subject.Subject)
 	if e != nil {
@@ -262,7 +322,16 @@ func (w *Wrapper) DelegatedCredential(ctx context.Context, in ports.DelegationRe
 		}
 		return w.cfg.Base.DelegatedCredential(ctx, in)
 	}
-	if !w.cfg.Verified {
+	if has(in.Scopes, "drive.write") {
+		// A write credential is never derived from a grant or the read-only
+		// service provider. Any unmet condition fails closed.
+		return w.writeServiceCredential(ctx, in)
+	}
+	mode := w.cfg.JobCredentialMode
+	if mode == "" {
+		mode = "auto"
+	}
+	if !w.cfg.Verified || mode == "disabled" {
 		return ports.Credential{}, ports.ErrUnverified
 	}
 	if e := w.active(ctx, in.Subject); e != nil {
@@ -274,6 +343,65 @@ func (w *Wrapper) DelegatedCredential(ctx context.Context, in ports.DelegationRe
 		}
 	}
 	in.Scopes = []string{"drive.read"}
+	if mode == "auto" || mode == "delegation" {
+		cred, e := w.grantCredential(ctx, in)
+		// A missing grant is the only condition that may fall through to a
+		// service credential. Revoked, disabled or failed grants never do.
+		if !errors.Is(e, ports.ErrUnverified) || mode == "delegation" {
+			return cred, e
+		}
+	}
+	if mode == "auto" || mode == "service" {
+		// Audit reads are a separate capability and must keep the persisted
+		// grant requirement; a background service token is not an auditor token.
+		if in.Audit != nil {
+			return ports.Credential{}, ports.ErrUnverified
+		}
+		return w.serviceCredential(ctx, in)
+	}
+	return ports.Credential{}, ports.ErrUnverified
+}
+
+// writeServiceCredential issues a write-capable service credential only for an
+// allowed external trust domain. Business ACL/ownership checks are performed by
+// the caller before reaching this point; this method adds defense-in-depth.
+func (w *Wrapper) writeServiceCredential(ctx context.Context, in ports.DelegationRequest) (ports.Credential, error) {
+	if in.Audit != nil || in.JobID != "" {
+		// Audit reads and background jobs are never write-capable.
+		return ports.Credential{}, ports.ErrUnauthorized
+	}
+	if !w.cfg.ExternalWriteEnabled || !w.cfg.ExternalWriteIssuers[in.Subject.Issuer] || w.cfg.WriteCredential == nil {
+		return ports.Credential{}, ports.ErrUnauthorized
+	}
+	if verifier, ok := w.cfg.WriteCredential.(interface{ Verified() bool }); ok && !verifier.Verified() {
+		return ports.Credential{}, ports.ErrUnauthorized
+	}
+	for _, scope := range in.Scopes {
+		if scope != "drive.read" && scope != "drive.write" && scope != "openid" {
+			return ports.Credential{}, ports.ErrUnauthorized
+		}
+	}
+	if e := w.active(ctx, in.Subject); e != nil {
+		if errors.Is(e, ports.ErrUnauthorized) {
+			return ports.Credential{}, ports.ErrUnauthorized
+		}
+		return ports.Credential{}, e
+	}
+	cred, e := w.cfg.WriteCredential.JobCredential(ctx, ports.JobCredentialRequest{
+		Subject:  in.Subject,
+		Audience: in.Audience,
+		Source:   in.Source,
+		JobID:    "",
+		Scopes:   []string{"drive.read", "drive.write"},
+	})
+	if errors.Is(e, ports.ErrUnverified) {
+		return ports.Credential{}, ports.ErrUnauthorized
+	}
+	return cred, e
+}
+
+// grantCredential uses the persisted, consent-based offline refresh grant.
+func (w *Wrapper) grantCredential(ctx context.Context, in ports.DelegationRequest) (ports.Credential, error) {
 	tx, e := w.cfg.DB.Begin(ctx)
 	if e != nil {
 		return ports.Credential{}, e
@@ -334,6 +462,30 @@ func (w *Wrapper) DelegatedCredential(ctx context.Context, in ports.DelegationRe
 	in.Audit = nil // 能力已在 vault 验证，不向原生 token exchange 传播。
 	in.SubjectToken = access
 	return w.cfg.Base.DelegatedCredential(ctx, in)
+}
+
+// serviceCredential issues a job-scoped service credential only after the same
+// source authorization used by the grant path succeeds.
+func (w *Wrapper) serviceCredential(ctx context.Context, in ports.DelegationRequest) (ports.Credential, error) {
+	if w.cfg.JobCredentialProvider == nil {
+		return ports.Credential{}, ports.ErrUnverified
+	}
+	tx, e := w.cfg.DB.Begin(ctx)
+	if e != nil {
+		return ports.Credential{}, e
+	}
+	if e = w.authorizeSource(ctx, tx, in); e != nil {
+		_ = tx.Rollback(ctx)
+		return ports.Credential{}, e
+	}
+	_ = tx.Rollback(ctx)
+	return w.cfg.JobCredentialProvider.JobCredential(ctx, ports.JobCredentialRequest{
+		Subject:  in.Subject,
+		Audience: in.Audience,
+		Source:   in.Source,
+		JobID:    in.JobID,
+		Scopes:   in.Scopes,
+	})
 }
 
 var _ ports.IdentityAdapter = (*Wrapper)(nil)

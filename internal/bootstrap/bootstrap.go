@@ -12,6 +12,7 @@ import (
 	"github.com/agentclouddrive/agent-clouddrive/internal/adapters/ocis"
 	"github.com/agentclouddrive/agent-clouddrive/internal/adapters/search"
 	"github.com/agentclouddrive/agent-clouddrive/internal/application"
+	"github.com/agentclouddrive/agent-clouddrive/internal/application/core"
 	"github.com/agentclouddrive/agent-clouddrive/internal/config"
 	"github.com/agentclouddrive/agent-clouddrive/internal/ports"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -68,6 +69,32 @@ func Open(ctx context.Context) (*application.Service, func(), error) {
 		closeFn()
 		return nil, nil, e
 	}
+	var jobProvider ports.JobCredentialProvider
+	if cfg.OCISServiceTokenURL != "" {
+		provider, er := ocis.NewServiceCredential(ocis.ServiceCredentialConfig{TokenURL: cfg.OCISServiceTokenURL, ClientID: cfg.OCISServiceClientID, ClientSecret: cfg.OCISServiceClientSecret, Audience: cfg.OCISServiceAudience, Scopes: cfg.OCISServiceScopes, TTL: cfg.JobCredentialTTL, Verified: cfg.AllowUnverifiedOCIS && os.Getenv("DRIVE_DELEGATION_VERIFIED") == "true", Client: client})
+		if er != nil {
+			closeFn()
+			return nil, nil, er
+		}
+		jobProvider = provider
+	}
+	var writeProvider ports.JobCredentialProvider
+	if cfg.OCISWriteServiceTokenURL != "" {
+		provider, er := ocis.NewServiceCredential(ocis.ServiceCredentialConfig{TokenURL: cfg.OCISWriteServiceTokenURL, ClientID: cfg.OCISWriteServiceClientID, ClientSecret: cfg.OCISWriteServiceClientSecret, Audience: cfg.OCISWriteServiceAudience, Scopes: cfg.OCISWriteServiceScopes, TTL: cfg.OCISWriteServiceTTL, Verified: cfg.OCISWriteServiceVerified, AllowWrite: true, Client: client})
+		if er != nil {
+			closeFn()
+			return nil, nil, er
+		}
+		writeProvider = provider
+	}
+	externalWriteIssuers := map[string]bool{}
+	for _, issuer := range cfg.ExternalWriteIssuers {
+		externalWriteIssuers[issuer] = true
+	}
+	if cfg.ExternalWriteEnabled && (writeProvider == nil || len(externalWriteIssuers) == 0) {
+		closeFn()
+		return nil, nil, errors.New("external writes enabled without a configured write service credential or allowed issuer")
+	}
 	ident, e := identity.NewKeycloak(identity.Config{Issuer: cfg.OIDCIssuer, Audience: cfg.Audience, Resource: cfg.MCPURL, JWKSURL: os.Getenv("DRIVE_OIDC_JWKS_URL"), AdminURL: os.Getenv("DRIVE_KEYCLOAK_ADMIN_URL"), TokenURL: os.Getenv("DRIVE_OIDC_TOKEN_URL"), ServiceClientID: creds.ClientID, ServiceClientSecret: creds.ClientSecret, ExchangeClientID: creds.ExchangeClientID, ExchangeClientSecret: creds.ExchangeClientSecret, OCISAudience: cfg.OCISAudience, DelegationVerified: os.Getenv("DRIVE_DELEGATION_VERIFIED") == "true", Client: client})
 	if e != nil {
 		closeFn()
@@ -122,7 +149,7 @@ func Open(ctx context.Context) (*application.Service, func(), error) {
 			return nil, nil, e
 		}
 		tokenURL := env("DRIVE_OIDC_TOKEN_URL", cfg.OIDCIssuer+"/protocol/openid-connect/token")
-		wrapped, e := delegation.New(delegation.Config{Base: ident, DB: pool, Issuer: cfg.OIDCIssuer, TokenURL: tokenURL, ClientID: creds.BackgroundClientID, ClientSecret: creds.BackgroundClientSecret, Key: key, Client: client, Verified: os.Getenv("DRIVE_DELEGATION_VERIFIED") == "true"})
+		wrapped, e := delegation.New(delegation.Config{Base: ident, DB: pool, Issuer: cfg.OIDCIssuer, TokenURL: tokenURL, ClientID: creds.BackgroundClientID, ClientSecret: creds.BackgroundClientSecret, Key: key, Client: client, Verified: os.Getenv("DRIVE_DELEGATION_VERIFIED") == "true", JobCredentialMode: cfg.JobCredentialMode, JobCredentialProvider: jobProvider, WriteCredential: writeProvider, ExternalWriteIssuers: externalWriteIssuers, ExternalWriteEnabled: cfg.ExternalWriteEnabled})
 		if e != nil {
 			closeFn()
 			return nil, nil, e
@@ -130,6 +157,6 @@ func Open(ctx context.Context) (*application.Service, func(), error) {
 		identityPort = wrapped
 		delegationConfig = &application.DelegationConfig{ClientID: creds.BackgroundClientID, ClientSecret: creds.BackgroundClientSecret, AuthorizationURL: cfg.OIDCIssuer + "/protocol/openid-connect/auth", TokenURL: tokenURL, CallbackURL: cfg.PublicURL + "/v1/delegation/callback", Key: key, HTTP: client}
 	}
-	svc := &application.Service{DB: pool, Config: cfg, Original: original, Artifacts: artifacts, Identity: identityPort, Search: index, Converter: conv, Preview: preview, Delegation: delegationConfig}
+	svc := &application.Service{DB: pool, Config: cfg, Original: original, Artifacts: artifacts, Identity: identityPort, Search: index, Converter: conv, Preview: preview, Delegation: delegationConfig, MasterKeyStatus: core.NewMasterKeyStatusCache()}
 	return svc, closeFn, nil
 }

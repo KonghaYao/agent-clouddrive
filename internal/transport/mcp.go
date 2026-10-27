@@ -151,13 +151,18 @@ func (a *API) MCPHandler() http.Handler {
 				feedback = envelope.Method == "tools/call" && envelope.Params.Name == "drive_submit_feedback"
 			}
 		}
-		if feedback {
-			actor, e = a.Service.AuthenticateReadOnly(r.Context(), strings.TrimPrefix(authorization, "Bearer "), true)
+		bearer := strings.TrimPrefix(authorization, "Bearer ")
+		if in, ok := a.masterKeyRequest(bearer, r.Header.Get("X-Key-Id"), r.Header.Get("X-On-Behalf-Of"), remoteIP(r.RemoteAddr), "mcp"); ok {
+			in.Agent = true
+			in.ReadOnly = feedback
+			actor, e = a.Service.AuthenticateMasterKey(r.Context(), in)
+		} else if feedback {
+			actor, e = a.Service.AuthenticateReadOnly(r.Context(), bearer, true)
 		} else {
-			actor, e = a.Service.Authenticate(r.Context(), strings.TrimPrefix(authorization, "Bearer "), true)
+			actor, e = a.Service.Authenticate(r.Context(), bearer, true)
 		}
 		if e != nil {
-			http.Error(w, "authentication denied", domain.HTTPStatus(application.Error(e)))
+			http.Error(w, "authentication denied", authStatus(e))
 			return
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, 2<<20)

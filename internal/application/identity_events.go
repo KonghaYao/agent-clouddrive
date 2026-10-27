@@ -33,6 +33,9 @@ func (s *Service) syncIdentityEvents(ctx context.Context) error {
 	}
 	for _, issuer := range issuers {
 		if e = s.syncIdentityIssuer(ctx, source, issuer); e != nil {
+			if errors.Is(e, ports.ErrUnsupportedIssuer) {
+				continue
+			}
 			return e
 		}
 	}
@@ -54,6 +57,11 @@ func (s *Service) syncIdentityIssuer(ctx context.Context, source ports.IdentityE
 		return e
 	}
 	batch, fetchErr := source.IdentityEvents(ctx, issuer, anchor)
+	if errors.Is(fetchErr, ports.ErrUnsupportedIssuer) {
+		// A trusted external issuer has no event feed. Skipping must not create a
+		// synthetic gap or advance the local identity epoch.
+		return ports.ErrUnsupportedIssuer
+	}
 	if fetchErr != nil || batch.Anchor == "" {
 		batch.Events = nil // 未完成批次不能当作已验证事件提交。
 		batch.Continuous = false

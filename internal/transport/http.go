@@ -18,6 +18,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/protocol"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -35,6 +36,10 @@ func (a *API) origin(origin string) bool {
 	return false
 }
 func fail(c *app.RequestContext, e error) {
+	if errors.Is(e, application.ErrInvalidOnBehalfOf) {
+		c.JSON(http.StatusBadRequest, map[string]any{"error": domain.NewError(domain.InvalidArgument, "X-On-Behalf-Of is required and must be a safe identifier")})
+		return
+	}
 	e = application.Error(e)
 	var de *domain.Error
 	if !errors.As(e, &de) {
@@ -42,15 +47,39 @@ func fail(c *app.RequestContext, e error) {
 	}
 	c.JSON(domain.HTTPStatus(e), map[string]any{"error": de})
 }
+func remoteIP(addr string) string {
+	if host, _, e := net.SplitHostPort(addr); e == nil {
+		return host
+	}
+	return addr
+}
+func authStatus(e error) int {
+	if errors.Is(e, application.ErrInvalidOnBehalfOf) {
+		return http.StatusBadRequest
+	}
+	return domain.HTTPStatus(application.Error(e))
+}
+func (a *API) masterKeyRequest(bearer, keyID, onBehalfOf, sourceIP, route string) (application.MasterKeyAuth, bool) {
+	if onBehalfOf == "" && !a.Service.IsMasterKey(bearer) {
+		return application.MasterKeyAuth{}, false
+	}
+	return application.MasterKeyAuth{Bearer: bearer, KeyID: keyID, OnBehalfOf: onBehalfOf, RemoteIP: sourceIP, Route: route}, true
+}
 func (a *API) actor(ctx context.Context, c *app.RequestContext) (application.Actor, error) {
 	h := string(c.GetHeader("Authorization"))
 	if !strings.HasPrefix(h, "Bearer ") {
 		return application.Actor{}, domain.NewError(domain.Unauthenticated, "bearer token required")
 	}
-	if string(c.Path()) == "/v1/feedback" {
-		return a.Service.AuthenticateReadOnly(ctx, strings.TrimPrefix(h, "Bearer "), false)
+	bearer := strings.TrimPrefix(h, "Bearer ")
+	route := string(c.Path())
+	if in, ok := a.masterKeyRequest(bearer, string(c.GetHeader("X-Key-Id")), string(c.GetHeader("X-On-Behalf-Of")), remoteIP(c.RemoteAddr().String()), route); ok {
+		in.ReadOnly = route == "/v1/feedback"
+		return a.Service.AuthenticateMasterKey(ctx, in)
 	}
-	return a.Service.Authenticate(ctx, strings.TrimPrefix(h, "Bearer "), false)
+	if route == "/v1/feedback" {
+		return a.Service.AuthenticateReadOnly(ctx, bearer, false)
+	}
+	return a.Service.Authenticate(ctx, bearer, false)
 }
 func readInput(c *app.RequestContext) (application.Object, error) {
 	in := application.Object{}

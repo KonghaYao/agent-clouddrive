@@ -116,7 +116,7 @@ func (s *Service) Mutate(ctx context.Context, a Actor, kind string, in Object) (
 			return nil, domain.NewError(domain.AccessDenied, "cross-space moves are not supported")
 		}
 	}
-	cred, e := access.New(s.deps()).Credential(ctx, a, ports.RevisionRef{ResourceRef: source})
+	cred, e := access.New(s.deps()).CredentialForWrite(access.WithWriteOperation(ctx, kind), a, ports.RevisionRef{ResourceRef: source})
 	if e != nil {
 		return nil, normalizeError(e)
 	}

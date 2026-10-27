@@ -1143,7 +1143,7 @@ func (s *Service) reconcileUploads(ctx context.Context) error {
 					return
 				}
 			}
-			if _, err = s.finishUpload(ctx, actor, t.upload, t.token); err == nil {
+			if _, err = s.finishUpload(ctx, actor, t.upload, t.token, false); err == nil {
 				reason = "upload_reconciled"
 			}
 		}()

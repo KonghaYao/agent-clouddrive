@@ -23,6 +23,9 @@ var (
 	ErrIntegrity      = errors.New("integrity check failed")
 	ErrLimit          = errors.New("resource limit exceeded")
 	ErrOutcomeUnknown = errors.New("remote mutation outcome unknown; reconcile before retry")
+	// ErrUnsupportedIssuer means the identity source has no event feed for a
+	// trusted external issuer. Callers must not treat this as a sync failure.
+	ErrUnsupportedIssuer = errors.New("identity source does not provide events for this issuer")
 )
 
 type DependencyError struct {
@@ -206,6 +209,20 @@ type DelegationRequest struct {
 	Source       RevisionRef
 	JobID        string
 	Audit        *AuditCapability
+}
+
+// JobCredentialRequest asks for a narrowly scoped credential for a background
+// job. Callers must authorize the subject/source first; providers never decide
+// business access. A job credential is never accepted as an inbound token.
+type JobCredentialRequest struct {
+	Subject  Subject
+	Audience string
+	Source   RevisionRef
+	JobID    string
+	Scopes   []string
+}
+type JobCredentialProvider interface {
+	JobCredential(context.Context, JobCredentialRequest) (Credential, error)
 }
 type IdentityAdapter interface {
 	ValidateToken(context.Context, string, TokenRequirements) (Subject, error)
