@@ -33,7 +33,10 @@ func (s *Service) Execute(ctx context.Context, a Actor, name string, in Object) 
 		var f Object
 		f, err = access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), domain.ActionStat)
 		shared := false
-		if err != nil {
+		// Agents are confined to their own space. Probing share grants would
+		// turn a missing file into a dependency error depending on unrelated
+		// identity-event configuration, so keep the owner lookup authoritative.
+		if err != nil && a.Principal.Type == domain.ActorUser {
 			f, _, err = s.SharedFile(ctx, a, str(in, "file_id"), str(in, "version_id"), domain.ActionStat)
 			shared = err == nil
 		}
