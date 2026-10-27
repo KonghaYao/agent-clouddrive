@@ -47,6 +47,30 @@ func TestServiceCredentialFormAndExpiry(t *testing.T) {
 	}
 }
 
+func TestServiceCredentialReadScopesAllowOpenID(t *testing.T) {
+	var scope string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if e := r.ParseForm(); e != nil {
+			t.Errorf("parse form: %v", e)
+		}
+		scope = r.Form.Get("scope")
+		_, _ = w.Write([]byte(`{"access_token":"service-access","expires_in":30,"token_type":"Bearer"}`))
+	}))
+	defer srv.Close()
+	cfg := serviceCredentialConfig(srv.URL)
+	cfg.Scopes = []string{"openid", "drive.read"}
+	p, e := NewServiceCredential(cfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if _, e = p.JobCredential(context.Background(), ports.JobCredentialRequest{Audience: "ocis", Scopes: []string{"drive.read", "openid"}}); e != nil {
+		t.Fatal(e)
+	}
+	if scope != "openid drive.read" {
+		t.Fatalf("read credential must request openid for userinfo: %q", scope)
+	}
+}
+
 func TestServiceCredentialExpiryIsCapped(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(`{"access_token":"service-access","expires_in":3600,"token_type":"Bearer"}`))
@@ -133,6 +157,7 @@ func TestServiceCredentialConfigValidation(t *testing.T) {
 		{TokenURL: "http://ocis.test/token", ClientID: "id", ClientSecret: "", Audience: "ocis"},
 		{TokenURL: "http://ocis.test/token", ClientID: "id", ClientSecret: "secret", Audience: ""},
 		{TokenURL: "http://ocis.test/token", ClientID: "id", ClientSecret: "secret", Audience: "ocis", Scopes: []string{"drive.write"}},
+		{TokenURL: "http://ocis.test/token", ClientID: "id", ClientSecret: "secret", Audience: "ocis", Scopes: []string{"openid"}},
 	}
 	for _, cfg := range cases {
 		if _, e := NewServiceCredential(cfg); !errors.Is(e, ports.ErrInvalid) {

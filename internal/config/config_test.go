@@ -279,6 +279,21 @@ func TestMasterKeyConfigRejectsUnsafeValues(t *testing.T) {
 	}
 }
 
+func TestOCISServiceScopesAllowOpenIDForUserInfo(t *testing.T) {
+	baseConfigEnv(t)
+	t.Setenv("DRIVE_OCIS_SERVICE_TOKEN_URL", "http://ocis.test/token")
+	t.Setenv("DRIVE_OCIS_SERVICE_CLIENT_ID", "id")
+	t.Setenv("DRIVE_OCIS_SERVICE_CLIENT_SECRET", "secret")
+	t.Setenv("DRIVE_OCIS_SERVICE_SCOPES", "openid,drive.read")
+	c, e := Load()
+	if e != nil {
+		t.Fatal(e)
+	}
+	if len(c.OCISServiceScopes) != 2 || c.OCISServiceScopes[0] != "openid" || c.OCISServiceScopes[1] != "drive.read" {
+		t.Fatalf("read service scopes wrong: %v", c.OCISServiceScopes)
+	}
+}
+
 func TestJobCredentialConfigRejectsUnsafeValues(t *testing.T) {
 	cases := []struct {
 		name string
@@ -287,6 +302,7 @@ func TestJobCredentialConfigRejectsUnsafeValues(t *testing.T) {
 		{"unknown mode", map[string]string{"DRIVE_JOB_CREDENTIAL_MODE": "magic"}},
 		{"partial service", map[string]string{"DRIVE_OCIS_SERVICE_TOKEN_URL": "http://ocis.test/token"}},
 		{"write scope", map[string]string{"DRIVE_OCIS_SERVICE_TOKEN_URL": "http://ocis.test/token", "DRIVE_OCIS_SERVICE_CLIENT_ID": "id", "DRIVE_OCIS_SERVICE_CLIENT_SECRET": "secret", "DRIVE_OCIS_SERVICE_SCOPES": "drive.read,drive.write"}},
+		{"openid without read", map[string]string{"DRIVE_OCIS_SERVICE_TOKEN_URL": "http://ocis.test/token", "DRIVE_OCIS_SERVICE_CLIENT_ID": "id", "DRIVE_OCIS_SERVICE_CLIENT_SECRET": "secret", "DRIVE_OCIS_SERVICE_SCOPES": "openid"}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

@@ -199,10 +199,17 @@ func Load() (Config, error) {
 		if !httpBaseURL(c.OCISServiceTokenURL) {
 			return c, errors.New("DRIVE_OCIS_SERVICE_TOKEN_URL must be an http(s) URL without credentials, query or fragment")
 		}
+		hasRead := false
 		for _, scope := range c.OCISServiceScopes {
-			if scope != defaultServiceScope {
-				return c, errors.New("DRIVE_OCIS_SERVICE_SCOPES must be read-only (drive.read)")
+			if scope != defaultServiceScope && scope != "openid" {
+				return c, errors.New("DRIVE_OCIS_SERVICE_SCOPES must be read-only (drive.read, openid)")
 			}
+			if scope == defaultServiceScope {
+				hasRead = true
+			}
+		}
+		if !hasRead {
+			return c, errors.New("DRIVE_OCIS_SERVICE_SCOPES must contain drive.read")
 		}
 	}
 	c.ExternalWriteEnabled = os.Getenv("DRIVE_EXTERNAL_WRITE_ENABLED") == "true"

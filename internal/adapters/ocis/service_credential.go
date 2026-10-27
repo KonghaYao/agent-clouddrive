@@ -52,12 +52,20 @@ func NewServiceCredential(cfg ServiceCredentialConfig) (*ServiceCredential, erro
 		if len(cfg.Scopes) == 0 {
 			cfg.Scopes = []string{"drive.read"}
 		}
+		hasRead := false
 		for _, scope := range cfg.Scopes {
 			// Background native access is read-only; a write-capable service token
-			// would be an unbounded escalation path.
-			if scope != "drive.read" {
+			// would be an unbounded escalation path. openid is required by OIDC
+			// providers that answer userinfo only for openid-scoped tokens.
+			if scope != "drive.read" && scope != "openid" {
 				return nil, ports.ErrInvalid
 			}
+			if scope == "drive.read" {
+				hasRead = true
+			}
+		}
+		if !hasRead {
+			return nil, ports.ErrInvalid
 		}
 	}
 	if cfg.TTL <= 0 {
@@ -99,7 +107,7 @@ func (p *ServiceCredential) JobCredential(ctx context.Context, req ports.JobCred
 		}
 	} else {
 		for _, scope := range req.Scopes {
-			if scope != "drive.read" {
+			if scope != "drive.read" && scope != "openid" {
 				return ports.Credential{}, ports.ErrUnauthorized
 			}
 		}
