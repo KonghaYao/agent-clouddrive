@@ -20,6 +20,9 @@ func main() {
 		log.Fatal("startup dependency/configuration check failed; check configured services and secret files")
 	}
 	defer closeFn()
+	if (len(svc.Config.MasterKeys) > 0 || svc.Config.ExternalWriteEnabled) && (!svc.Config.AllowUnverifiedOCIS || !svc.Config.DelegationVerified) {
+		log.Print("WARN external identities are enabled but DRIVE_OCIS_INTEGRATION_VERIFIED and DRIVE_DELEGATION_VERIFIED are not both true; download, version, move and external write flows will fail closed")
+	}
 	api := &transport.API{Service: svc}
 	mcp := &http.Server{Addr: svc.Config.MCPListen, Handler: api.MCPHandler(), ReadHeaderTimeout: 15 * time.Second, IdleTimeout: 90 * time.Second}
 	go func() {

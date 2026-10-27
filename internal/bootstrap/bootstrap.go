@@ -71,7 +71,7 @@ func Open(ctx context.Context) (*application.Service, func(), error) {
 	}
 	var jobProvider ports.JobCredentialProvider
 	if cfg.OCISServiceTokenURL != "" {
-		provider, er := ocis.NewServiceCredential(ocis.ServiceCredentialConfig{TokenURL: cfg.OCISServiceTokenURL, ClientID: cfg.OCISServiceClientID, ClientSecret: cfg.OCISServiceClientSecret, Audience: cfg.OCISServiceAudience, Scopes: cfg.OCISServiceScopes, TTL: cfg.JobCredentialTTL, Verified: cfg.AllowUnverifiedOCIS && os.Getenv("DRIVE_DELEGATION_VERIFIED") == "true", Client: client})
+		provider, er := ocis.NewServiceCredential(ocis.ServiceCredentialConfig{TokenURL: cfg.OCISServiceTokenURL, ClientID: cfg.OCISServiceClientID, ClientSecret: cfg.OCISServiceClientSecret, Audience: cfg.OCISServiceAudience, Scopes: cfg.OCISServiceScopes, TTL: cfg.JobCredentialTTL, Verified: cfg.AllowUnverifiedOCIS && cfg.DelegationVerified, Client: client})
 		if er != nil {
 			closeFn()
 			return nil, nil, er
