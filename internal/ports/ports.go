@@ -4,6 +4,7 @@ package ports
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -169,6 +170,34 @@ type TokenRequirements struct {
 	Scopes   []string
 	Resource string
 }
+
+// AuditCapability 只能由显式审核入口构造，vault 必须重新验证持久授权。
+type AuditCapability struct {
+	AuditorPrincipalID string
+	GrantID            string
+	FileID             string
+	VersionID          string
+	Purpose            string
+	ExpiresAt          time.Time
+}
+
+// IdentityEventSource 提供可信、可重放的管理员事件，按最新到最旧排序。
+// Anchor 缺失或事件配置不可靠时不得声称历史连续。
+type IdentityEvent struct {
+	ID      string
+	Subject string
+	Disable bool
+	Time    time.Time
+}
+type IdentityEventBatch struct {
+	Events     []IdentityEvent
+	Anchor     string
+	Continuous bool
+}
+type IdentityEventSource interface {
+	IdentityEvents(context.Context, string, string) (IdentityEventBatch, error)
+}
+
 type DelegationRequest struct {
 	Subject      Subject
 	SubjectToken string
@@ -176,6 +205,7 @@ type DelegationRequest struct {
 	Scopes       []string
 	Source       RevisionRef
 	JobID        string
+	Audit        *AuditCapability
 }
 type IdentityAdapter interface {
 	ValidateToken(context.Context, string, TokenRequirements) (Subject, error)
@@ -185,8 +215,10 @@ type IdentityAdapter interface {
 }
 
 type EngineInfo struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
+	Name     string `json:"name"`
+	Version  string `json:"version"`
+	Model    string `json:"model,omitempty"`
+	Provider string `json:"provider,omitempty"`
 }
 type Capabilities struct {
 	SchemaVersion  int        `json:"schema_version"`
@@ -211,6 +243,8 @@ type ConversionInput struct {
 	PageEnd         int    `json:"page_end,omitempty"`
 }
 type Recipe struct {
+	PageReport      bool           `json:"page_report,omitempty"`
+	ResumePages     []int          `json:"resume_pages,omitempty"`
 	Fingerprint     string         `json:"fingerprint"`
 	Engine          string         `json:"engine,omitempty"`
 	EngineVersion   string         `json:"engine_version,omitempty"`
@@ -226,6 +260,8 @@ type Recipe struct {
 	MaxOutputBytes  int64          `json:"max_output_bytes"`
 }
 type ConversionRequest struct {
+	PageReport  bool            `json:"page_report,omitempty"`
+	ResumePages []int           `json:"resume_pages,omitempty"`
 	JobID       string          `json:"job_id"`
 	AttemptID   string          `json:"attempt_id"`
 	Capability  string          `json:"capability"`
@@ -273,6 +309,7 @@ type ConversionPage struct {
 	Block             string `json:"block"`
 }
 type ConversionResult struct {
+	Model        json.RawMessage   `json:"model,omitempty"`
 	Status       string            `json:"status"`
 	Engine       EngineInfo        `json:"engine"`
 	Markdown     string            `json:"markdown"`
@@ -282,6 +319,21 @@ type ConversionResult struct {
 	Locations    []Location        `json:"locations,omitempty"`
 	Errors       []ConversionError `json:"errors"`
 }
+
+// PageEvent 是 v2 JSONL 页/阶段增量；ResultRef 使用内联、校验和受控结果，不接受外部对象地址。
+type PageEvent struct {
+	Type      string           `json:"type"`
+	Page      int              `json:"page"`
+	Stage     string           `json:"stage"`
+	State     string           `json:"state"`
+	ResultRef json.RawMessage  `json:"result_ref"`
+	Error     *ConversionError `json:"error,omitempty"`
+}
+
+type PageConverter interface {
+	ExecutePages(context.Context, ConversionRequest, func(PageEvent) error) (ConversionResult, error)
+}
+
 type Converter interface {
 	Capabilities(context.Context) (Capabilities, error)
 	Execute(context.Context, ConversionRequest) (ConversionResult, error)

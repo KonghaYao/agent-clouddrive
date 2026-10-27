@@ -20,6 +20,29 @@ type AccessTicket struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 }
 
+type ArtifactActivationTask struct {
+	FileID        pgtype.UUID        `json:"file_id"`
+	ArtifactSetID pgtype.UUID        `json:"artifact_set_id"`
+	State         string             `json:"state"`
+	Attempt       int32              `json:"attempt"`
+	LeaseOwner    *string            `json:"lease_owner"`
+	LeaseToken    int64              `json:"lease_token"`
+	LeaseUntil    pgtype.Timestamptz `json:"lease_until"`
+	RetryAt       pgtype.Timestamptz `json:"retry_at"`
+	LastError     *string            `json:"last_error"`
+}
+
+type ArtifactCleanupTask struct {
+	ArtifactSetID pgtype.UUID        `json:"artifact_set_id"`
+	State         string             `json:"state"`
+	Attempt       int32              `json:"attempt"`
+	LeaseOwner    *string            `json:"lease_owner"`
+	LeaseToken    int64              `json:"lease_token"`
+	LeaseUntil    pgtype.Timestamptz `json:"lease_until"`
+	RetryAt       pgtype.Timestamptz `json:"retry_at"`
+	LastError     *string            `json:"last_error"`
+}
+
 type ArtifactSet struct {
 	ID                pgtype.UUID        `json:"id"`
 	SourceVersionID   pgtype.UUID        `json:"source_version_id"`
@@ -36,13 +59,17 @@ type ArtifactSet struct {
 	IndexedAt         pgtype.Timestamptz `json:"indexed_at"`
 	PublishedAt       pgtype.Timestamptz `json:"published_at"`
 	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	Attempt           int32              `json:"attempt"`
 }
 
 type AuditGrant struct {
-	PrincipalID pgtype.UUID        `json:"principal_id"`
-	FileID      pgtype.UUID        `json:"file_id"`
-	GrantedBy   pgtype.UUID        `json:"granted_by"`
-	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
+	PrincipalID   pgtype.UUID        `json:"principal_id"`
+	FileID        pgtype.UUID        `json:"file_id"`
+	GrantedBy     pgtype.UUID        `json:"granted_by"`
+	ExpiresAt     pgtype.Timestamptz `json:"expires_at"`
+	ID            pgtype.UUID        `json:"id"`
+	IdentityEpoch int64              `json:"identity_epoch"`
+	AuditorEpoch  int64              `json:"auditor_epoch"`
 }
 
 type AuditRead struct {
@@ -75,6 +102,9 @@ type BatchOperation struct {
 	RequestHash      string             `json:"request_hash"`
 	State            string             `json:"state"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	LeaseOwner       *string            `json:"lease_owner"`
+	LeaseUntil       pgtype.Timestamptz `json:"lease_until"`
+	LeaseToken       int64              `json:"lease_token"`
 }
 
 type ConversionHead struct {
@@ -100,17 +130,23 @@ type ConversionJob struct {
 	ArtifactSetID     pgtype.UUID        `json:"artifact_set_id"`
 	CreatedAt         pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	PageCount         int32              `json:"page_count"`
+	PagesReady        int32              `json:"pages_ready"`
+	PagesFailed       int32              `json:"pages_failed"`
+	Completeness      []byte             `json:"completeness"`
+	ActualEngine      []byte             `json:"actual_engine"`
 }
 
 type ConversionPageResult struct {
-	JobID      pgtype.UUID `json:"job_id"`
-	PageNo     int32       `json:"page_no"`
-	Stage      string      `json:"stage"`
-	Attempt    int32       `json:"attempt"`
-	LeaseToken int64       `json:"lease_token"`
-	State      string      `json:"state"`
-	ResultRef  []byte      `json:"result_ref"`
-	ErrorCode  *string     `json:"error_code"`
+	JobID      pgtype.UUID        `json:"job_id"`
+	PageNo     int32              `json:"page_no"`
+	Stage      string             `json:"stage"`
+	Attempt    int32              `json:"attempt"`
+	LeaseToken int64              `json:"lease_token"`
+	State      string             `json:"state"`
+	ResultRef  []byte             `json:"result_ref"`
+	ErrorCode  *string            `json:"error_code"`
+	RecordedAt pgtype.Timestamptz `json:"recorded_at"`
 }
 
 type ConversionRequest struct {
@@ -190,6 +226,12 @@ type FileOperation struct {
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 }
 
+type FileOperationHold struct {
+	OperationID pgtype.UUID `json:"operation_id"`
+	FileID      pgtype.UUID `json:"file_id"`
+	HoldKind    string      `json:"hold_kind"`
+}
+
 type FileVersion struct {
 	ID                pgtype.UUID        `json:"id"`
 	FileID            pgtype.UUID        `json:"file_id"`
@@ -200,6 +242,22 @@ type FileVersion struct {
 	ContentType       string             `json:"content_type"`
 	NativeEtag        string             `json:"native_etag"`
 	NativeRevisionRef []byte             `json:"native_revision_ref"`
+}
+
+type IdentityEvent struct {
+	Source      string             `json:"source"`
+	EventID     string             `json:"event_id"`
+	Subject     string             `json:"subject"`
+	Disabled    bool               `json:"disabled"`
+	OccurredAt  pgtype.Timestamptz `json:"occurred_at"`
+	ProcessedAt pgtype.Timestamptz `json:"processed_at"`
+}
+
+type IdentityEventCursor struct {
+	Source    string             `json:"source"`
+	Anchor    string             `json:"anchor"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	GapCount  int64              `json:"gap_count"`
 }
 
 type Outbox struct {
@@ -227,6 +285,7 @@ type Principal struct {
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	DisabledReason *string            `json:"disabled_reason"`
+	IdentityEpoch  int64              `json:"identity_epoch"`
 }
 
 type QuotaAccount struct {
@@ -248,12 +307,33 @@ type QuotaReservation struct {
 	ResolvedAt pgtype.Timestamptz `json:"resolved_at"`
 }
 
+type ReadCursor struct {
+	TokenHash       []byte             `json:"token_hash"`
+	FormatVersion   int32              `json:"format_version"`
+	PrincipalID     pgtype.UUID        `json:"principal_id"`
+	FileID          pgtype.UUID        `json:"file_id"`
+	SourceVersionID pgtype.UUID        `json:"source_version_id"`
+	ArtifactSetID   pgtype.UUID        `json:"artifact_set_id"`
+	ReadScope       string             `json:"read_scope"`
+	ByteOffset      int64              `json:"byte_offset"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+}
+
 type RetentionRoot struct {
 	SpaceID          pgtype.UUID        `json:"space_id"`
 	NativeResourceID *string            `json:"native_resource_id"`
 	State            string             `json:"state"`
 	OperationID      pgtype.UUID        `json:"operation_id"`
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	LeaseOwner       *string            `json:"lease_owner"`
+	LeaseUntil       pgtype.Timestamptz `json:"lease_until"`
+	LeaseToken       int64              `json:"lease_token"`
+	RetryAt          pgtype.Timestamptz `json:"retry_at"`
+	Attempt          int32              `json:"attempt"`
+	LastError        *string            `json:"last_error"`
+	DirectoryName    *string            `json:"directory_name"`
+	NativeParentID   *string            `json:"native_parent_id"`
 }
 
 type ReviewerGrant struct {
@@ -294,6 +374,7 @@ type ShareGrant struct {
 	ExpiresAt          pgtype.Timestamptz `json:"expires_at"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	RevokedAt          pgtype.Timestamptz `json:"revoked_at"`
+	IdentityEpoch      int64              `json:"identity_epoch"`
 }
 
 type Space struct {
@@ -318,20 +399,36 @@ type TrashEntry struct {
 	RestoredAt       pgtype.Timestamptz `json:"restored_at"`
 }
 
+type UploadPatchAttempt struct {
+	UploadID    pgtype.UUID        `json:"upload_id"`
+	Epoch       int64              `json:"epoch"`
+	State       string             `json:"state"`
+	AdmittedAt  pgtype.Timestamptz `json:"admitted_at"`
+	EndedAt     pgtype.Timestamptz `json:"ended_at"`
+	OffsetStart int64              `json:"offset_start"`
+	OffsetEnd   int64              `json:"offset_end"`
+	ErrorCode   *string            `json:"error_code"`
+}
+
 type UploadSession struct {
-	ID                pgtype.UUID        `json:"id"`
-	OperationID       pgtype.UUID        `json:"operation_id"`
-	ExpectedSize      int64              `json:"expected_size"`
-	ExpectedVersionID pgtype.UUID        `json:"expected_version_id"`
-	NativeUploadRef   *string            `json:"native_upload_ref"`
-	NodeID            string             `json:"node_id"`
-	State             string             `json:"state"`
-	ReceivedBytes     int64              `json:"received_bytes"`
-	ExpiresAt         pgtype.Timestamptz `json:"expires_at"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
-	NativeResourceID  *string            `json:"native_resource_id"`
-	TransferCompleted bool               `json:"transfer_completed"`
+	ID                           pgtype.UUID        `json:"id"`
+	OperationID                  pgtype.UUID        `json:"operation_id"`
+	ExpectedSize                 int64              `json:"expected_size"`
+	ExpectedVersionID            pgtype.UUID        `json:"expected_version_id"`
+	NativeUploadRef              *string            `json:"native_upload_ref"`
+	NodeID                       string             `json:"node_id"`
+	State                        string             `json:"state"`
+	ReceivedBytes                int64              `json:"received_bytes"`
+	ExpiresAt                    pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt                    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                    pgtype.Timestamptz `json:"updated_at"`
+	NativeResourceID             *string            `json:"native_resource_id"`
+	TransferCompleted            bool               `json:"transfer_completed"`
+	PatchEpoch                   int64              `json:"patch_epoch"`
+	InFlightPatches              int32              `json:"in_flight_patches"`
+	AbandonRequestedAt           pgtype.Timestamptz `json:"abandon_requested_at"`
+	NativeTerminationConfirmedAt pgtype.Timestamptz `json:"native_termination_confirmed_at"`
+	LegacyDispatchUnknown        bool               `json:"legacy_dispatch_unknown"`
 }
 
 type WebSession struct {

@@ -87,6 +87,9 @@ func (c *HTTP) call(ctx context.Context, method, path string, in, out any) error
 		}
 		return &ports.DependencyError{Dependency: "converter", Operation: path, Status: resp.StatusCode, Code: "http_error", Cause: cause}
 	}
+	if streamed, ok := out.(*pageResponse); ok {
+		return streamed.decode(resp.Body, c.cfg.MaxResponseBytes)
+	}
 	b, e := io.ReadAll(io.LimitReader(resp.Body, c.cfg.MaxResponseBytes+1))
 	if e != nil {
 		return ports.ErrUnavailable
@@ -113,6 +116,10 @@ func segment(s string) bool {
 	return s != "" && s != "." && s != ".." && !strings.ContainsAny(s, "/\\\x00")
 }
 func (c *HTTP) Execute(ctx context.Context, in ports.ConversionRequest) (ports.ConversionResult, error) {
+	return c.ExecutePages(ctx, in, nil)
+}
+
+func (c *HTTP) ExecutePages(ctx context.Context, in ports.ConversionRequest, report func(ports.PageEvent) error) (ports.ConversionResult, error) {
 	var out ports.ConversionResult
 	if !segment(in.JobID) || !segment(in.AttemptID) || in.OutputScope != "tmp/"+in.JobID+"/"+in.AttemptID+"/" || in.Input.SourceVersionID == "" || in.Recipe.TimeoutSeconds <= 0 || in.Recipe.MaxPages <= 0 {
 		return out, ports.ErrInvalid
@@ -138,9 +145,11 @@ func (c *HTTP) Execute(ctx context.Context, in ports.ConversionRequest) (ports.C
 	} else if in.Input.ContentBase64 == "" && in.Input.Size != 0 {
 		return out, ports.ErrInvalid
 	}
-	if e := c.call(ctx, "POST", "/v1/execute", in, &out); e != nil {
-		return out, e
+	response := &pageResponse{report: report, maxPages: in.Recipe.MaxPages}
+	if e := c.call(ctx, "POST", "/v1/execute", in, response); e != nil {
+		return response.result, e
 	}
+	out = response.result
 	if e := ValidateResult(out, in.Recipe.MaxPages, c.cfg.MaxResponseBytes); e != nil {
 		return ports.ConversionResult{}, e
 	}

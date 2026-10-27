@@ -15,13 +15,13 @@ const claimConversionJob = `-- name: ClaimConversionJob :one
 WITH claim AS (
     SELECT j.id FROM conversion_jobs j JOIN file_versions v ON v.id = j.source_version_id JOIN files f ON f.id = v.file_id
     JOIN principals p ON p.id = f.owner_id WHERE j.id = $3::uuid
-    AND ((j.state = 'queued' AND j.retry_at <= now()) OR (j.state = 'processing' AND j.lease_until < now()))
+    AND ((j.state IN ('queued','partial') AND j.retry_at <= now()) OR (j.state = 'processing' AND j.lease_until < now()))
     AND j.attempt < j.max_attempts AND p.status = 'active' AND file_is_active(f.id)
     FOR UPDATE OF j SKIP LOCKED
 )
 UPDATE conversion_jobs j SET state = 'processing',attempt = j.attempt + 1,lease_token = j.lease_token + 1,
 lease_owner = $1::text,lease_until = now() + ($2::integer * interval '1 second'),updated_at = now()
-FROM claim WHERE j.id = claim.id RETURNING j.id, j.source_version_id, j.generation, j.recipe_fingerprint, j.recipe_snapshot, j.state, j.attempt, j.max_attempts, j.lease_token, j.lease_owner, j.lease_until, j.retry_at, j.error_code, j.error_detail, j.artifact_set_id, j.created_at, j.updated_at
+FROM claim WHERE j.id = claim.id RETURNING j.id, j.source_version_id, j.generation, j.recipe_fingerprint, j.recipe_snapshot, j.state, j.attempt, j.max_attempts, j.lease_token, j.lease_owner, j.lease_until, j.retry_at, j.error_code, j.error_detail, j.artifact_set_id, j.created_at, j.updated_at, j.page_count, j.pages_ready, j.pages_failed, j.completeness, j.actual_engine
 `
 
 type ClaimConversionJobParams struct {
@@ -51,6 +51,11 @@ func (q *Queries) ClaimConversionJob(ctx context.Context, arg ClaimConversionJob
 		&i.ArtifactSetID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PageCount,
+		&i.PagesReady,
+		&i.PagesFailed,
+		&i.Completeness,
+		&i.ActualEngine,
 	)
 	return i, err
 }
@@ -59,13 +64,13 @@ const claimConversionJobs = `-- name: ClaimConversionJobs :many
 WITH claim AS (
     SELECT j.id FROM conversion_jobs j JOIN file_versions v ON v.id = j.source_version_id JOIN files f ON f.id = v.file_id
     JOIN principals p ON p.id = f.owner_id
-    WHERE ((j.state = 'queued' AND j.retry_at <= now()) OR (j.state = 'processing' AND j.lease_until < now()))
+    WHERE ((j.state IN ('queued','partial') AND j.retry_at <= now()) OR (j.state = 'processing' AND j.lease_until < now()))
     AND j.attempt < j.max_attempts AND p.status = 'active' AND file_is_active(f.id)
     ORDER BY j.retry_at,j.id FOR UPDATE OF j SKIP LOCKED LIMIT $3::integer
 )
 UPDATE conversion_jobs j SET state = 'processing',attempt = j.attempt + 1,lease_token = j.lease_token + 1,
 lease_owner = $1::text,lease_until = now() + ($2::integer * interval '1 second'),updated_at = now()
-FROM claim WHERE j.id = claim.id RETURNING j.id, j.source_version_id, j.generation, j.recipe_fingerprint, j.recipe_snapshot, j.state, j.attempt, j.max_attempts, j.lease_token, j.lease_owner, j.lease_until, j.retry_at, j.error_code, j.error_detail, j.artifact_set_id, j.created_at, j.updated_at
+FROM claim WHERE j.id = claim.id RETURNING j.id, j.source_version_id, j.generation, j.recipe_fingerprint, j.recipe_snapshot, j.state, j.attempt, j.max_attempts, j.lease_token, j.lease_owner, j.lease_until, j.retry_at, j.error_code, j.error_detail, j.artifact_set_id, j.created_at, j.updated_at, j.page_count, j.pages_ready, j.pages_failed, j.completeness, j.actual_engine
 `
 
 type ClaimConversionJobsParams struct {
@@ -101,6 +106,11 @@ func (q *Queries) ClaimConversionJobs(ctx context.Context, arg ClaimConversionJo
 			&i.ArtifactSetID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.PageCount,
+			&i.PagesReady,
+			&i.PagesFailed,
+			&i.Completeness,
+			&i.ActualEngine,
 		); err != nil {
 			return nil, err
 		}
@@ -113,8 +123,8 @@ func (q *Queries) ClaimConversionJobs(ctx context.Context, arg ClaimConversionJo
 }
 
 const createArtifactSet = `-- name: CreateArtifactSet :one
-INSERT INTO artifact_sets(id,source_version_id,generation,recipe_fingerprint,recipe_snapshot,manifest_key,markdown_key,manifest_sha256,markdown_sha256,completeness)
-VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id, source_version_id, generation, recipe_fingerprint, recipe_snapshot, manifest_key, markdown_key, manifest_sha256, markdown_sha256, completeness, index_task_id, index_state, indexed_at, published_at, created_at
+INSERT INTO artifact_sets(id,source_version_id,generation,recipe_fingerprint,recipe_snapshot,manifest_key,markdown_key,manifest_sha256,markdown_sha256,completeness,attempt)
+VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id, source_version_id, generation, recipe_fingerprint, recipe_snapshot, manifest_key, markdown_key, manifest_sha256, markdown_sha256, completeness, index_task_id, index_state, indexed_at, published_at, created_at, attempt
 `
 
 type CreateArtifactSetParams struct {
@@ -128,6 +138,7 @@ type CreateArtifactSetParams struct {
 	ManifestSha256    string      `json:"manifest_sha256"`
 	MarkdownSha256    string      `json:"markdown_sha256"`
 	Completeness      []byte      `json:"completeness"`
+	Attempt           int32       `json:"attempt"`
 }
 
 func (q *Queries) CreateArtifactSet(ctx context.Context, arg CreateArtifactSetParams) (ArtifactSet, error) {
@@ -142,6 +153,7 @@ func (q *Queries) CreateArtifactSet(ctx context.Context, arg CreateArtifactSetPa
 		arg.ManifestSha256,
 		arg.MarkdownSha256,
 		arg.Completeness,
+		arg.Attempt,
 	)
 	var i ArtifactSet
 	err := row.Scan(
@@ -160,6 +172,7 @@ func (q *Queries) CreateArtifactSet(ctx context.Context, arg CreateArtifactSetPa
 		&i.IndexedAt,
 		&i.PublishedAt,
 		&i.CreatedAt,
+		&i.Attempt,
 	)
 	return i, err
 }
@@ -206,7 +219,7 @@ func (q *Queries) FinishFailedConversion(ctx context.Context, arg FinishFailedCo
 }
 
 const getArtifactForGeneration = `-- name: GetArtifactForGeneration :one
-SELECT id, source_version_id, generation, recipe_fingerprint, recipe_snapshot, manifest_key, markdown_key, manifest_sha256, markdown_sha256, completeness, index_task_id, index_state, indexed_at, published_at, created_at FROM artifact_sets WHERE source_version_id = $1 AND generation = $2
+SELECT id, source_version_id, generation, recipe_fingerprint, recipe_snapshot, manifest_key, markdown_key, manifest_sha256, markdown_sha256, completeness, index_task_id, index_state, indexed_at, published_at, created_at, attempt FROM artifact_sets WHERE source_version_id = $1 AND generation = $2 ORDER BY attempt DESC LIMIT 1
 `
 
 type GetArtifactForGenerationParams struct {
@@ -233,12 +246,13 @@ func (q *Queries) GetArtifactForGeneration(ctx context.Context, arg GetArtifactF
 		&i.IndexedAt,
 		&i.PublishedAt,
 		&i.CreatedAt,
+		&i.Attempt,
 	)
 	return i, err
 }
 
 const getConversionJob = `-- name: GetConversionJob :one
-SELECT id, source_version_id, generation, recipe_fingerprint, recipe_snapshot, state, attempt, max_attempts, lease_token, lease_owner, lease_until, retry_at, error_code, error_detail, artifact_set_id, created_at, updated_at FROM conversion_jobs WHERE id = $1
+SELECT id, source_version_id, generation, recipe_fingerprint, recipe_snapshot, state, attempt, max_attempts, lease_token, lease_owner, lease_until, retry_at, error_code, error_detail, artifact_set_id, created_at, updated_at, page_count, pages_ready, pages_failed, completeness, actual_engine FROM conversion_jobs WHERE id = $1
 `
 
 func (q *Queries) GetConversionJob(ctx context.Context, id pgtype.UUID) (ConversionJob, error) {
@@ -262,12 +276,17 @@ func (q *Queries) GetConversionJob(ctx context.Context, id pgtype.UUID) (Convers
 		&i.ArtifactSetID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PageCount,
+		&i.PagesReady,
+		&i.PagesFailed,
+		&i.Completeness,
+		&i.ActualEngine,
 	)
 	return i, err
 }
 
 const getLatestConversionJob = `-- name: GetLatestConversionJob :one
-SELECT id, source_version_id, generation, recipe_fingerprint, recipe_snapshot, state, attempt, max_attempts, lease_token, lease_owner, lease_until, retry_at, error_code, error_detail, artifact_set_id, created_at, updated_at FROM conversion_jobs WHERE source_version_id = $1 ORDER BY generation DESC LIMIT 1
+SELECT id, source_version_id, generation, recipe_fingerprint, recipe_snapshot, state, attempt, max_attempts, lease_token, lease_owner, lease_until, retry_at, error_code, error_detail, artifact_set_id, created_at, updated_at, page_count, pages_ready, pages_failed, completeness, actual_engine FROM conversion_jobs WHERE source_version_id = $1 ORDER BY generation DESC LIMIT 1
 `
 
 func (q *Queries) GetLatestConversionJob(ctx context.Context, sourceVersionID pgtype.UUID) (ConversionJob, error) {
@@ -291,12 +310,17 @@ func (q *Queries) GetLatestConversionJob(ctx context.Context, sourceVersionID pg
 		&i.ArtifactSetID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PageCount,
+		&i.PagesReady,
+		&i.PagesFailed,
+		&i.Completeness,
+		&i.ActualEngine,
 	)
 	return i, err
 }
 
 const listPageResults = `-- name: ListPageResults :many
-SELECT job_id, page_no, stage, attempt, lease_token, state, result_ref, error_code FROM conversion_page_results WHERE job_id = $1 ORDER BY page_no,stage,attempt DESC
+SELECT job_id, page_no, stage, attempt, lease_token, state, result_ref, error_code, recorded_at FROM conversion_page_results WHERE job_id = $1 ORDER BY page_no,attempt DESC,recorded_at DESC,stage
 `
 
 func (q *Queries) ListPageResults(ctx context.Context, jobID pgtype.UUID) ([]ConversionPageResult, error) {
@@ -317,6 +341,7 @@ func (q *Queries) ListPageResults(ctx context.Context, jobID pgtype.UUID) ([]Con
 			&i.State,
 			&i.ResultRef,
 			&i.ErrorCode,
+			&i.RecordedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -390,7 +415,7 @@ func (q *Queries) RenewConversionLease(ctx context.Context, arg RenewConversionL
 }
 
 const requestConversion = `-- name: RequestConversion :one
-SELECT id, source_version_id, generation, recipe_fingerprint, recipe_snapshot, state, attempt, max_attempts, lease_token, lease_owner, lease_until, retry_at, error_code, error_detail, artifact_set_id, created_at, updated_at FROM request_conversion($1::uuid,$2::text,$3::jsonb)
+SELECT id, source_version_id, generation, recipe_fingerprint, recipe_snapshot, state, attempt, max_attempts, lease_token, lease_owner, lease_until, retry_at, error_code, error_detail, artifact_set_id, created_at, updated_at, page_count, pages_ready, pages_failed, completeness, actual_engine FROM request_conversion($1::uuid,$2::text,$3::jsonb)
 `
 
 type RequestConversionParams struct {
@@ -420,6 +445,11 @@ func (q *Queries) RequestConversion(ctx context.Context, arg RequestConversionPa
 		&i.ArtifactSetID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PageCount,
+		&i.PagesReady,
+		&i.PagesFailed,
+		&i.Completeness,
+		&i.ActualEngine,
 	)
 	return i, err
 }
@@ -453,8 +483,8 @@ func (q *Queries) RetryConversion(ctx context.Context, arg RetryConversionParams
 const savePageResult = `-- name: SavePageResult :one
 INSERT INTO conversion_page_results(job_id,page_no,stage,attempt,lease_token,state,result_ref,error_code)
 VALUES($1,$2,$3,$4,$5,$6,$7,$8)
-ON CONFLICT(job_id,page_no,stage,attempt) DO UPDATE SET state = EXCLUDED.state,result_ref = EXCLUDED.result_ref,error_code = EXCLUDED.error_code
-RETURNING job_id, page_no, stage, attempt, lease_token, state, result_ref, error_code
+ON CONFLICT(job_id,page_no,stage,attempt) DO UPDATE SET state = EXCLUDED.state,result_ref = EXCLUDED.result_ref,error_code = EXCLUDED.error_code,recorded_at=clock_timestamp()
+RETURNING job_id, page_no, stage, attempt, lease_token, state, result_ref, error_code, recorded_at
 `
 
 type SavePageResultParams struct {
@@ -489,6 +519,7 @@ func (q *Queries) SavePageResult(ctx context.Context, arg SavePageResultParams) 
 		&i.State,
 		&i.ResultRef,
 		&i.ErrorCode,
+		&i.RecordedAt,
 	)
 	return i, err
 }

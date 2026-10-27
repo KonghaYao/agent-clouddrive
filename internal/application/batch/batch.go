@@ -3,6 +3,7 @@ package batch
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/agentclouddrive/agent-clouddrive/internal/application/core"
 	"github.com/agentclouddrive/agent-clouddrive/internal/domain"
@@ -26,6 +27,8 @@ func New(d core.Deps) *Service { return &Service{d: d} }
 // successful command. Saved inputs and keys make reruns deterministic after a
 // client disconnect. Anonymous feedback is deliberately forbidden in batches.
 func (s *Service) Batch(ctx context.Context, a core.Actor, in core.Object, exec Executor) (any, error) {
+	ctx, budgetCancel := context.WithTimeout(ctx, 90*time.Second)
+	defer budgetCancel()
 	if !a.Principal.Active || !a.Principal.StatusVerified {
 		return nil, domain.NewError(domain.AccessDenied, "active principal required")
 	}
@@ -100,22 +103,23 @@ func (s *Service) Batch(ctx context.Context, a core.Actor, in core.Object, exec 
 		return nil, e
 	}
 	batchID := core.Str(b, "id")
-	// Holding a session-level lock through one bounded batch execution prevents
-	// concurrent callers from racing the same running item. No DB transaction or
-	// file lock is held during remote I/O; item idempotency remains the safety net.
-	conn, e := s.d.DB.Acquire(ctx)
+	// 短 SQL 领取后立即归还连接；执行预算短于租约，过期持有者不能写回结果。
+	owner := core.ID()
+	lease, e := core.One(ctx, s.d.DB, `UPDATE batch_operations SET lease_owner=$2,lease_token=lease_token+1,lease_until=now()+interval '2 minutes' WHERE id=$1 AND state='running' AND (lease_until IS NULL OR lease_until<=now()) RETURNING to_jsonb(batch_operations)`, batchID, owner)
+	if domain.ErrorCode(e) == domain.NotFound {
+		return s.batchResult(ctx, batchID, a.Principal.ID)
+	}
 	if e != nil {
 		return nil, e
 	}
-	defer conn.Release()
-	var locked bool
-	if e = conn.QueryRow(ctx, `SELECT pg_try_advisory_lock(hashtextextended($1,2))`, batchID).Scan(&locked); e != nil {
-		return nil, e
-	}
-	if !locked {
-		return s.batchResult(ctx, batchID, a.Principal.ID)
-	}
-	defer conn.Exec(context.WithoutCancel(ctx), `SELECT pg_advisory_unlock(hashtextextended($1,2))`, batchID)
+	fence := core.Num(lease, "lease_token")
+	ctx, cancel := context.WithTimeout(ctx, 90*time.Second)
+	defer cancel()
+	defer func() {
+		cleanup, done := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer done()
+		_, _ = s.d.DB.Exec(cleanup, `UPDATE batch_operations SET lease_owner=NULL,lease_until=NULL WHERE id=$1 AND lease_token=$2 AND lease_owner=$3`, batchID, fence, owner)
+	}()
 	for {
 		rows, e := core.Many(ctx, s.d.DB, `SELECT to_jsonb(i) FROM batch_items i WHERE batch_id=$1 ORDER BY item_id`, batchID)
 		if e != nil {
@@ -146,7 +150,7 @@ func (s *Service) Batch(ctx context.Context, a core.Actor, in core.Object, exec 
 			return nil, e
 		}
 		for _, itemID := range blocked {
-			_, e = s.d.DB.Exec(ctx, `UPDATE batch_items SET status='blocked_dependency',result=$3::jsonb WHERE batch_id=$1 AND item_id=$2 AND status IN('pending','running')`, batchID, itemID, core.JSONBytes(core.Object{"error_code": "BLOCKED_DEPENDENCY"}))
+			_, e = s.d.DB.Exec(ctx, `UPDATE batch_items SET status='blocked_dependency',result=$3::jsonb WHERE batch_id=$1 AND item_id=$2 AND status IN('pending','running') AND EXISTS(SELECT 1 FROM batch_operations WHERE id=$1 AND lease_token=$4 AND lease_until>now())`, batchID, itemID, core.JSONBytes(core.Object{"error_code": "BLOCKED_DEPENDENCY"}), fence)
 			if e != nil {
 				return nil, e
 			}
@@ -158,9 +162,12 @@ func (s *Service) Batch(ctx context.Context, a core.Actor, in core.Object, exec 
 		for _, itemID := range ready {
 			r := lookup[itemID]
 			input, _ := r["input"].(map[string]any)
-			_, e = s.d.DB.Exec(ctx, `UPDATE batch_items SET status='running' WHERE batch_id=$1 AND item_id=$2 AND status IN('pending','running')`, batchID, itemID)
-			if e != nil {
-				return nil, e
+			claim, claimErr := s.d.DB.Exec(ctx, `UPDATE batch_items SET status='running' WHERE batch_id=$1 AND item_id=$2 AND status IN('pending','running') AND EXISTS(SELECT 1 FROM batch_operations WHERE id=$1 AND lease_token=$3 AND lease_until>now())`, batchID, itemID, fence)
+			if claimErr != nil {
+				return nil, claimErr
+			}
+			if claim.RowsAffected() != 1 {
+				return nil, domain.NewError(domain.LeaseLost, "batch lease lost")
 			}
 			result, runErr := exec(ctx, a, core.Str(r, "command"), input)
 			status := "succeeded"
@@ -179,9 +186,12 @@ func (s *Service) Batch(ctx context.Context, a core.Actor, in core.Object, exec 
 				status = "failed"
 				out["error"] = core.Object{"code": domain.ErrorCode(core.NormalizeError(runErr)), "message": core.NormalizeError(runErr).Error()}
 			}
-			_, e = s.d.DB.Exec(ctx, `UPDATE batch_items SET status=$3,result=$4::jsonb,operation_id=$5 WHERE batch_id=$1 AND item_id=$2`, batchID, itemID, status, core.JSONBytes(out), core.Null(operationID))
-			if e != nil {
-				return nil, e
+			written, writeErr := s.d.DB.Exec(ctx, `UPDATE batch_items SET status=$3,result=$4::jsonb,operation_id=$5 WHERE batch_id=$1 AND item_id=$2 AND EXISTS(SELECT 1 FROM batch_operations WHERE id=$1 AND lease_token=$6 AND lease_until>now())`, batchID, itemID, status, core.JSONBytes(out), core.Null(operationID), fence)
+			if writeErr != nil {
+				return nil, writeErr
+			}
+			if written.RowsAffected() != 1 {
+				return nil, domain.NewError(domain.LeaseLost, "batch result lease lost")
 			}
 			if status != "running" {
 				progressed = true
@@ -198,7 +208,7 @@ func (s *Service) Batch(ctx context.Context, a core.Actor, in core.Object, exec 
 			break
 		}
 	}
-	_, e = s.d.DB.Exec(ctx, `UPDATE batch_operations SET state='completed' WHERE id=$1 AND NOT EXISTS(SELECT 1 FROM batch_items WHERE batch_id=$1 AND status IN('pending','running'))`, batchID)
+	_, e = s.d.DB.Exec(ctx, `UPDATE batch_operations SET state='completed' WHERE id=$1 AND lease_token=$2 AND lease_until>now() AND NOT EXISTS(SELECT 1 FROM batch_items WHERE batch_id=$1 AND status IN('pending','running'))`, batchID, fence)
 	if e != nil {
 		return nil, e
 	}

@@ -56,6 +56,20 @@ func (s *Service) Ref(ctx context.Context, f core.Object) (ports.ResourceRef, er
 	return ports.ResourceRef{Instance: instance, SpaceID: sid, ResourceID: core.Str(f, "native_resource_id")}, e
 }
 func (s *Service) Parent(ctx context.Context, a core.Actor, pid string) (core.Object, ports.ResourceRef, error) {
+	return s.mutationParent(ctx, a, pid, false)
+}
+
+// RestoreParent 仅授予恢复目标校验，不改变调用方 scopes。
+func (s *Service) RestoreParent(ctx context.Context, a core.Actor, pid string) (core.Object, ports.ResourceRef, error) {
+	return s.mutationParent(ctx, a, pid, true)
+}
+
+func (s *Service) mutationParent(ctx context.Context, a core.Actor, pid string, restore bool) (core.Object, ports.ResourceRef, error) {
+	if restore {
+		if e := s.Scope(a, domain.ScopeRestore); e != nil {
+			return nil, ports.ResourceRef{}, e
+		}
+	}
 	sp, e := s.Space(ctx, a)
 	if e != nil {
 		return nil, ports.ResourceRef{}, e
@@ -64,7 +78,12 @@ func (s *Service) Parent(ctx context.Context, a core.Actor, pid string) (core.Ob
 		ref := ports.ResourceRef{Instance: core.Str(sp, "native_instance"), SpaceID: core.Str(sp, "native_space_id"), ResourceID: core.Str(sp, "native_root_resource_id")}
 		return core.Object{"id": "", "path": "/", "space_id": core.Str(sp, "id")}, ref, nil
 	}
-	p, e := s.Owned(ctx, a, pid, domain.ActionWrite)
+	var p core.Object
+	if restore {
+		p, e = core.One(ctx, s.d.DB, `SELECT to_jsonb(f) FROM files f WHERE id=$1 AND owner_id=$2 AND space_id=$3 AND file_is_active(id)`, pid, a.Principal.ID, core.Str(sp, "id"))
+	} else {
+		p, e = s.Owned(ctx, a, pid, domain.ActionWrite)
+	}
 	if e != nil {
 		return nil, ports.ResourceRef{}, e
 	}

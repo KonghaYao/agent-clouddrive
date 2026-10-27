@@ -80,7 +80,7 @@ func (q *Queries) CreateShareApproval(ctx context.Context, arg CreateShareApprov
 
 const createShareGrant = `-- name: CreateShareGrant :one
 INSERT INTO share_grants(id,approval_id,file_id,creator_principal_id,audience_type,audience_id,token_hash,rights,version_policy,version_id,approved_by,expires_at)
-VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id, approval_id, file_id, creator_principal_id, audience_type, audience_id, token_hash, rights, version_policy, version_id, state, disabled_reason, approved_by, expires_at, created_at, revoked_at
+VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id, approval_id, file_id, creator_principal_id, audience_type, audience_id, token_hash, rights, version_policy, version_id, state, disabled_reason, approved_by, expires_at, created_at, revoked_at, identity_epoch
 `
 
 type CreateShareGrantParams struct {
@@ -131,6 +131,7 @@ func (q *Queries) CreateShareGrant(ctx context.Context, arg CreateShareGrantPara
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.RevokedAt,
+		&i.IdentityEpoch,
 	)
 	return i, err
 }
@@ -148,8 +149,8 @@ func (q *Queries) ExpireShareRequests(ctx context.Context) (int64, error) {
 }
 
 const getActivePublicShare = `-- name: GetActivePublicShare :one
-SELECT g.id, g.approval_id, g.file_id, g.creator_principal_id, g.audience_type, g.audience_id, g.token_hash, g.rights, g.version_policy, g.version_id, g.state, g.disabled_reason, g.approved_by, g.expires_at, g.created_at, g.revoked_at FROM share_grants g JOIN principals p ON p.id = g.creator_principal_id
-WHERE g.token_hash = $1 AND g.audience_type = 'link' AND g.state = 'active' AND p.status = 'active'
+SELECT g.id, g.approval_id, g.file_id, g.creator_principal_id, g.audience_type, g.audience_id, g.token_hash, g.rights, g.version_policy, g.version_id, g.state, g.disabled_reason, g.approved_by, g.expires_at, g.created_at, g.revoked_at, g.identity_epoch FROM share_grants g JOIN principals p ON p.id = g.creator_principal_id
+WHERE g.token_hash = $1 AND g.audience_type = 'link' AND g.state = 'active' AND share_identity_valid(g.id) AND p.status = 'active'
 AND (g.expires_at IS NULL OR g.expires_at > now()) AND file_is_active(g.file_id)
 `
 
@@ -173,13 +174,14 @@ func (q *Queries) GetActivePublicShare(ctx context.Context, tokenHash []byte) (S
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.RevokedAt,
+		&i.IdentityEpoch,
 	)
 	return i, err
 }
 
 const getActiveShareGrant = `-- name: GetActiveShareGrant :one
-SELECT g.id, g.approval_id, g.file_id, g.creator_principal_id, g.audience_type, g.audience_id, g.token_hash, g.rights, g.version_policy, g.version_id, g.state, g.disabled_reason, g.approved_by, g.expires_at, g.created_at, g.revoked_at FROM share_grants g JOIN principals p ON p.id = g.creator_principal_id
-WHERE g.id = $1 AND g.state = 'active' AND p.status = 'active' AND (g.expires_at IS NULL OR g.expires_at > now()) AND file_is_active(g.file_id)
+SELECT g.id, g.approval_id, g.file_id, g.creator_principal_id, g.audience_type, g.audience_id, g.token_hash, g.rights, g.version_policy, g.version_id, g.state, g.disabled_reason, g.approved_by, g.expires_at, g.created_at, g.revoked_at, g.identity_epoch FROM share_grants g JOIN principals p ON p.id = g.creator_principal_id
+WHERE g.id = $1 AND g.state = 'active' AND share_identity_valid(g.id) AND p.status = 'active' AND (g.expires_at IS NULL OR g.expires_at > now()) AND file_is_active(g.file_id)
 `
 
 func (q *Queries) GetActiveShareGrant(ctx context.Context, id pgtype.UUID) (ShareGrant, error) {
@@ -202,6 +204,7 @@ func (q *Queries) GetActiveShareGrant(ctx context.Context, id pgtype.UUID) (Shar
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.RevokedAt,
+		&i.IdentityEpoch,
 	)
 	return i, err
 }
@@ -229,7 +232,7 @@ func (q *Queries) GetShareApproval(ctx context.Context, id pgtype.UUID) (ShareAp
 }
 
 const listDirectReceivedShares = `-- name: ListDirectReceivedShares :many
-SELECT g.id, g.approval_id, g.file_id, g.creator_principal_id, g.audience_type, g.audience_id, g.token_hash, g.rights, g.version_policy, g.version_id, g.state, g.disabled_reason, g.approved_by, g.expires_at, g.created_at, g.revoked_at FROM share_grants g WHERE g.audience_type = 'user' AND g.audience_id = $1 AND g.state = 'active'
+SELECT g.id, g.approval_id, g.file_id, g.creator_principal_id, g.audience_type, g.audience_id, g.token_hash, g.rights, g.version_policy, g.version_id, g.state, g.disabled_reason, g.approved_by, g.expires_at, g.created_at, g.revoked_at, g.identity_epoch FROM share_grants g WHERE g.audience_type = 'user' AND g.audience_id = $1 AND g.state = 'active' AND share_identity_valid(g.id)
 AND (g.expires_at IS NULL OR g.expires_at > now()) AND file_is_active(g.file_id) ORDER BY g.created_at DESC
 `
 
@@ -259,6 +262,7 @@ func (q *Queries) ListDirectReceivedShares(ctx context.Context, audienceID *stri
 			&i.ExpiresAt,
 			&i.CreatedAt,
 			&i.RevokedAt,
+			&i.IdentityEpoch,
 		); err != nil {
 			return nil, err
 		}
@@ -310,7 +314,7 @@ func (q *Queries) ListFeedbackForTriage(ctx context.Context, arg ListFeedbackFor
 }
 
 const listOwnedShareGrants = `-- name: ListOwnedShareGrants :many
-SELECT id, approval_id, file_id, creator_principal_id, audience_type, audience_id, token_hash, rights, version_policy, version_id, state, disabled_reason, approved_by, expires_at, created_at, revoked_at FROM share_grants WHERE creator_principal_id = $1 ORDER BY created_at DESC
+SELECT id, approval_id, file_id, creator_principal_id, audience_type, audience_id, token_hash, rights, version_policy, version_id, state, disabled_reason, approved_by, expires_at, created_at, revoked_at, identity_epoch FROM share_grants WHERE creator_principal_id = $1 ORDER BY created_at DESC
 `
 
 func (q *Queries) ListOwnedShareGrants(ctx context.Context, creatorPrincipalID pgtype.UUID) ([]ShareGrant, error) {
@@ -339,6 +343,7 @@ func (q *Queries) ListOwnedShareGrants(ctx context.Context, creatorPrincipalID p
 			&i.ExpiresAt,
 			&i.CreatedAt,
 			&i.RevokedAt,
+			&i.IdentityEpoch,
 		); err != nil {
 			return nil, err
 		}

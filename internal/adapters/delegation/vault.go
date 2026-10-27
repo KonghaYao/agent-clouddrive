@@ -83,6 +83,13 @@ func (w *Wrapper) ValidateToken(ctx context.Context, raw string, req ports.Token
 func (w *Wrapper) SubjectStatus(ctx context.Context, issuer, subject string) (ports.SubjectStatus, error) {
 	return w.cfg.Base.SubjectStatus(ctx, issuer, subject)
 }
+func (w *Wrapper) IdentityEvents(ctx context.Context, issuer, anchor string) (ports.IdentityEventBatch, error) {
+	source, ok := w.cfg.Base.(ports.IdentityEventSource)
+	if !ok {
+		return ports.IdentityEventBatch{}, ports.ErrUnverified
+	}
+	return source.IdentityEvents(ctx, issuer, anchor)
+}
 func (w *Wrapper) Groups(ctx context.Context, issuer, subject string) ([]string, error) {
 	return w.cfg.Base.Groups(ctx, issuer, subject)
 }
@@ -162,7 +169,28 @@ func (w *Wrapper) authorizeSource(ctx context.Context, tx pgx.Tx, in ports.Deleg
 		return ports.ErrInvalid
 	}
 	var allowed bool
-	if in.JobID != "" {
+	if in.Audit != nil {
+		a := in.Audit
+		if in.JobID != "" || a.Purpose != "audit_original" || a.GrantID == "" || a.AuditorPrincipalID == "" || a.FileID == "" || a.VersionID == "" || in.Source.RevisionID == "" || in.Source.ETag == "" {
+			return ports.ErrUnauthorized
+		}
+		var auditor, grantor ports.Subject
+		var expiry any
+		if !a.ExpiresAt.IsZero() {
+			expiry = a.ExpiresAt
+		}
+		e = tx.QueryRow(ctx, `SELECT auditor.issuer,auditor.subject,issuer.issuer,issuer.subject FROM audit_grants g JOIN files f ON f.id=g.file_id JOIN file_versions v ON v.file_id=f.id JOIN principals owner ON owner.id=f.owner_id JOIN principals auditor ON auditor.id=g.principal_id JOIN principals issuer ON issuer.id=g.granted_by WHERE g.id::text=$1 AND g.principal_id::text=$2 AND g.file_id::text=$3 AND v.id::text=$4 AND v.native_revision_ref=$5::jsonb AND owner.issuer=$6 AND owner.subject=$7 AND owner.status='active' AND auditor.status='active' AND issuer.status='active' AND g.identity_epoch=owner.identity_epoch AND g.auditor_epoch=auditor.identity_epoch AND g.expires_at IS NOT DISTINCT FROM $8::timestamptz AND (g.expires_at IS NULL OR g.expires_at>clock_timestamp()) AND NOT EXISTS(WITH RECURSIVE ancestry AS(SELECT id,parent_id,lifecycle FROM files WHERE id=f.id UNION SELECT parent.id,parent.parent_id,parent.lifecycle FROM files parent JOIN ancestry child ON parent.id=child.parent_id) SELECT 1 FROM ancestry WHERE lifecycle NOT IN('active','trashed')) FOR SHARE OF g,owner,auditor,issuer`, a.GrantID, a.AuditorPrincipalID, a.FileID, a.VersionID, pin, in.Subject.Issuer, in.Subject.Subject, expiry).Scan(&auditor.Issuer, &auditor.Subject, &grantor.Issuer, &grantor.Subject)
+		if errors.Is(e, pgx.ErrNoRows) {
+			return ports.ErrUnauthorized
+		}
+		if e != nil {
+			return e
+		}
+		if e = w.active(ctx, grantor); e != nil {
+			return e
+		}
+		return w.active(ctx, auditor)
+	} else if in.JobID != "" {
 		e = tx.QueryRow(ctx, `WITH RECURSIVE target AS(SELECT f.id FROM conversion_jobs j JOIN file_versions v ON v.id=j.source_version_id JOIN files f ON f.id=v.file_id JOIN principals p ON p.id=f.owner_id WHERE j.id::text=$1 AND j.state='processing' AND j.lease_until>now() AND p.issuer=$2 AND p.subject=$3 AND p.status='active' AND v.native_revision_ref=$4::jsonb), ancestors AS(SELECT f.id,f.parent_id,f.lifecycle FROM files f JOIN target t ON t.id=f.id UNION SELECT f.id,f.parent_id,f.lifecycle FROM files f JOIN ancestors a ON f.id=a.parent_id) SELECT EXISTS(SELECT 1 FROM target) AND NOT EXISTS(SELECT 1 FROM ancestors WHERE lifecycle<>'active')`, in.JobID, in.Subject.Issuer, in.Subject.Subject, pin).Scan(&allowed)
 		if e != nil {
 			return e
@@ -173,6 +201,10 @@ func (w *Wrapper) authorizeSource(ctx context.Context, tx pgx.Tx, in ports.Deleg
 		// Maintenance may inspect an unresolved authorized MOVE using its live
 		// operation lease. This exception grants no mutation or arbitrary history.
 		e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM file_operations o JOIN files f ON f.id=o.file_id JOIN spaces s ON s.id=f.space_id JOIN principals p ON p.id=f.owner_id WHERE o.id::text=$1 AND o.kind IN('move','rename','delete','restore') AND o.state IN('executing','outcome_unknown','remote_confirmed') AND o.lease_until>now() AND o.actor_principal_id=p.id AND p.issuer=$2 AND p.subject=$3 AND p.status='active' AND f.native_resource_id=$4 AND s.native_space_id=$5 AND f.native_instance=$6)`, in.JobID, in.Subject.Issuer, in.Subject.Subject, in.Source.ResourceID, in.Source.SpaceID, in.Source.Instance).Scan(&allowed)
+		if e == nil && !allowed {
+			// 仅允许带有效恢复租约的内部保留根任务读取固定空间根；不授权任意文件。
+			e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM retention_roots r JOIN spaces s ON s.id=r.space_id JOIN principals p ON p.id=s.owner_id WHERE r.operation_id::text=$1 AND r.state IN('prepared','executing','outcome_unknown') AND r.lease_until>now() AND p.issuer=$2 AND p.subject=$3 AND p.status='active' AND s.native_root_resource_id=$4 AND s.native_space_id=$5 AND s.native_instance=$6)`, in.JobID, in.Subject.Issuer, in.Subject.Subject, in.Source.ResourceID, in.Source.SpaceID, in.Source.Instance).Scan(&allowed)
+		}
 	} else {
 		if in.Source.RevisionID == "" || in.Source.ETag == "" {
 			return ports.ErrUnauthorized
@@ -225,6 +257,9 @@ func (w *Wrapper) refresh(ctx context.Context, token string) (string, string, er
 }
 func (w *Wrapper) DelegatedCredential(ctx context.Context, in ports.DelegationRequest) (ports.Credential, error) {
 	if in.SubjectToken != "" {
+		if in.Audit != nil {
+			return ports.Credential{}, ports.ErrUnauthorized
+		}
 		return w.cfg.Base.DelegatedCredential(ctx, in)
 	}
 	if !w.cfg.Verified {
@@ -278,6 +313,12 @@ func (w *Wrapper) DelegatedCredential(ctx context.Context, in ports.DelegationRe
 		_ = tx.Commit(ctx)
 		return ports.Credential{}, ports.ErrUnauthorized
 	}
+	if in.Audit != nil {
+		// refresh/校验期间授权可能到期；发放前再次检查真实时钟。
+		if e = w.authorizeSource(ctx, tx, in); e != nil {
+			return ports.Credential{}, e
+		}
+	}
 	sealed, e := w.seal(rotated, pid)
 	if e != nil {
 		return ports.Credential{}, e
@@ -290,6 +331,7 @@ func (w *Wrapper) DelegatedCredential(ctx context.Context, in ports.DelegationRe
 		return ports.Credential{}, e
 	}
 	in.Subject = subject
+	in.Audit = nil // 能力已在 vault 验证，不向原生 token exchange 传播。
 	in.SubjectToken = access
 	return w.cfg.Base.DelegatedCredential(ctx, in)
 }

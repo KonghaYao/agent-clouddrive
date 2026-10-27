@@ -179,6 +179,25 @@ func TestVaultPostgresIntegration(t *testing.T) {
 	if _, e = vault.DelegatedCredential(ctx, wrong); !errors.Is(e, ports.ErrUnauthorized) {
 		t.Fatal("unowned pin permitted", e)
 	}
+	retentionID := testID()
+	if _, e = pool.Exec(ctx, `INSERT INTO retention_roots(space_id,operation_id,state,lease_until) VALUES($1,$2,'executing',now()+interval '1 minute')`, space, retentionID); e != nil {
+		t.Fatal(e)
+	}
+	retentionRequest := ports.DelegationRequest{Subject: subject, JobID: retentionID, Source: ports.RevisionRef{ResourceRef: ports.ResourceRef{Instance: "native", SpaceID: "space", ResourceID: "root"}}}
+	if _, e = vault.DelegatedCredential(ctx, retentionRequest); e != nil {
+		t.Fatal("leased retention root rejected", e)
+	}
+	retentionRequest.Source.ResourceID = "resource"
+	if _, e = vault.DelegatedCredential(ctx, retentionRequest); !errors.Is(e, ports.ErrUnauthorized) {
+		t.Fatal("retention capability allowed arbitrary resource", e)
+	}
+	retentionRequest.Source.ResourceID = "root"
+	if _, e = pool.Exec(ctx, `UPDATE retention_roots SET lease_until=now()-interval '1 second' WHERE space_id=$1`, space); e != nil {
+		t.Fatal(e)
+	}
+	if _, e = vault.DelegatedCredential(ctx, retentionRequest); !errors.Is(e, ports.ErrUnauthorized) {
+		t.Fatal("expired retention lease permitted", e)
+	}
 	base.enabled.Store(false)
 	if _, e = vault.DelegatedCredential(ctx, in); !errors.Is(e, ports.ErrUnauthorized) {
 		t.Fatal("disabled subject permitted", e)

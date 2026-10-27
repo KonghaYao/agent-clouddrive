@@ -331,15 +331,13 @@ func (s *Service) convertAndPublish(ctx context.Context, job dbgen.ConversionJob
 		return ports.ErrIntegrity
 	}
 	recipe.Fingerprint = job.RecipeFingerprint
-	ctx, cancel := context.WithTimeout(ctx, time.Duration(recipe.TimeoutSeconds)*time.Second)
-	defer cancel()
 	q := dbgen.New(s.DB)
 	// A prior attempt may have saved immutable output but crashed while indexing.
 	existing, e := q.GetArtifactForGeneration(ctx, dbgen.GetArtifactForGenerationParams{SourceVersionID: job.SourceVersionID, Generation: job.Generation})
-	if e == nil {
+	if e == nil && (existing.PublishedAt.Valid == false || stringField(existing.Completeness, "status") == "ready") {
 		return s.resumeArtifact(ctx, job, src, existing)
 	}
-	if !errors.Is(e, pgx.ErrNoRows) {
+	if e != nil && !errors.Is(e, pgx.ErrNoRows) {
 		return e
 	}
 	limit := s.Config.ConvertMax
@@ -373,7 +371,7 @@ func (s *Service) convertAndPublish(ctx context.Context, job dbgen.ConversionJob
 		if s.Converter == nil {
 			return &conversionFailure{"blocked", "provider_not_configured", false}
 		}
-		result, e = s.Converter.Execute(ctx, ports.ConversionRequest{JobID: uuidText(job.ID), AttemptID: attemptID, Capability: "document.convert", Input: ports.ConversionInput{ContentBase64: base64.StdEncoding.EncodeToString(data), MIMEType: src.Version.ContentType, Name: src.Name, FileID: src.FileID, SourceVersionID: uuidText(job.SourceVersionID), SHA256: src.Version.Sha256, Size: src.Version.Size}, Recipe: recipe, OutputScope: "tmp/" + uuidText(job.ID) + "/" + attemptID + "/"})
+		result, e = s.executeConversionPages(ctx, job, ports.ConversionRequest{JobID: uuidText(job.ID), AttemptID: attemptID, Capability: "document.convert", Input: ports.ConversionInput{ContentBase64: base64.StdEncoding.EncodeToString(data), MIMEType: src.Version.ContentType, Name: src.Name, FileID: src.FileID, SourceVersionID: uuidText(job.SourceVersionID), SHA256: src.Version.Sha256, Size: src.Version.Size}, Recipe: recipe, OutputScope: "tmp/" + uuidText(job.ID) + "/" + attemptID + "/"})
 	}
 	if e != nil {
 		return e
@@ -426,7 +424,7 @@ func (s *Service) convertAndPublish(ctx context.Context, job dbgen.ConversionJob
 	if e != nil {
 		return e
 	}
-	a, e := q.CreateArtifactSet(ctx, dbgen.CreateArtifactSetParams{ID: pgUUID(aid), SourceVersionID: job.SourceVersionID, Generation: job.Generation, RecipeFingerprint: job.RecipeFingerprint, RecipeSnapshot: job.RecipeSnapshot, ManifestKey: mf.Key, MarkdownKey: md.Key, ManifestSha256: mf.SHA256, MarkdownSha256: md.SHA256, Completeness: js(result.Completeness)})
+	a, e := q.CreateArtifactSet(ctx, dbgen.CreateArtifactSetParams{ID: pgUUID(aid), SourceVersionID: job.SourceVersionID, Generation: job.Generation, RecipeFingerprint: job.RecipeFingerprint, RecipeSnapshot: job.RecipeSnapshot, ManifestKey: mf.Key, MarkdownKey: md.Key, ManifestSha256: mf.SHA256, MarkdownSha256: md.SHA256, Completeness: js(result.Completeness), Attempt: job.Attempt})
 	if e != nil {
 		return e
 	}
@@ -479,6 +477,14 @@ func (s *Service) publishBytes(ctx context.Context, tmp, key, media string, data
 }
 func (s *Service) savePageResults(ctx context.Context, job dbgen.ConversionJob, manifest conversionManifest) error {
 	q := dbgen.New(s.DB)
+	existing, err := q.ListPageResults(ctx, job.ID)
+	if err != nil {
+		return err
+	}
+	// 增量页证据含可续跑 bytes，不得被最终 manifest 引用覆盖。
+	if len(existing) > 0 {
+		return nil
+	}
 	for _, page := range manifest.Pages {
 		for _, stage := range []struct{ name, state string }{{"text", page.TextStatus}, {"description", page.DescriptionStatus}} {
 			state := stage.state
@@ -611,7 +617,23 @@ func conversionBlocks(markdown string, manifest conversionManifest) []searchadap
 }
 
 func (s *Service) indexAndPublish(ctx context.Context, job dbgen.ConversionJob, src conversionSource, a dbgen.ArtifactSet, markdown string, manifest conversionManifest) error {
-	q := dbgen.New(s.DB)
+	// 在任何外部写之前持久登记清理责任；包括响应未知和未成为 pointer 的代次。
+	if _, e := s.DB.Exec(ctx, `INSERT INTO artifact_cleanup_tasks(artifact_set_id) VALUES($1) ON CONFLICT(artifact_set_id) DO UPDATE SET state='queued',retry_at=now()`, a.ID); e != nil {
+		return e
+	}
+	tx, e := s.DB.Begin(ctx)
+	if e != nil {
+		return e
+	}
+	defer tx.Rollback(context.WithoutCancel(ctx))
+	var locked bool
+	if e = tx.QueryRow(ctx, `SELECT pg_try_advisory_xact_lock(hashtextextended('search-owner:'||$1,0))`, src.OwnerID).Scan(&locked); e != nil {
+		return e
+	}
+	if !locked {
+		return ports.ErrConflict
+	}
+	q := dbgen.New(tx)
 	base := ports.SearchDocument{OwnerID: src.OwnerID, SpaceID: src.SpaceID, FileID: src.FileID, VersionID: uuidText(job.SourceVersionID), ArtifactSetID: uuidText(a.ID), SourcePath: src.Path, VersionCreatedAt: src.Version.CommittedAt.Time, Title: src.Name, Completeness: manifest.Completeness.Status, MissingPages: manifest.Completeness.MissingTextPages}
 	docs, e := searchadapter.Chunk(base, conversionBlocks(markdown, manifest), 3072)
 	if e != nil {
@@ -638,7 +660,10 @@ func (s *Service) indexAndPublish(ctx context.Context, job dbgen.ConversionJob, 
 		return &conversionFailure{"blocked", "account_disabled", false}
 	}
 	_, e = q.PublishArtifact(ctx, dbgen.PublishArtifactParams{JobID: job.ID, LeaseToken: job.LeaseToken, ArtifactSetID: a.ID})
-	return e
+	if e != nil {
+		return e
+	}
+	return tx.Commit(ctx)
 }
 
 // RunMaintenance does not purge history or final artifacts. It publishes durable
@@ -678,7 +703,9 @@ func (s *Service) runMaintenance(ctx context.Context, stream nats.JetStreamConte
 			_, e := s.DB.Exec(ctx, `DELETE FROM access_tickets WHERE expires_at<now()`)
 			return e
 		}},
+		{"artifact visibility reconciliation pending", s.reconcileArtifactVisibility},
 		{"identity status reconciliation pending", s.syncPrincipalStatuses},
+		{"retention root reconciliation pending", s.ReconcileRetentionRoots},
 		{"native metadata reconciliation pending", s.ReconcileMutations},
 		{"native upload reconciliation pending", s.reconcileUploads},
 	}
@@ -1047,20 +1074,29 @@ func (s *Service) reconcileUploads(ctx context.Context) error {
 	if e := s.expireUnstartedUploads(ctx); e != nil {
 		return e
 	}
-	// Remote-confirmed uploads can finish immediately; unknown operations are
-	// retried as read-only reconciliation, never by issuing another replacement.
-	rows, e := s.DB.Query(ctx, `SELECT u.id::text,o.actor_principal_id::text,p.issuer,p.subject,COALESCE(u.native_upload_ref,''),u.expected_size,o.state FROM upload_sessions u JOIN file_operations o ON o.id=u.operation_id JOIN principals p ON p.id=o.actor_principal_id WHERE o.kind IN ('create','overwrite') AND o.state IN ('executing','outcome_unknown','remote_confirmed') AND o.updated_at<now()-interval '30 seconds' AND o.retry_at<=now() AND p.status='active' ORDER BY o.retry_at LIMIT 10`)
+	// 原子领取即推进 retry_at，任何身份/凭据/HEAD 失败分支都不会独占队首。
+	rows, e := s.DB.Query(ctx, `WITH candidates AS (
+		SELECT o.id FROM file_operations o JOIN upload_sessions u ON u.operation_id=o.id
+		WHERE o.kind IN ('create','overwrite') AND o.state IN ('executing','outcome_unknown','remote_confirmed')
+		AND o.updated_at<now()-interval '30 seconds' AND o.retry_at<=now() AND (o.lease_until IS NULL OR o.lease_until<=now())
+		ORDER BY (u.transfer_completed OR o.state='remote_confirmed') DESC,o.retry_at,o.id LIMIT 10 FOR UPDATE OF o SKIP LOCKED
+	), claimed AS (
+		UPDATE file_operations o SET retry_at=now()+interval '30 seconds',lease_until=now()+interval '2 minutes',lease_owner=$1,lease_token=o.lease_token+1
+		FROM candidates c WHERE o.id=c.id RETURNING o.*
+	) SELECT u.id::text,o.actor_principal_id::text,p.issuer,p.subject,COALESCE(u.native_upload_ref,''),u.expected_size,o.state,u.transfer_completed,o.lease_token
+	FROM claimed o JOIN upload_sessions u ON u.operation_id=o.id JOIN principals p ON p.id=o.actor_principal_id`, s.Config.NodeID)
 	if e != nil {
 		return e
 	}
 	type task struct {
 		upload, owner, issuer, subject, nativeURL, operationState string
-		expectedSize                                              int64
+		expectedSize, token                                       int64
+		completed                                                 bool
 	}
 	tasks := []task{}
 	for rows.Next() {
 		var t task
-		if e = rows.Scan(&t.upload, &t.owner, &t.issuer, &t.subject, &t.nativeURL, &t.expectedSize, &t.operationState); e != nil {
+		if e = rows.Scan(&t.upload, &t.owner, &t.issuer, &t.subject, &t.nativeURL, &t.expectedSize, &t.operationState, &t.completed, &t.token); e != nil {
 			rows.Close()
 			return e
 		}
@@ -1071,28 +1107,46 @@ func (s *Service) reconcileUploads(ctx context.Context) error {
 		return e
 	}
 	for _, t := range tasks {
-		status, e := s.Identity.SubjectStatus(ctx, t.issuer, t.subject)
-		if e != nil || !status.Enabled {
-			continue
-		}
-		actor := Actor{Principal: domain.Principal{ID: t.owner, Type: domain.ActorUser, Active: true, StatusVerified: true, Scopes: domain.AllScopes()}, Subject: ports.Subject{Issuer: t.issuer, Subject: t.subject}}
-		if t.operationState == "executing" {
-			// A long upload is not an unknown commit. Never close a live tus
-			// session merely because no business update arrived for 30 seconds.
-			if t.nativeURL == "" {
-				continue
+		func() {
+			reason := "upload_reconcile_retry"
+			defer func() { s.releaseUploadLease(ctx, t.upload, t.token, reason) }()
+			probeCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+			defer cancel()
+			status, err := s.Identity.SubjectStatus(probeCtx, t.issuer, t.subject)
+			if err != nil || !status.Enabled {
+				reason = "upload_identity_unavailable"
+				return
 			}
-			cred, err := access.New(s.deps()).Credential(ctx, actor, ports.RevisionRef{})
-			if err != nil {
-				continue
+			actor := Actor{Principal: domain.Principal{ID: t.owner, Type: domain.ActorUser, Active: true, StatusVerified: true, Scopes: domain.AllScopes()}, Subject: ports.Subject{Issuer: t.issuer, Subject: t.subject}}
+			// 持久完成证据走稳定资源；临时 tus URL 只用于仍在传输者。
+			if !t.completed && t.operationState != "remote_confirmed" {
+				if t.nativeURL == "" {
+					reason = "upload_session_unknown"
+					return
+				}
+				cred, err := access.New(s.deps()).Credential(probeCtx, actor, ports.RevisionRef{})
+				if err != nil {
+					reason = "upload_credential_unavailable"
+					return
+				}
+				remote, err := s.Original.StatUpload(probeCtx, ports.UploadInfo{NativeURL: t.nativeURL, Length: t.expectedSize}, cred)
+				if err != nil {
+					reason = "upload_status_unknown"
+					return
+				}
+				if err = s.observeUploadTransfer(ctx, t.upload, t.token, remote); err != nil {
+					reason = "upload_progress_conflict"
+					return
+				}
+				if !remote.Complete {
+					reason = "upload_transfer_incomplete"
+					return
+				}
 			}
-			remote, err := s.Original.StatUpload(ctx, ports.UploadInfo{NativeURL: t.nativeURL, Length: t.expectedSize}, cred)
-			if err != nil || !remote.Complete {
-				continue
+			if _, err = s.finishUpload(ctx, actor, t.upload, t.token); err == nil {
+				reason = "upload_reconciled"
 			}
-		}
-		_, _ = s.FinishUpload(ctx, actor, t.upload)
-		_, _ = s.DB.Exec(ctx, `UPDATE file_operations SET retry_at=now()+interval '30 seconds' WHERE id=(SELECT operation_id FROM upload_sessions WHERE id=$1) AND state NOT IN ('committed','failed_confirmed')`, t.upload)
+		}()
 	}
 	return nil
 }
@@ -1101,6 +1155,9 @@ func (s *Service) reconcileUploads(ctx context.Context) error {
 // cache: every protected request still asks the authoritative provider. Failed
 // provider reads never enable an account or reactivate a share.
 func (s *Service) syncPrincipalStatuses(ctx context.Context) error {
+	if e := s.syncIdentityEvents(ctx); e != nil {
+		return e
+	}
 	if s.Identity == nil {
 		return ports.ErrUnavailable
 	}

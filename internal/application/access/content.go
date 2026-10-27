@@ -9,6 +9,14 @@ import (
 )
 
 func (s *Service) OriginalVersion(ctx context.Context, owner ports.Subject, subjectToken, fid, vid string, rng *ports.ByteRange) (ports.Content, error) {
+	return s.originalVersion(ctx, owner, subjectToken, fid, vid, rng, nil)
+}
+
+func (s *Service) AuditOriginalVersion(ctx context.Context, owner ports.Subject, capability ports.AuditCapability, rng *ports.ByteRange) (ports.Content, error) {
+	return s.originalVersion(ctx, owner, "", capability.FileID, capability.VersionID, rng, &capability)
+}
+
+func (s *Service) originalVersion(ctx context.Context, owner ports.Subject, subjectToken, fid, vid string, rng *ports.ByteRange, audit *ports.AuditCapability) (ports.Content, error) {
 	var ref ports.RevisionRef
 	var b []byte
 	e := s.d.DB.QueryRow(ctx, `SELECT native_revision_ref FROM file_versions WHERE id=$1 AND file_id=$2`, vid, fid).Scan(&b)
@@ -18,7 +26,7 @@ func (s *Service) OriginalVersion(ctx context.Context, owner ports.Subject, subj
 	if e = json.Unmarshal(b, &ref); e != nil {
 		return ports.Content{}, e
 	}
-	cred, e := s.d.Identity.DelegatedCredential(ctx, ports.DelegationRequest{Subject: owner, SubjectToken: subjectToken, Audience: s.d.Config.OCISAudience, Source: ref})
+	cred, e := s.d.Identity.DelegatedCredential(ctx, ports.DelegationRequest{Subject: owner, SubjectToken: subjectToken, Audience: s.d.Config.OCISAudience, Source: ref, Audit: audit})
 	if e != nil {
 		return ports.Content{}, e
 	}

@@ -104,7 +104,11 @@ func (s *Service) Mutate(ctx context.Context, a Actor, kind string, in Object) (
 		if e != nil {
 			return nil, e
 		}
-		parent, destination, e = access.New(s.deps()).Parent(ctx, a, parentID)
+		if kind == "restore" {
+			parent, destination, e = access.New(s.deps()).RestoreParent(ctx, a, parentID)
+		} else {
+			parent, destination, e = access.New(s.deps()).Parent(ctx, a, parentID)
+		}
 		if e != nil {
 			return nil, e
 		}
@@ -169,6 +173,15 @@ func (s *Service) Mutate(ctx context.Context, a Actor, kind string, in Object) (
 		return nil, err
 	}
 	if kind != "delete" {
+		// 空间锁后重读路径，不能使用远端 I/O 前的父目录快照。
+		if parentID != "" {
+			parent, e = one(ctx, tx, `SELECT to_jsonb(f) FROM files f WHERE id=$1 AND owner_id=$2 AND space_id=$3 FOR UPDATE`, parentID, a.Principal.ID, spaceID)
+			if e != nil {
+				return nil, e
+			}
+			destination.ResourceID = str(parent, "native_resource_id")
+		}
+		newPath = path.Join(str(parent, "path"), name)
 		if e = s.validateMutationTarget(ctx, tx, a, parentID, spaceID, newPath, fid, num(in, "expected_parent_revision"), kind == "mkdir"); e != nil {
 			return nil, e
 		}
@@ -266,7 +279,7 @@ func (s *Service) validateMutationTarget(ctx context.Context, tx pgx.Tx, a Actor
 		}
 	}
 	var exists bool
-	e := tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM files WHERE space_id=$1 AND path=$2 AND lifecycle IN('active','deleting','restoring') AND id IS DISTINCT FROM $3::uuid UNION ALL SELECT 1 FROM file_operations o JOIN files f ON f.id=o.file_id WHERE f.space_id=$1 AND o.intent->>'target_path'=$2 AND o.state NOT IN('committed','failed_confirmed') AND f.id IS DISTINCT FROM $3::uuid)`, spaceID, targetPath, null(fileID)).Scan(&exists)
+	e := tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM files WHERE space_id=$1 AND path=$2 AND lifecycle IN('active','deleting','restoring') AND id IS DISTINCT FROM $3::uuid UNION ALL SELECT 1 FROM file_operations o JOIN files f ON f.id=o.file_id WHERE f.space_id=$1 AND (o.intent->>'target_path'=$2 OR o.remote_result->'compensation_plan'->'projection'->>'path'=$2) AND o.state NOT IN('committed','failed_confirmed') AND f.id IS DISTINCT FROM $3::uuid)`, spaceID, targetPath, null(fileID)).Scan(&exists)
 	if e != nil {
 		return e
 	}
@@ -283,6 +296,10 @@ func (s *Service) mutationResult(ctx context.Context, op Object) (any, error) {
 		if e == nil {
 			result["file"] = f
 		}
+	}
+	if remote, ok := op["remote_result"].(map[string]any); ok && remote["compensated"] == true {
+		result["compensated"] = true
+		result["message"] = "目标已失效，原生移动已补偿回原位置；请使用新幂等键重试。"
 	}
 	if str(op, "error_code") != "" {
 		result["error_code"] = str(op, "error_code")
@@ -396,10 +413,51 @@ func (s *Service) commitMetadataMutationFenced(ctx context.Context, operationID 
 	targetPath := str(intent, "target_path")
 	targetParent := str(intent, "target_parent_id")
 	targetName := str(intent, "target_name")
+	if projection, ok := remote["converged_projection"].(map[string]any); ok {
+		targetParent = str(projection, "parent_id")
+		targetName = str(projection, "name")
+		targetPath = str(projection, "path")
+	}
 	lifecycle := "active"
+	if projection, ok := remote["converged_projection"].(map[string]any); ok && str(projection, "lifecycle") == "trashed" {
+		lifecycle = "trashed"
+	}
 	if str(op, "kind") == "delete" {
 		lifecycle = "trashed"
 		targetParent = ""
+	} else if targetParent != "" {
+		p, err := one(ctx, tx, `SELECT to_jsonb(f) FROM files f WHERE id=$1 AND owner_id=$2 AND space_id=$3 FOR UPDATE`, targetParent, str(f, "owner_id"), str(f, "space_id"))
+		if err != nil {
+			return nil, err
+		}
+		var destination ports.ResourceRef
+		destinationData := intent["destination_parent"]
+		if plan, ok := remote["compensation_plan"].(map[string]any); ok {
+			if _, compensated := remote["converged_projection"]; compensated {
+				destinationData = plan["parent"]
+			}
+		}
+		if json.Unmarshal(js(destinationData), &destination) != nil || destination.ResourceID != str(p, "native_resource_id") {
+			return nil, domain.NewError(domain.VersionConflict, "target native identity changed")
+		}
+		// 历史坏状态也按稳定父身份收敛；已入回收站父目录的子项保持不可见。
+		targetPath = path.Join(str(p, "path"), targetName)
+		var active bool
+		if err = tx.QueryRow(ctx, `SELECT file_is_active($1)`, targetParent).Scan(&active); err != nil {
+			return nil, err
+		}
+		if !active {
+			_ = tx.Rollback(ctx)
+			return s.convergeRetainedTarget(ctx, op, f, leaseToken)
+		}
+		var collision bool
+		if err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM files WHERE space_id=$1 AND path=$2 AND id<>$3 AND lifecycle IN('active','deleting','restoring'))`, str(f, "space_id"), targetPath, str(f, "id")).Scan(&collision); err != nil {
+			return nil, err
+		}
+		if collision {
+			_ = tx.Rollback(ctx)
+			return s.convergeRetainedTarget(ctx, op, f, leaseToken)
+		}
 	}
 	_, e = tx.Exec(ctx, `UPDATE file_operations SET state='committed',updated_at=now() WHERE id=$1`, operationID)
 	if e != nil {
@@ -422,7 +480,11 @@ func (s *Service) commitMetadataMutationFenced(ctx context.Context, operationID 
 	case "delete":
 		_, e = tx.Exec(ctx, `UPDATE trash_entries SET state='trashed' WHERE id=$1`, str(intent, "trash_id"))
 	case "restore":
-		_, e = tx.Exec(ctx, `UPDATE trash_entries SET state='restored',restored_at=now() WHERE id=$1`, str(intent, "trash_id"))
+		if lifecycle == "trashed" {
+			_, e = tx.Exec(ctx, `UPDATE trash_entries SET state='trashed' WHERE id=$1`, str(intent, "trash_id"))
+		} else {
+			_, e = tx.Exec(ctx, `UPDATE trash_entries SET state='restored',restored_at=now() WHERE id=$1`, str(intent, "trash_id"))
+		}
 	}
 	if e != nil {
 		return nil, normalizeError(e)
@@ -435,6 +497,7 @@ func (s *Service) commitMetadataMutationFenced(ctx context.Context, operationID 
 		return nil, normalizeError(e)
 	}
 	op["state"] = "committed"
+	op["remote_result"] = remote
 	return s.mutationResult(ctx, op)
 }
 
@@ -445,60 +508,25 @@ func (s *Service) retentionRoot(ctx context.Context, a Actor, spaceID string, cr
 	if e != nil || nativeRoot == "" {
 		return root, dependency()
 	}
-	tx, e := s.DB.Begin(ctx)
+	_, e = s.DB.Exec(ctx, `INSERT INTO retention_roots(space_id,directory_name,native_parent_id) VALUES($1,$2,$3) ON CONFLICT DO NOTHING`, spaceID, s.Config.TrashDir, nativeRoot)
 	if e != nil {
 		return root, e
 	}
-	defer tx.Rollback(ctx)
-	_, e = tx.Exec(ctx, `INSERT INTO retention_roots(space_id) VALUES($1) ON CONFLICT DO NOTHING`, spaceID)
+	record, e := one(ctx, s.DB, `SELECT to_jsonb(r) FROM retention_roots r WHERE space_id=$1`, spaceID)
 	if e != nil {
 		return root, e
 	}
-	record, e := one(ctx, tx, `SELECT to_jsonb(r) FROM retention_roots r WHERE space_id=$1 FOR UPDATE`, spaceID)
-	if e != nil {
-		return root, e
-	}
-	switch str(record, "state") {
-	case "ready":
+	if str(record, "state") == "ready" {
 		root.ResourceID = str(record, "native_resource_id")
 		return root, nil
-	case "executing", "outcome_unknown":
-		return root, domain.NewError(domain.OperationPending, "retention directory creation needs reconciliation")
-	case "prepared":
-	default:
-		return root, dependency()
 	}
-	_, e = tx.Exec(ctx, `UPDATE retention_roots SET state='executing',updated_at=now() WHERE space_id=$1`, spaceID)
+	record, e = s.claimRetentionRoot(ctx, spaceID)
 	if e != nil {
-		return root, e
-	}
-	if e = tx.Commit(ctx); e != nil {
 		return root, e
 	}
 	parent := root
 	parent.ResourceID = nativeRoot
-	meta, remoteErr := s.Original.CreateDirectory(ctx, ports.DirectoryRequest{Parent: parent, Name: s.Config.TrashDir, Credential: cred})
-	persistCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
-	defer cancel()
-	if remoteErr != nil || meta.ResourceID == "" || meta.SpaceID != root.SpaceID || meta.Name != s.Config.TrashDir {
-		// A configured adapter capability rejection happened before HTTP dispatch and
-		// is safe to retry after configuration; conflicts and transport errors are not.
-		state := "outcome_unknown"
-		if errors.Is(remoteErr, ports.ErrUnverified) || errors.Is(remoteErr, ports.ErrInvalid) || errors.Is(remoteErr, ports.ErrUnauthorized) {
-			state = "prepared"
-		}
-		_, _ = s.DB.Exec(persistCtx, `UPDATE retention_roots SET state=$2,updated_at=now() WHERE space_id=$1 AND state='executing'`, spaceID, state)
-		if remoteErr != nil {
-			return root, normalizeError(remoteErr)
-		}
-		return root, domain.NewError(domain.OperationPending, "retention directory identity could not be confirmed")
-	}
-	_, e = s.DB.Exec(persistCtx, `UPDATE retention_roots SET state='ready',native_resource_id=$2,updated_at=now() WHERE space_id=$1 AND state='executing'`, spaceID, meta.ResourceID)
-	if e != nil {
-		return root, normalizeError(e)
-	}
-	root.ResourceID = meta.ResourceID
-	return root, nil
+	return s.recoverRetentionRoot(ctx, record, parent, cred)
 }
 
 // childLookup is an optional read-only extension implemented by the official

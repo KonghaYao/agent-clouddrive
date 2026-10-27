@@ -159,6 +159,12 @@ func s3Error(resp *http.Response, method string) error {
 	if resp.StatusCode == 501 {
 		cause = ports.ErrUnverified
 	}
+	// A range that starts at or beyond EOF is unsatisfiable, matching the local
+	// adapter's ports.ErrInvalid instead of surfacing as a transient dependency
+	// failure. Callers can then answer EOF or an explicit offset error.
+	if resp.StatusCode == http.StatusRequestedRangeNotSatisfiable {
+		cause = ports.ErrInvalid
+	}
 	return &ports.DependencyError{Dependency: "artifact_s3", Operation: method, Code: "http_error", Status: resp.StatusCode, Cause: cause}
 }
 func (s *S3) PutAttempt(ctx context.Context, w ports.ArtifactWrite) (ports.Object, error) {
