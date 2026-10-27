@@ -342,3 +342,42 @@ func TestUploadedTrashRetainsQuotaVersionsAndFeedback(t *testing.T) {
 		t.Fatal("restore double charged quota or created content version", used, reserved, versions)
 	}
 }
+
+func TestUploadOverwriteDerivesParentForNestedFile(t *testing.T) {
+	s, a, _ := uploadFixture(t)
+	ctx := context.Background()
+	dir := mutationCreate(t, s, a, "docs")
+	start, e := s.BeginUpload(ctx, a, Object{"name": "nested.md", "parent_id": str(dir, "id"), "size_bytes": int64(3), "idempotency_key": "seed-nested"})
+	if e != nil {
+		t.Fatal(e)
+	}
+	up := start.(map[string]any)
+	if _, e = s.FinishUpload(ctx, a, str(up, "id")); e != nil {
+		t.Fatal(e)
+	}
+	f, e := s.owned(ctx, a, str(up, "file_id"), domain.ActionWrite)
+	if e != nil {
+		t.Fatal(e)
+	}
+	next, e := s.BeginUpload(ctx, a, Object{
+		"file_id":                    str(f, "id"),
+		"name":                       "nested.md",
+		"size_bytes":                 int64(4),
+		"expected_version_id":        str(f, "current_version_id"),
+		"expected_metadata_revision": num(f, "metadata_revision"),
+		"idempotency_key":            "overwrite-nested",
+	})
+	if e != nil {
+		t.Fatalf("nested overwrite without parent_id: %v", e)
+	}
+	if _, e = s.FinishUpload(ctx, a, str(next.(map[string]any), "id")); e != nil {
+		t.Fatal(e)
+	}
+	got, e := s.owned(ctx, a, str(f, "id"), domain.ActionRead)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if str(got, "parent_id") != str(dir, "id") {
+		t.Fatalf("overwrite moved the file: %v", got)
+	}
+}

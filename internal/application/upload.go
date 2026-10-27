@@ -55,10 +55,7 @@ func (s *Service) BeginUpload(ctx context.Context, a Actor, in Object) (any, err
 		}
 		return s.uploadView(old), nil
 	}
-	p, pref, e := access.New(s.deps()).Parent(ctx, a, str(in, "parent_id"))
-	if e != nil {
-		return nil, normalizeError(e)
-	}
+	parentID := str(in, "parent_id")
 	var f Object
 	if fid != "" {
 		f, e = access.New(s.deps()).Owned(ctx, a, fid, domain.ActionWrite)
@@ -71,9 +68,16 @@ func (s *Service) BeginUpload(ctx context.Context, a Actor, in Object) (any, err
 		if e = domain.CheckRevision(fileDomain(f), str(in, "expected_version_id"), num(in, "expected_metadata_revision")); e != nil {
 			return nil, e
 		}
-		if str(f, "parent_id") != str(in, "parent_id") || str(f, "name") != name {
+		if parentID == "" {
+			parentID = str(f, "parent_id")
+		}
+		if str(f, "parent_id") != parentID || str(f, "name") != name {
 			return nil, domain.NewError(domain.InvalidArgument, "overwriting cannot move or rename the file")
 		}
+	}
+	p, pref, e := access.New(s.deps()).Parent(ctx, a, parentID)
+	if e != nil {
+		return nil, normalizeError(e)
 	}
 	tx, e := s.DB.Begin(ctx)
 	if e != nil {
