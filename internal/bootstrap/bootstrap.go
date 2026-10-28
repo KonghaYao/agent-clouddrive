@@ -151,7 +151,7 @@ func Open(ctx context.Context) (*application.Service, func(), error) {
 	}
 	var identityPort ports.IdentityAdapter = ident
 	var delegationConfig *application.DelegationConfig
-	if keyFile := os.Getenv("DRIVE_DELEGATION_KEY_FILE"); keyFile != "" {
+	if keyFile := cfg.DelegationKeyFile; keyFile != "" {
 		key, e := os.ReadFile(keyFile)
 		if e != nil {
 			closeFn()

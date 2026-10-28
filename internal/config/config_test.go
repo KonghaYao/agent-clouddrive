@@ -32,7 +32,7 @@ func baseConfigEnv(t *testing.T) {
 	t.Helper()
 	t.Setenv("DRIVE_DATABASE_URL", "postgres://example")
 	t.Setenv("DRIVE_STORAGE_MODE", "local")
-	for _, k := range []string{"DRIVE_MASTER_KEYS", "DRIVE_MASTER_KEYS_FILE", "DRIVE_MASTER_KEY_DEFAULT_ID", "DRIVE_MASTER_KEY_ALLOWED_CIDRS", "DRIVE_TRUSTED_PROXY_CIDRS", "DRIVE_DELEGATION_VERIFIED", "DRIVE_MASTER_KEY_STATUS_URL", "DRIVE_MASTER_KEY_STATUS_TOKEN", "DRIVE_MASTER_KEY_STATUS_TTL_SECONDS", "DRIVE_MASTER_KEY_SCOPES", "DRIVE_MASTER_KEY_INTERACTIVE_CLIENT_ID", "DRIVE_JOB_CREDENTIAL_MODE", "DRIVE_OCIS_SERVICE_TOKEN_URL", "DRIVE_OCIS_SERVICE_CLIENT_ID", "DRIVE_OCIS_SERVICE_CLIENT_SECRET", "DRIVE_OCIS_SERVICE_CLIENT_SECRET_FILE", "DRIVE_OCIS_SERVICE_AUDIENCE", "DRIVE_OCIS_SERVICE_SCOPES", "DRIVE_JOB_CREDENTIAL_TTL_SECONDS", "DRIVE_EXTERNAL_WRITE_ENABLED", "DRIVE_EXTERNAL_WRITE_ISSUERS", "DRIVE_OCIS_WRITE_SERVICE_TOKEN_URL", "DRIVE_OCIS_WRITE_SERVICE_CLIENT_ID", "DRIVE_OCIS_WRITE_SERVICE_CLIENT_SECRET", "DRIVE_OCIS_WRITE_SERVICE_CLIENT_SECRET_FILE", "DRIVE_OCIS_WRITE_SERVICE_AUDIENCE", "DRIVE_OCIS_WRITE_SERVICE_SCOPES", "DRIVE_OCIS_WRITE_SERVICE_TTL_SECONDS", "DRIVE_OCIS_WRITE_SERVICE_VERIFIED", "DRIVE_EXTERNAL_SPACE_ISSUERS", "DRIVE_SPACE_PROVISIONER_ENABLED", "DRIVE_SPACE_PROVISIONER_TOKEN_URL", "DRIVE_SPACE_PROVISIONER_CLIENT_ID", "DRIVE_SPACE_PROVISIONER_CLIENT_SECRET", "DRIVE_SPACE_PROVISIONER_CLIENT_SECRET_FILE", "DRIVE_SPACE_PROVISIONER_AUDIENCE", "DRIVE_SPACE_PROVISIONER_SCOPES", "DRIVE_SPACE_PROVISIONER_VERIFIED", "DRIVE_SPACE_PROVISIONER_NATIVE_INSTANCE"} {
+	for _, k := range []string{"DRIVE_MASTER_KEYS", "DRIVE_MASTER_KEYS_FILE", "DRIVE_MASTER_KEY_DEFAULT_ID", "DRIVE_MASTER_KEY_ALLOWED_CIDRS", "DRIVE_TRUSTED_PROXY_CIDRS", "DRIVE_DELEGATION_VERIFIED", "DRIVE_DELEGATION_KEY_FILE", "DRIVE_MASTER_KEY_STATUS_URL", "DRIVE_MASTER_KEY_STATUS_TOKEN", "DRIVE_MASTER_KEY_STATUS_TTL_SECONDS", "DRIVE_MASTER_KEY_SCOPES", "DRIVE_MASTER_KEY_INTERACTIVE_CLIENT_ID", "DRIVE_JOB_CREDENTIAL_MODE", "DRIVE_OCIS_SERVICE_TOKEN_URL", "DRIVE_OCIS_SERVICE_CLIENT_ID", "DRIVE_OCIS_SERVICE_CLIENT_SECRET", "DRIVE_OCIS_SERVICE_CLIENT_SECRET_FILE", "DRIVE_OCIS_SERVICE_AUDIENCE", "DRIVE_OCIS_SERVICE_SCOPES", "DRIVE_JOB_CREDENTIAL_TTL_SECONDS", "DRIVE_EXTERNAL_WRITE_ENABLED", "DRIVE_EXTERNAL_WRITE_ISSUERS", "DRIVE_OCIS_WRITE_SERVICE_TOKEN_URL", "DRIVE_OCIS_WRITE_SERVICE_CLIENT_ID", "DRIVE_OCIS_WRITE_SERVICE_CLIENT_SECRET", "DRIVE_OCIS_WRITE_SERVICE_CLIENT_SECRET_FILE", "DRIVE_OCIS_WRITE_SERVICE_AUDIENCE", "DRIVE_OCIS_WRITE_SERVICE_SCOPES", "DRIVE_OCIS_WRITE_SERVICE_TTL_SECONDS", "DRIVE_OCIS_WRITE_SERVICE_VERIFIED", "DRIVE_EXTERNAL_SPACE_ISSUERS", "DRIVE_SPACE_PROVISIONER_ENABLED", "DRIVE_SPACE_PROVISIONER_TOKEN_URL", "DRIVE_SPACE_PROVISIONER_CLIENT_ID", "DRIVE_SPACE_PROVISIONER_CLIENT_SECRET", "DRIVE_SPACE_PROVISIONER_CLIENT_SECRET_FILE", "DRIVE_SPACE_PROVISIONER_AUDIENCE", "DRIVE_SPACE_PROVISIONER_SCOPES", "DRIVE_SPACE_PROVISIONER_VERIFIED", "DRIVE_SPACE_PROVISIONER_NATIVE_INSTANCE"} {
 		t.Setenv(k, "")
 	}
 }
@@ -40,6 +40,7 @@ func baseConfigEnv(t *testing.T) {
 func TestMasterKeyConfig(t *testing.T) {
 	baseConfigEnv(t)
 	t.Setenv("DRIVE_MASTER_KEYS", `{"k1":"secret1","k2":"secret2"}`)
+	t.Setenv("DRIVE_DELEGATION_KEY_FILE", "/run/secrets/delegation_key")
 	t.Setenv("DRIVE_MASTER_KEY_DEFAULT_ID", "k1")
 	t.Setenv("DRIVE_MASTER_KEY_ALLOWED_CIDRS", "10.0.0.0/8, 127.0.0.1/32")
 	t.Setenv("DRIVE_MASTER_KEY_STATUS_URL", "http://fenix-agent:3000/internal/drive/users/")
@@ -69,6 +70,7 @@ func TestMasterKeyConfig(t *testing.T) {
 func TestMasterKeyDefaults(t *testing.T) {
 	baseConfigEnv(t)
 	t.Setenv("DRIVE_MASTER_KEYS", `{"k1":"secret1"}`)
+	t.Setenv("DRIVE_DELEGATION_KEY_FILE", "/run/secrets/delegation_key")
 	c, e := Load()
 	if e != nil {
 		t.Fatal(e)
@@ -93,6 +95,7 @@ func TestMasterKeyDefaults(t *testing.T) {
 func TestExternalWriteConfig(t *testing.T) {
 	baseConfigEnv(t)
 	t.Setenv("DRIVE_EXTERNAL_WRITE_ENABLED", "true")
+	t.Setenv("DRIVE_DELEGATION_KEY_FILE", "/run/secrets/delegation_key")
 	t.Setenv("DRIVE_EXTERNAL_WRITE_ISSUERS", "fenix,partner")
 	t.Setenv("DRIVE_OCIS_WRITE_SERVICE_TOKEN_URL", "https://ocis.test/token")
 	t.Setenv("DRIVE_OCIS_WRITE_SERVICE_CLIENT_ID", "write-client")
@@ -147,6 +150,7 @@ func TestExternalWriteConfigRejectsUnsafeValues(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			baseConfigEnv(t)
+			t.Setenv("DRIVE_DELEGATION_KEY_FILE", "/run/secrets/delegation_key")
 			for k, v := range tc.env {
 				t.Setenv(k, v)
 			}
@@ -245,6 +249,7 @@ func TestMasterKeysFileWins(t *testing.T) {
 	}
 	t.Setenv("DRIVE_MASTER_KEYS", `{"env-key":"env-secret"}`)
 	t.Setenv("DRIVE_MASTER_KEYS_FILE", p)
+	t.Setenv("DRIVE_DELEGATION_KEY_FILE", "/run/secrets/delegation_key")
 	c, e := Load()
 	if e != nil {
 		t.Fatal(e)
@@ -269,6 +274,7 @@ func TestMasterKeyConfigRejectsUnsafeValues(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			baseConfigEnv(t)
+			t.Setenv("DRIVE_DELEGATION_KEY_FILE", "/run/secrets/delegation_key")
 			for k, v := range tc.env {
 				t.Setenv(k, v)
 			}
@@ -336,4 +342,26 @@ func TestTrustedProxyConfigRejectsInvalidCIDR(t *testing.T) {
 	if _, e := Load(); e == nil {
 		t.Fatal("invalid trusted proxy CIDR allowed")
 	}
+}
+
+func TestExternalIdentitiesRequireDelegationKeyFile(t *testing.T) {
+	t.Run("master keys", func(t *testing.T) {
+		baseConfigEnv(t)
+		t.Setenv("DRIVE_MASTER_KEYS", `{"k1":"secret1"}`)
+		if _, e := Load(); e == nil {
+			t.Fatal("master keys without DRIVE_DELEGATION_KEY_FILE accepted")
+		}
+	})
+	t.Run("external write", func(t *testing.T) {
+		baseConfigEnv(t)
+		t.Setenv("DRIVE_EXTERNAL_WRITE_ENABLED", "true")
+		t.Setenv("DRIVE_EXTERNAL_WRITE_ISSUERS", "fenix")
+		t.Setenv("DRIVE_OCIS_WRITE_SERVICE_TOKEN_URL", "https://ocis.test/token")
+		t.Setenv("DRIVE_OCIS_WRITE_SERVICE_CLIENT_ID", "write-client")
+		t.Setenv("DRIVE_OCIS_WRITE_SERVICE_CLIENT_SECRET", "write-secret")
+		t.Setenv("DRIVE_OCIS_WRITE_SERVICE_VERIFIED", "true")
+		if _, e := Load(); e == nil {
+			t.Fatal("external write without DRIVE_DELEGATION_KEY_FILE accepted")
+		}
+	})
 }
