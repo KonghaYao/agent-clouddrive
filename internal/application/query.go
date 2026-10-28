@@ -52,10 +52,13 @@ func (s *Service) Execute(ctx context.Context, a Actor, name string, in Object) 
 			}
 		}
 	case "versions":
-		if _, err = access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), domain.ActionReadHistory); err == nil {
+		_, ownedErr := access.New(s.deps()).Owned(ctx, a, str(in, "file_id"), domain.ActionReadHistory)
+		if ownedErr == nil {
 			var rows []Object
 			rows, err = many(ctx, s.DB, `SELECT (to_jsonb(v)-'native_revision_ref'-'native_etag')||jsonb_build_object('conversion_status',(SELECT j.state FROM conversion_jobs j WHERE j.source_version_id=v.id ORDER BY j.generation DESC LIMIT 1)) FROM file_versions v WHERE file_id=$1 ORDER BY version_seq DESC`, str(in, "file_id"))
 			result = Object{"items": rows}
+		} else if a.Principal.Type != domain.ActorUser {
+			err = ownedErr
 		} else {
 			var f Object
 			f, _, err = s.SharedFile(ctx, a, str(in, "file_id"), str(in, "version_id"), domain.ActionReadHistory)
