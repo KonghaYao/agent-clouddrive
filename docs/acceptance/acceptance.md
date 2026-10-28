@@ -1,6 +1,6 @@
 # 验收矩阵与发布判定
 
-记录时间：2026-10-24T00:16:00Z。依据 [工程交接报告](../architecture/engineering-handoff.md) 第 16、18 节；机器可读结果是 [acceptance.json](acceptance.json)。
+记录时间：2026-10-24T00:16:00Z。机器可读结果是 [acceptance.json](acceptance.json)。
 
 ## 当前结论
 
