@@ -1,57 +1,67 @@
 # Fenix 对接 CloudDrive 指南
 
-> 适用范围：Fenix 后端作为受信任调用方，通过 CloudDrive 的 MCP 接口，为每个 Fenix 用户提供独立的个人云盘空间。
+> 适用范围：Fenix 后端作为受信任调用方，通过 CloudDrive **REST API** 为每个 Fenix 用户提供独立的个人云盘空间。
+>
+> 正式对接面只有 REST。MCP 当前为 **beta/内部能力**，不属于 Fenix 正式契约，也不在公网暴露。
 >
 > 设计原则：CloudDrive 不包含 Fenix 专用代码。本文只使用通用能力：master key 认证、external issuer、space provisioner、只读/可写 service credential。任何外部 IdP 都可以按同样方式接入。
 
 ## 0. 一页结论
 
-- Fenix **后端**调用 `POST /mcp`，不经过 CloudDrive 自带的 Web UI。
-- 认证使用 **静态 master key** + `X-On-Behalf-Of: <Fenix 用户 ID>`。Fenix 前端、浏览器和终端用户都拿不到 master key。
+- Fenix **后端**调用 CloudDrive REST：`/v1/*`，上传数据走 `/v1/tus/<id>`。Fenix 前端和浏览器不直接持有 master key。
+- 认证使用 **静态 master key** + `X-On-Behalf-Of: <Fenix 用户 ID>`。master key 只存在于 Fenix 后端和 CloudDrive 部署配置中。
 - CloudDrive 按 `(issuer, subject)` 分区：Fenix 用户第一次写入时，自动 provision 一个独立的 oCIS project drive。
-- 文本读写需要 `drive.read`、`drive.write`；二进制上传使用 `drive_begin_upload` → TUS `PATCH /v1/tus/<id>` → `drive_finish_upload`。
-- 关键配置：`DRIVE_MASTER_KEY_ALLOWED_CIDRS` 不能为空；service credential 的 scopes 必须包含 `openid`，否则 oCIS 的 userinfo 校验会返回 403。
+- REST 没有 `create_text` 便捷接口；**文本和二进制都走统一上传流程**：`POST /v1/uploads` → TUS `HEAD/PATCH /v1/tus/<id>` → `POST /v1/uploads/<id>/finalize`。
+- MCP 是 beta/内部能力：参考网关不代理 `/mcp`，只在 `api:8081/mcp` 内网可用；不要把它作为 Fenix 的生产依赖。
+- 关键配置：`DRIVE_MASTER_KEY_ALLOWED_CIDRS` 不能为空；service credential 的 scopes 必须包含 `openid`，否则 oCIS 的 userinfo 校验会返回 403；读路径还需要 `DRIVE_DELEGATION_KEY_FILE`、`DRIVE_OCIS_INTEGRATION_VERIFIED=true`、`DRIVE_DELEGATION_VERIFIED=true`。
 - 跨用户隔离由 CloudDrive 的 `owner_id`/space 映射保证，不由 oCIS ACL 保证；不要把 oCIS 直接暴露给终端用户。
 
 ## 1. 架构与信任边界
 
 ```text
-Fenix 前端/Agent
-      │  只调用 Fenix 自己的 /mcp/drive
+Fenix UI / 用户操作
+      │  Fenix 自己的会话与 API
       ▼
 Fenix 后端（受信任）
       │  Authorization: Bearer <master key>
       │  X-On-Behalf-Of: <Fenix 用户稳定 ID>
       ▼
-CloudDrive /mcp  ──►  principal / quota / per-user space
+CloudDrive REST /v1/*  ──►  principal / quota / per-user space
       │
-      ├── 文本与元数据：CloudDrive DB
-      └── 原件与上传：oCIS project drive（service credential）
+      ├── 文本、元数据：CloudDrive DB + oCIS 原件
+      └── 上传数据面：TUS /v1/tus/<id>（service credential）
 
-oCIS 的 drive owner 是 provisioner 的 service account；
-用户之间的隔离由 CloudDrive 鉴权与空间映射保证。
+Fenix Agent（beta，仅内网）
+      │  MCP /mcp（api:8081）
+      ▼
+CloudDrive MCP（beta，非公开）
 ```
 
 信任边界：
 
 - master key 只存在于 Fenix 后端和 CloudDrive 部署配置中。不要下发给浏览器、移动端、Agent 运行时或日志系统。
 - Fenix 必须先完成用户认证，再决定 `X-On-Behalf-Of`；不要接受客户端直接传入的任意 subject。
-- CloudDrive 的 `/mcp` 会把调用者当作 **Agent actor**，限制在其自己的个人空间内；不能使用接收共享等 Web/REST-only 能力。
+- REST 的 master key 调用默认按 **ActorUser** 处理，具备完整用户面能力（文件、目录、回收站、上传、分享等）。因此它只能在后端使用，不能出现在前端或公网客户端。
+- MCP 的调用者固定按 **ActorAgent** 处理，只允许操作自己的个人空间；不能使用接收共享、分享审批等 Web/REST-only 能力。
 - CloudDrive 自带 Web UI 不作为 Fenix 用户的人类入口。
+- 不要把 oCIS DAV/Graph 直接暴露给 Fenix 用户或 Agent，否则会绕过 CloudDrive 的 owner 检查。
 
-## 2. 请求协议
+## 2. REST 协议
+
+完整的机器可读契约见 [OpenAPI](../reference/openapi.json)。本节只列 Fenix 对接必须掌握的部分。
 
 ### 2.1 认证头
 
-每次请求（包括 TUS 上传）都需要：
+每次 REST 请求都需要：
 
 ```http
 Authorization: Bearer <master key>
 X-On-Behalf-Of: <Fenix 用户稳定 ID>
 X-Key-Id: <可选，多 key 轮换时指定 key id>
 Content-Type: application/json
-Accept: application/json, text/event-stream
 ```
+
+TUS `PATCH` 的 `Content-Type` 是 `application/offset+octet-stream`，认证头相同。
 
 规则：
 
@@ -62,78 +72,93 @@ Accept: application/json, text/event-stream
 
 ### 2.2 错误语义
 
-MCP 业务错误通常返回 **HTTP 200**，错误在 JSON-RPC 结果内部：
+REST 使用 **HTTP 状态码 + JSON error**，不是 MCP 的 JSON-RPC 200 包装：
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "content": [
-      {
-        "type": "text",
-        "text": "{\"error\":{\"code\":\"ACCESS_DENIED\",\"message\":\"access denied\"}}"
-      }
-    ],
-    "isError": true
+  "error": {
+    "code": "ACCESS_DENIED",
+    "message": "access denied",
+    "details": {}
   }
 }
 ```
 
-调用方必须同时检查 `result.isError`，并二次解析 `result.content[0].text`。认证/协议层错误可能是 HTTP 4xx + 普通 JSON，不要只按 HTTP 状态判断业务结果。
+调用方先看 HTTP 状态，再解析 `error.code`。OpenAPI 列出的业务状态包括 401、403、404、409、413、422、429、503。
 
 常见 code：
 
 | code | 含义 | 是否可重试 |
 |---|---|---|
 | `ACCESS_DENIED` | scope 不足、外部写未启用、issuer 不在允许列表、principal 非活跃 | 否，先修配置 |
-| `NOT_FOUND` | 文件不存在或无权访问（用于下载等接口） | 否 |
+| `INSUFFICIENT_SCOPE` | master key 的 scope 不包含该操作 | 否，补 scope |
+| `NOT_FOUND` | 文件不存在或不属于当前用户 | 否 |
 | `PATH_CONFLICT` | 同目录同名目标已存在 | 否，改用覆盖或改名 |
 | `VERSION_CONFLICT` | `expected_version_id` / `expected_metadata_revision` 不匹配 | 否，重新读取元数据 |
 | `IDEMPOTENCY_CONFLICT` | 同一个 idempotency key 被用于不同请求 | 否，换 key |
 | `INVALID_ARGUMENT` | 参数缺失或格式错误 | 否 |
+| `QUOTA_EXCEEDED` | 配额不足 | 否，先清理或扩容 |
+| `UPLOAD_TOO_LARGE` | 超过单文件/请求限制 | 否 |
+| `OPERATION_PENDING` | 操作仍在进行 | 是，按 `operation_id` 轮询 |
 | `SPACE_PROVISIONER_UNAVAILABLE` | 空间 provisioner 未配置/未验证/调用失败 | 视情况，先查 provisioner 配置 |
 | `DEPENDENCY_UNAVAILABLE` | oCIS/IdP/数据库等依赖不可用 | 可退避重试，但要先排除配置问题 |
 
-### 2.3 最小调用示例
+### 2.3 幂等、版本与覆盖
+
+- 每个写操作都生成全局唯一的 `idempotency_key`；同一 key 的请求体必须完全一致，否则返回 `IDEMPOTENCY_CONFLICT`。
+- 覆盖写必须传 `file_id`、`name`、`expected_version_id`、`expected_metadata_revision`。`parent_id` 可选，省略时从 `file_id` 推导；显式传入时必须与文件当前父目录一致。
+- CloudDrive **不会**因为同名而静默覆盖；同名创建返回 `PATH_CONFLICT`。
+- 覆盖前先 `GET /v1/files/{id}` 读取 `current_version_id` 与 `metadata_revision`，两者都作为期望值传入。
+
+### 2.4 最小调用示例
 
 ```bash
-curl -sS https://drive.example.com/mcp \
+curl -sS https://drive.example.com/v1/files \
   -H "Authorization: Bearer $DRIVE_MASTER_KEY" \
   -H "X-On-Behalf-Of: $FENIX_USER_ID" \
-  -H "X-Key-Id: fenix-prod" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": 1,
-    "method": "tools/call",
-    "params": {
-      "name": "drive_create_text",
-      "arguments": {
-        "name": "hello.md",
-        "content": "# hello\n",
-        "idempotency_key": "fenix-20261027-0001"
-      }
-    }
-  }'
+  -H "X-Key-Id: fenix-prod"
 ```
 
-## 3. 推荐调用流程
+## 3. REST 调用流程
 
-### 3.1 文本创建与覆盖
+### 3.1 列表、元数据与目录
 
-- 创建：`drive_create_text`，必填 `name`、`content`、`idempotency_key`；单文件上限 1 MiB。
-- 目录：先 `drive_mkdir`（根目录不需要 revision），再用 `parent_id` 在目录下创建。
-- 覆盖：必须传 `file_id`、`name`、`expected_version_id`、`expected_metadata_revision`；`parent_id` 可选，省略时从 `file_id` 推导（根目录和子目录都适用），显式传入时必须与文件当前父目录一致。CloudDrive **不会**因为同名而静默覆盖；同名创建返回 `PATH_CONFLICT`。
-- 覆盖前先 `drive_stat` 读取 `current_version_id` 与 `metadata_revision`；两者都要作为期望值传入。
+| 操作 | 方法 | 路径 | 说明 |
+|---|---|---|---|
+| 当前主体 | GET | `/v1/me` | 主体、配额、空间等 |
+| 列出文件 | GET | `/v1/files` | 支持 `parent_id`、`cursor` |
+| 文件元数据 | GET | `/v1/files/{id}` | 不存在或无权访问返回 `NOT_FOUND` |
+| 创建目录 | POST | `/v1/directories` | 字段见 OpenAPI；根目录不需要父 revision |
+| 移动/改名 | PATCH | `/v1/files/{id}/location` | 需要 `expected_metadata_revision` |
+| 删除 | DELETE | `/v1/files/{id}` | 进入业务回收站，不物理删除 |
+| 回收站 | GET | `/v1/trash` | 列出已删除条目 |
+| 恢复 | POST | `/v1/trash/{id}/restore` | 字段见 OpenAPI |
+| 版本 | GET | `/v1/files/{id}/versions` | 返回历史版本 |
+| 原文 | GET | `/v1/files/{id}/content` | 流式返回；支持单个 `Range` |
+| Markdown | GET | `/v1/files/{id}/markdown` | 已固定的转换产物 |
+| 搜索 | POST | `/v1/search` | 最终一致；刚写入的文件可能短暂搜不到 |
+| 重新转换 | POST | `/v1/files/{id}/conversions` | 需要 `drive.convert` |
+| 批处理 | POST | `/v1/batches` | 子操作可部分成功；依赖失败会被阻塞 |
+| 操作状态 | GET | `/v1/operations/{id}` | 轮询长时间运行的操作 |
 
-### 3.2 二进制上传（TUS）
+请求/响应字段以 OpenAPI 为准；REST 与 MCP 共享同一业务用例，但 REST 直接返回 JSON/字节，不包 JSON-RPC envelope。
 
-1. `drive_begin_upload`：
+### 3.2 上传：文本和二进制统一走 TUS
 
-```json
-{"name":"report.pdf","size_bytes":12345,"idempotency_key":"fenix-upload-0001"}
+REST **没有** `create_text`。文本也作为 UTF-8 字节走同一上传流程；1 MiB 上限只适用于 MCP beta 的 `drive_create_text` 便捷工具。
+
+1. 预留上传会话：
+
+```http
+POST /v1/uploads
+Content-Type: application/json
+
+{
+  "name": "report.pdf",
+  "size_bytes": 12345,
+  "content_type": "application/pdf",
+  "idempotency_key": "fenix-upload-0001"
+}
 ```
 
 返回：
@@ -156,42 +181,57 @@ curl -sS https://drive.example.com/mcp \
 Tus-Resumable: 1.0.0
 Upload-Offset: <当前偏移>
 Content-Type: application/offset+octet-stream
+Content-Length: <本片字节数>
 Authorization: Bearer <master key>
 X-On-Behalf-Of: <Fenix 用户 ID>
 ```
 
-请求体是该分片的原始字节。重复 HEAD/PATCH 直到 `Upload-Offset == size_bytes`。
-4. `drive_finish_upload`，参数 `{"upload_id":"<upload-id>"}`。CloudDrive 会做原生校验后才提交版本。
+请求体是该分片的原始字节。重复 HEAD/PATCH 直到 `Upload-Offset == size_bytes`。`Content-Length` 必须存在；chunked transfer 会被拒绝。
+
+4. 提交：
+
+```http
+POST /v1/uploads/<upload-id>/finalize
+```
+
+CloudDrive 会在原生校验通过后才提交版本。失败或放弃时调用：
+
+```http
+POST /v1/uploads/<upload-id>/abandon
+```
 
 注意：
 
-- TUS 端点同样需要 master key 与 `X-On-Behalf-Of`，不要只把 URL 交给没有凭证的客户端。
+- TUS 端点与 REST 使用同一 master key 认证。master key 只能由 Fenix 后端持有；浏览器上传必须由后端代理 TUS，或由后端签发受控上传会话。不要把 master key 交给浏览器。
 - 分片大小受 `size_bytes` 预留长度约束；不要超过剩余长度。
-- 上传会话默认 24 小时过期；失败后用同一 `idempotency_key` 重试 `drive_begin_upload` 可恢复同一会话。
+- 上传会话带 `expires_at`；服务端清理策略以部署为准，不要把它当作安全边界。
+- 覆盖：在 `POST /v1/uploads` 中带 `file_id`、`expected_version_id`、`expected_metadata_revision`；`parent_id` 可省略，显式传入时必须与现有父目录一致。
 
-### 3.3 读取与下载
+### 3.3 读取、版本与下载
 
-- `drive_list`：列出自己的文件；返回 `id`、`name`、`path`、`size`、`space_id`、`current_version_id`、`lifecycle`、`conversion` 等。
-- `drive_stat`：读取单个文件的元数据与转换状态；对不存在或不属于当前 `(issuer, subject)` 的 `file_id` 返回 `NOT_FOUND`（`/mcp` 的 Agent actor 不查询共享）。
-- `drive_search`：关键词搜索自己的文件；索引是最终一致的，刚写入的文件可能短暂搜不到。
-- `drive_read_markdown`：读取已固定的 Markdown artifact（分页）。
-- `drive_get_download`：返回 5 分钟有效的下载 URL；URL 本身是受控票据，按秘密处理，不要写入日志。
-- `drive_versions`：读取源文件历史版本；对不存在或不属于当前 `(issuer, subject)` 的 `file_id` 返回 `NOT_FOUND`（与 `drive_stat` 一致）。
+- 原文/固定版本：`GET /v1/files/{id}/content`，可带 `version_id`；支持单个 `Range`，返回 `Content-Disposition: attachment`。
+- 元数据：`GET /v1/files/{id}`；对不存在或不属于当前用户的 `file_id` 返回 `NOT_FOUND`。
+- 版本：`GET /v1/files/{id}/versions`。
+- Markdown：`GET /v1/files/{id}/markdown`。
+- 下载票据 `/v1/download/{token}` 是受控票据的消费端点，Fenix 不需要自己签发；优先使用带认证的 `content` 端点。
+- 不要记录 `Authorization`、master key、下载票据或带签名的 URL。
 
-### 3.4 其他常用工具
+### 3.4 搜索、转换与批处理
 
-| 工具 | scope | 说明 |
-|---|---|---|
-| `drive_mkdir` | `drive.write` | 创建目录 |
-| `drive_move` / `drive_rename` | `drive.write` | 移动/改名，需要 `expected_metadata_revision` |
-| `drive_delete` | `drive.delete` | 进入业务回收站，不会物理删除 |
-| `drive_trash_list` | `drive.read` | 列出回收站 |
-| `drive_restore` | `drive.restore` | 恢复 |
-| `drive_reconvert` | `drive.convert` | 请求新的转换 generation |
-| `drive_batch` | 视子操作 | 独立子操作可部分成功；依赖失败会被阻塞 |
-| `drive_operation_status` | 无 | 查询操作状态 |
+- 搜索是最终一致的；写入后立即搜索可能短暂无结果。
+- 转换是异步的；`GET /v1/files/{id}` 和 `GET /v1/operations/{id}` 返回转换/操作状态。需要新 generation 时调用 `POST /v1/files/{id}/conversions`。
+- 批处理返回每个子操作的结果；不要因为部分成功而整体重试，重试时复用同一个 idempotency key。
 
-`drive_request_share` 只发起共享申请；审批必须在 CloudDrive Web/REST 完成。Fenix Agent 流程不应依赖该能力。
+### 3.5 分享与审批（REST-only）
+
+以下能力只属于交互式用户面，不属于 Agent/MCP：
+
+- `POST /v1/share-requests`、`GET /v1/share-requests`、`GET /v1/share-requests/{id}`
+- `POST /v1/share-requests/{id}/approve`（需要交互式会话和 CSRF 确认）
+- `GET /v1/shares`、`POST /v1/shares/{id}/revoke`
+- `GET /v1/shared-with-me`
+
+分享审批必须有人类确认，不能由 Fenix 后端或 Agent 自动批准。
 
 ## 4. 配置清单
 
@@ -206,7 +246,7 @@ DRIVE_MASTER_KEY_ISSUER=fenix
 DRIVE_MASTER_KEY_ALLOWED_CIDRS='10.0.0.0/8,192.168.0.0/16'
 # 仅当请求经过受信网关/反代时配置；填网关所在网段
 DRIVE_TRUSTED_PROXY_CIDRS='10.10.0.0/16'
-DRIVE_MASTER_KEY_SCOPES='drive.read,drive.write,drive.delete,drive.restore,drive.convert,drive.feedback'
+DRIVE_MASTER_KEY_SCOPES='drive.read,drive.write,drive.delete,drive.restore,drive.convert,drive.share.request,drive.feedback'
 # 可选：状态检查
 DRIVE_MASTER_KEY_STATUS_URL='https://fenix.example.com/internal/drive-status'
 DRIVE_MASTER_KEY_STATUS_TOKEN='<status token>'
@@ -216,11 +256,11 @@ DRIVE_MASTER_KEY_STATUS_TTL_SECONDS=60
 注意：
 
 - `DRIVE_MASTER_KEY_ALLOWED_CIDRS` 为空时**拒绝所有来源**；必须显式配置。
-- 如果 CloudDrive 前面有网关/反代，`DRIVE_MASTER_KEY_ALLOWED_CIDRS` 必须填**真实客户端**的 CIDR，同时把网关网段填进 `DRIVE_TRUSTED_PROXY_CIDRS`，并确保网关设置/清洗 `X-Forwarded-For`。参考 nginx 已改为 `X-Forwarded-For $remote_addr`。直连 `api:8081`/`:8080` 时不要配置 `DRIVE_TRUSTED_PROXY_CIDRS`。
-- 从旧版本升级时，`generated/nginx.conf` 不会随镜像自动更新。必须用与首次部署相同的 `--mode`、`--public-url` 和 `--trusted-proxy-cidr` 重新执行 `setup.py`；`up.sh` 会校验模板哈希，配置过期时拒绝启动。
-- 空 `DRIVE_MASTER_KEY_SCOPES` 会回退到默认 scopes（含读写、删除、恢复、转换、反馈），生产环境应显式配置最小权限，不要依赖默认值。
-- 默认 scopes 已包含读写、删除、恢复、转换、反馈；按最小权限裁剪。
+- 如果 CloudDrive 前面有网关/反代，`DRIVE_MASTER_KEY_ALLOWED_CIDRS` 必须填**真实客户端**的 CIDR，同时把网关网段填进 `DRIVE_TRUSTED_PROXY_CIDRS`，并确保网关设置/清洗 `X-Forwarded-For`。参考 nginx 已改为 `X-Forwarded-For $remote_addr`。直连 `api:8080` 时不要配置 `DRIVE_TRUSTED_PROXY_CIDRS`。
+- 从旧版本升级时，`generated/nginx.conf` 不会随镜像自动更新。必须用与首次部署相同的 `--mode`、`--public-url` 和 `--trusted-proxy-cidr` 重新执行 `setup.py`；`up.sh` 会校验模板哈希，配置过期时拒绝启动。新模板不再把 `/mcp` 代理到公网。
+- 空 `DRIVE_MASTER_KEY_SCOPES` 会回退到默认 scopes（含读写、删除、恢复、转换、分享请求、反馈），生产环境应显式配置最小权限，不要依赖默认值。
 - `DRIVE_MASTER_KEY_ISSUER` 必须与 Fenix 请求的身份域一致；不要与 `DRIVE_OIDC_ISSUER` 相同。
+- REST 的 master key 调用默认按 `ActorUser` 处理；`DRIVE_MASTER_KEY_INTERACTIVE_CLIENT_ID` 默认等于 WebClientID，通常不需要改。不要把这个 key 放进浏览器或公开客户端。
 
 ### 4.2 外部空间的 provisioner
 
@@ -310,7 +350,7 @@ demo 为了简化使用了同一个 Keycloak client 同时做 provisioner 和文
 - 第一次写入时，CloudDrive 为 `(issuer, subject)` 创建 `spaces` 行，并调用 provisioner 创建原生 project drive。
 - 空间名是确定性的：`drive-<sanitized subject>-<sha256(issuer + NUL + subject) 前 8 位>`。重试会复用同一空间，不会重复建盘。
 - 同一个原生 drive 冲突时返回 `PATH_CONFLICT`；已有 owner 映射时会做 reconcile。
-- A 用户的 `drive_list`、`drive_stat`、`drive_search`、`drive_get_download` 都只看到自己的文件；B 用户看不到 A 的文件。
+- A 用户的 `GET /v1/files`、`GET /v1/files/{id}`、`POST /v1/search` 都只看到自己的文件；B 用户看不到 A 的文件。
 - 配额来自 `DRIVE_DEFAULT_QUOTA_BYTES`（按 principal 计）。
 - 原生 drive 由 provisioner 服务账号拥有；**隔离由 CloudDrive 应用层保证**。不要把 oCIS DAV/Graph 直接暴露给 Fenix 用户，否则会绕过 CloudDrive 的 owner 检查。
 
@@ -318,73 +358,93 @@ demo 为了简化使用了同一个 Keycloak client 同时做 provisioner 和文
 
 1. master key 存在 secret manager；只在后端出站请求中使用；不写日志、不返回前端。
 2. 用户认证完成后，从服务端会话解析稳定 user ID，填入 `X-On-Behalf-Of`；不要信任客户端传入的 subject。
-3. 明确 peri 到 CloudDrive 的网络路径：经网关时，在 CloudDrive 配置 `DRIVE_TRUSTED_PROXY_CIDRS` 为网关网段，`DRIVE_MASTER_KEY_ALLOWED_CIDRS` 配 peri 的真实出口 CIDR；直连 `api:8081` 时，`DRIVE_TRUSTED_PROXY_CIDRS` 留空，CIDR 直接配 peri 的网段。Fenix 出口 IP 变更时同步更新 CloudDrive。
-4. 为每次写操作生成全局唯一的 `idempotency_key`；同一 key 的请求体必须完全一致，否则会得到 `IDEMPOTENCY_CONFLICT`。
+3. 明确 Fenix 到 CloudDrive 的网络路径：经网关时，在 CloudDrive 配置 `DRIVE_TRUSTED_PROXY_CIDRS` 为网关网段，`DRIVE_MASTER_KEY_ALLOWED_CIDRS` 配 Fenix 的真实出口 CIDR；直连 `api:8080` 时，`DRIVE_TRUSTED_PROXY_CIDRS` 留空，CIDR 直接配 Fenix 的网段。
+4. 为每次写操作生成全局唯一的 `idempotency_key`；同一 key 的请求体必须完全一致。
 5. 读操作可重试；`DEPENDENCY_UNAVAILABLE` 用指数退避重试；`ACCESS_DENIED`、`PATH_CONFLICT`、`VERSION_CONFLICT` 不要盲目重试。
-6. 覆盖写前先 `drive_stat`，同时带上 `expected_version_id` 和 `expected_metadata_revision`；`parent_id` 可省略，显式传入时必须与现有父目录一致。
-7. 二进制上传：由 Fenix 后端代理 TUS，或把 upload URL + 认证头封装在受控上传会话中；不要把 master key 交给浏览器。
-8. 解析响应时同时检查 HTTP 状态、`result.isError` 和 `result.content[0].text` 内的 `error.code`。
+6. 覆盖写前先 `GET /v1/files/{id}`，同时带上 `expected_version_id` 和 `expected_metadata_revision`；`parent_id` 可省略，显式传入时必须与现有父目录一致。
+7. 上传：由 Fenix 后端代理 TUS，或把 upload URL + 认证头封装在受控上传会话中；不要把 master key 交给浏览器。文本也走同一上传流程。
+8. 下载使用 `GET /v1/files/{id}/content`；解析响应时检查 HTTP 状态和 `error.code`，不要按 HTTP 200 就认为成功。
 9. 日志记录 `key_id`、`on_behalf_of`、`operation_id`、`idempotency_key`；绝不记录 master key、Authorization 头、上传 token、下载票据。
 10. 监控 401/403、`ACCESS_DENIED`、`SPACE_PROVISIONER_UNAVAILABLE`、`DEPENDENCY_UNAVAILABLE` 的比例。
 11. 轮换：在 `DRIVE_MASTER_KEYS` 中先加入新 key，Fenix 切换到新 `X-Key-Id`，确认后再移除旧 key。
+12. MCP 只用于内网 beta 的 Agent 试验；不要把它作为 Fenix 生产依赖，也不要通过公网网关暴露。
 
 ## 7. 验证与排障
 
 ### 7.1 最小 smoke test
 
 ```bash
-# 1) 列表
-curl -sS https://drive.example.com/mcp \
-  -H "Authorization: Bearer $KEY" -H "X-On-Behalf-Of: $USER_A" \
-  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"drive_list","arguments":{}}}'
+# 0) 当前主体
+curl -sS https://drive.example.com/v1/me \
+  -H "Authorization: Bearer $DRIVE_MASTER_KEY" \
+  -H "X-On-Behalf-Of: $USER_A"
 
-# 2) 创建
-# 3) 用 USER_B 再 list，确认看不到 USER_A 的文件
-# 4) 用 USER_B stat USER_A 的 file_id，确认被拒绝
+# 1) 列表
+curl -sS https://drive.example.com/v1/files \
+  -H "Authorization: Bearer $DRIVE_MASTER_KEY" \
+  -H "X-On-Behalf-Of: $USER_A"
+
+# 2) 创建文本上传会话
+curl -sS -X POST https://drive.example.com/v1/uploads \
+  -H "Authorization: Bearer $DRIVE_MASTER_KEY" \
+  -H "X-On-Behalf-Of: $USER_A" \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"hello.md","size_bytes":8,"content_type":"text/markdown; charset=utf-8","idempotency_key":"fenix-20261027-0001"}'
+
+# 3) HEAD/PATCH 返回的 upload_url，最后 finalize
+# 4) 用 USER_B 再 list，确认看不到 USER_A 的文件
+# 5) 用 USER_B GET USER_A 的 file_id，确认返回 NOT_FOUND
 ```
 
 ### 7.2 常见错误
 
 | 现象 | 优先检查 |
 |---|---|
-| HTTP 401 `authentication denied` | master key 值、`X-Key-Id`、`DRIVE_MASTER_KEYS` 是否加载 |
-| HTTP 400 `X-On-Behalf-Of` | 请求头是否缺失/含非法字符 |
-| HTTP 403 | `DRIVE_MASTER_KEY_ALLOWED_CIDRS` 是否包含真实客户端 IP；经网关时 `DRIVE_TRUSTED_PROXY_CIDRS` 是否含网关网段、网关是否转发 `X-Forwarded-For` |
-| `ACCESS_DENIED` | `DRIVE_MASTER_KEY_SCOPES` 是否含 `drive.write`；`DRIVE_EXTERNAL_WRITE_ENABLED=true`；issuer 在 `DRIVE_EXTERNAL_WRITE_ISSUERS` 中；principal 是否活跃 |
-| `NOT_FOUND`（stat/versions） | `file_id` 不存在或不属于当前 `(issuer, subject)`；`/mcp` Agent 不查询共享，直接返回 `NOT_FOUND` |
-| `SPACE_PROVISIONER_UNAVAILABLE` | `DRIVE_SPACE_PROVISIONER_ENABLED/VERIFIED`；token URL/client；provisioner 是否有建盘权限；oCIS 是否 403/409；查 `operation=space_provision` 日志 |
-| `DEPENDENCY_UNAVAILABLE` | service credential 是否含 `openid`；`DRIVE_DELEGATION_KEY_FILE`、`DRIVE_OCIS_INTEGRATION_VERIFIED=true`、`DRIVE_DELEGATION_VERIFIED=true` 是否齐全；oCIS userinfo 是否 403；数据库迁移是否完整；oCIS/IdP 是否 5xx |
-| 上传 403 / userinfo 403 | `DRIVE_OCIS_WRITE_SERVICE_SCOPES` 是否含 `openid`；TUS 请求是否同时带 master key 与 `X-On-Behalf-Of` |
-| `PATH_CONFLICT` | 同名文件已存在；改用 `file_id` 覆盖或先改名 |
-| `VERSION_CONFLICT` | 重新 `drive_stat`，同时更新 `expected_version_id` 与 `expected_metadata_revision` |
-| oCIS `user is missing a displayName` | IdP 服务账号缺少 `name`/`email` profile |
+| 401 | master key 是否正确、`X-Key-Id` 是否指向存在的 key |
+| 400 | `X-On-Behalf-Of` 是否缺失/非法 |
+| 403 | 来源 CIDR、scope、外部写/issuer 配置 |
+| 404 | `file_id` 是否属于当前用户；MCP beta 下 Agent 不查询共享 |
+| 409 | `PATH_CONFLICT` / `VERSION_CONFLICT` / `IDEMPOTENCY_CONFLICT` |
+| 413 | `size_bytes`、分片长度或配额 |
+| 429 | 限流或配额 |
+| 503 | provisioner、oCIS、IdP、delegation key 等依赖 |
 
 ### 7.3 运维检查
 
-- 部署前确保数据库迁移已执行到当前版本。该能力复用现有 `spaces`/`principals`/`upload_sessions` 等表，没有为 Fenix 新增专用迁移。
+- 查看 principal/space：`SELECT id, owner_id, native_instance, native_space_id FROM spaces;`
 - 查看 provisioner 审计：日志中 `operation=space_provision`，含 `issuer`、`subject`、`drive_id`、`status`。
-- 查看写凭证审计：`credential_kind=write_service`、`operation`、`issuer`、`subject`；不会记录 token。
-- oCIS 的 `/dav`、`/graph` 只对 CloudDrive 服务网络开放，不对 Fenix 用户网络开放。
+- 检查 `generated/nginx.conf` 是否来自当前模板；`up.sh` 会在模板过期时拒绝启动。
 
 ## 8. 已知限制
 
-1. **`drive_stat` / `drive_versions` 的错误码已统一**：对不存在或无权 `file_id` 返回 `NOT_FOUND`；`/mcp` 的 Agent actor 不再查询共享。REST 的共享路径仍只对交互式用户开放。
-2. **覆盖写需要完整 revision**：`file_id` + `name` + `expected_version_id` + `expected_metadata_revision`；`parent_id` 可省略（从 `file_id` 推导），显式传入时必须与现有父目录一致。缺少 `expected_metadata_revision` 时仍可能返回 `VERSION_CONFLICT`，错误提示不够精确。
-3. **同名创建不隐式覆盖**：返回 `PATH_CONFLICT`，这是安全默认，但错误码更像路径问题。
-4. **业务错误 HTTP 200**：必须检查 `result.isError` 并解析内部 JSON。
-5. **搜索最终一致**：刚写入的文件可能短暂搜不到。
-6. **provisioner 与读写账号不同时的权限缺口**：当前不会自动授予 project drive manager 权限；需要复用同一 oCIS 身份或在 oCIS 侧补权限。
-7. **孤儿 drive**：provisioner 建盘成功但数据库写入失败时，可能留下没有映射的 drive；审计日志会记录 drive ID，需要人工清理。
-8. **master key 泄漏的影响面**：可冒充允许 issuer 下任意 subject 并执行已配置 scopes。缓解手段是 CIDR allowlist、状态检查、独立写凭证、短 TTL、审计与轮换。
-9. **个人云盘范围**：当前只做个人空间，不做团队空间；Agent actor 不能使用接收共享。
-10. **oCIS 服务账号的 drive owner 语义**：原生 drive 的 owner 是 provisioner 服务账号，不是 Fenix 用户；这是为了支持 provisioner 建盘，不能据此认为 oCIS ACL 已经按用户隔离。
-11. **CIDR 依赖网络拓扑**：经网关时必须在 CloudDrive 配置 `DRIVE_TRUSTED_PROXY_CIDRS`，并确保网关覆盖/清洗 `X-Forwarded-For`；直连时不要配置该变量。否则 allowlist 看到的是网关 IP，可能误拒或失去限制意义。从旧版本升级时必须重新渲染 `generated/nginx.conf`；`up.sh` 会拒绝启动过期配置。
+- REST 没有 `create_text`；文本必须走上传流程。1 MiB 上限只适用于 MCP beta 的便捷工具。
+- MCP 是 beta/内部能力；参考网关不代理 `/mcp`，不提供稳定性承诺，不作为 Fenix 生产契约。
+- 上传会话带 `expires_at`，但服务端清理策略需要单独确认；不要把它当作安全边界。
+- TUS `PATCH` 必须带 `Content-Length`；chunked transfer 会被拒绝。
+- 当前没有 scoped upload token；浏览器/外部 Agent 直传必须由 Fenix 后端代理，或后续补一次性上传令牌。
+- `drive_stat`/`drive_versions` 对不存在或不属于当前主体的 `file_id` 返回 `NOT_FOUND`（MCP beta 的 Agent actor）；REST `ActorUser` 仍可能查询共享，按分享规则处理。
+- provisioner 与读写 service 如果是不同 oCIS 用户，当前不会自动授予 project drive manager 权限。
+- 原生 drive owner 是 provisioner 服务账号；不能据此认为 oCIS ACL 已按用户隔离。
+- 同名创建不静默覆盖；覆盖写需要版本 + metadata revision。
+- 搜索是最终一致的；转换是异步的。
+- master key 泄露等于可冒充允许 issuer 下的任意 subject；用 CIDR、状态检查、轮换、审计和最小 scopes 降低风险。
 
-## 9. 参考
+## 9. MCP Beta（非公开）
 
-- MCP 工具 schema：[`docs/reference/mcp-tools.json`](../reference/mcp-tools.json)
-- REST OpenAPI：[`docs/reference/openapi.json`](../reference/openapi.json)
-- 部署说明：[`docs/operations/deployment.md`](deployment.md)
-- 已知限制：[`docs/operations/known-limitations.md`](known-limitations.md)
-- 安全评审：[`docs/security/security-review.md`](../security/security-review.md)
+MCP 仍在代码中，但定位为 beta/内部能力：
+
+- **不在公网暴露**：参考网关的 `/mcp` 直接返回 404；不要把它加回公网 ingress。
+- **内网入口**：仅 `api:8081/mcp`，不发布宿主端口。需要 beta 访问时使用独立内网入口/VPN。
+- **认证**：与 REST 相同的 master key + `X-On-Behalf-Of`；调用者固定按 `ActorAgent` 处理，只能操作自己的空间。
+- **能力边界**：不能接收共享、不能审批分享、不能执行 Web/REST-only 的交互式操作。
+- **协议**：JSON-RPC；业务错误通常 HTTP 200，错误在 `result.isError` 和 `result.content[0].text` 中。
+- **工具清单**：[21 tool schemas](../reference/mcp-tools.json)；工具名和行为可能变化，不提供稳定性承诺。
+- **定位**：只用于内部 Agent 试验；Fenix 的正式集成面是 REST。
+
+## 10. 参考
+
+- [REST OpenAPI](../reference/openapi.json)
+- [MCP tool schemas（beta）](../reference/mcp-tools.json)
+- [部署说明](deployment.md)
+- [已知限制](known-limitations.md)
+- [安全审查](../security/security-review.md)

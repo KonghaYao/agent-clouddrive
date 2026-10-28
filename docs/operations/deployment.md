@@ -57,8 +57,8 @@ The generator produces an HTTPS nginx listener, mounts TLS material as secret fi
 
 ## Services and secrets
 
-- gateway: nginx, static built `web/dist`, same-origin REST, Streamable HTTP MCP and identity login routing.
-- api: Hertz on 8080; official MCP SDK listener on 8081. Neither port is host-published.
+- gateway: nginx, static built `web/dist`, same-origin REST and identity login routing. `/mcp` is intentionally not proxied and returns 404; MCP beta is internal-only.
+- api: Hertz on 8080; official MCP SDK listener on 8081 (beta, internal only). Neither port is host-published.
 - worker/maintenance: separate processes sharing PostgreSQL truth, JetStream and artifact storage.
 - PostgreSQL 17.11, NATS 2.15.1, Meilisearch 1.55.0: private persistent dependencies.
 - official unmodified `owncloud/ocis:8.2.2`: private native storage kernel; no custom oCIS image or direct client route.
@@ -108,7 +108,7 @@ These settings are initial configuration, not evidence that 10 GiB passed. Uppy/
 
 ## Anonymous feedback and logs
 
-Gateway access logs are disabled globally so MCP feedback sharing `/mcp` cannot be correlated through a per-request access record. The feedback route additionally strips forwarded IP, request/trace/baggage, referrer, user agent and cookies while retaining only authentication needed for transient permission checks. It has no proxy error-body log. PostgreSQL parameter/statement logging is off. Keycloak/kkFileView request logging is off; normal app logging must also honor the dedicated feedback path.
+Gateway access logs are disabled globally so feedback requests cannot be correlated through a per-request access record. The feedback route additionally strips forwarded IP, request/trace/baggage, referrer, user agent and cookies while retaining only authentication needed for transient permission checks. It has no proxy error-body log. PostgreSQL parameter/statement logging is off. Keycloak/kkFileView request logging is off; normal app logging must also honor the dedicated feedback path.
 
 Do not enable APM request recording, tracing or CDN access logs over feedback/MCP paths. The deployment controls only its own chain: Peri/client-side logs need independent verification. Date-only feedback storage is not sufficient if a reverse proxy records identity/body/precise submission times.
 

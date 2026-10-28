@@ -71,7 +71,7 @@ The recorded native core loop uses **real** Keycloak, oCIS, PostgreSQL, NATS and
 | `deploy/compose` | Pinned reference stack, secret/config generation |
 | `tests`, `evidence`, `docs/evidence` | Reproducible tests and scoped actual results |
 
-REST contract: [OpenAPI](docs/reference/openapi.json). MCP: [21 tool schemas](docs/reference/mcp-tools.json), official SDK Streamable HTTP at `/mcp`. All mutations use explicit idempotency/revision rules; errors are structured. Received sharing and audit remain web/REST-only, not Agent tools.
+REST is the stable integration contract: [OpenAPI](docs/reference/openapi.json). It is the only public interface for external integrations such as Fenix. MCP is beta/internal: [21 tool schemas](docs/reference/mcp-tools.json), official SDK Streamable HTTP on the internal `api:8081/mcp` listener; the reference gateway returns 404 for `/mcp` and does not proxy it. All mutations use explicit idempotency/revision rules; errors are structured. Received sharing and audit remain web/REST-only, not Agent tools.
 
 ## Important operational boundaries
 
