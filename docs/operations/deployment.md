@@ -120,6 +120,10 @@ docker compose stop
 docker compose start
 # Dependency status. Do not paste logs containing secrets/documents.
 docker compose ps
+# Re-render generated/nginx.conf after a gateway template upgrade, using the
+# same flags as the original setup. up.sh refuses to start if it is stale.
+python3 setup.py --mode s3 --public-url https://drive.example.com \
+  --trusted-proxy-cidr <same-as-before>
 # Idempotent migrations after a reviewed upgrade.
 docker compose run --rm --no-deps maintenance /app/maintenance migrate
 # Static deployment tests, no Docker daemon needed.

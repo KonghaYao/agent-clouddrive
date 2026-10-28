@@ -176,7 +176,7 @@ X-On-Behalf-Of: <Fenix 用户 ID>
 - `drive_search`：关键词搜索自己的文件；索引是最终一致的，刚写入的文件可能短暂搜不到。
 - `drive_read_markdown`：读取已固定的 Markdown artifact（分页）。
 - `drive_get_download`：返回 5 分钟有效的下载 URL；URL 本身是受控票据，按秘密处理，不要写入日志。
-- `drive_versions`：读取源文件历史版本。
+- `drive_versions`：读取源文件历史版本；对不存在或不属于当前 `(issuer, subject)` 的 `file_id` 返回 `NOT_FOUND`（与 `drive_stat` 一致）。
 
 ### 3.4 其他常用工具
 
@@ -217,6 +217,7 @@ DRIVE_MASTER_KEY_STATUS_TTL_SECONDS=60
 
 - `DRIVE_MASTER_KEY_ALLOWED_CIDRS` 为空时**拒绝所有来源**；必须显式配置。
 - 如果 CloudDrive 前面有网关/反代，`DRIVE_MASTER_KEY_ALLOWED_CIDRS` 必须填**真实客户端**的 CIDR，同时把网关网段填进 `DRIVE_TRUSTED_PROXY_CIDRS`，并确保网关设置/清洗 `X-Forwarded-For`。参考 nginx 已改为 `X-Forwarded-For $remote_addr`。直连 `api:8081`/`:8080` 时不要配置 `DRIVE_TRUSTED_PROXY_CIDRS`。
+- 从旧版本升级时，`generated/nginx.conf` 不会随镜像自动更新。必须用与首次部署相同的 `--mode`、`--public-url` 和 `--trusted-proxy-cidr` 重新执行 `setup.py`；`up.sh` 会校验模板哈希，配置过期时拒绝启动。
 - 空 `DRIVE_MASTER_KEY_SCOPES` 会回退到默认 scopes（含读写、删除、恢复、转换、反馈），生产环境应显式配置最小权限，不要依赖默认值。
 - 默认 scopes 已包含读写、删除、恢复、转换、反馈；按最小权限裁剪。
 - `DRIVE_MASTER_KEY_ISSUER` 必须与 Fenix 请求的身份域一致；不要与 `DRIVE_OIDC_ISSUER` 相同。
@@ -286,7 +287,7 @@ DRIVE_OCIS_INTEGRATION_VERIFIED=true
 DRIVE_DELEGATION_VERIFIED=true
 ```
 
-- `DRIVE_DELEGATION_KEY_FILE` 是 delegation vault 的加密密钥文件；没有它，外部读写凭证不会被签发。
+- `DRIVE_DELEGATION_KEY_FILE` 是 delegation vault 的加密密钥文件；没有它，外部读写凭证不会被签发。启用 `DRIVE_MASTER_KEYS` 或 `DRIVE_EXTERNAL_WRITE_ENABLED` 时若该变量为空，进程启动会直接失败（fail-fast），不会等到首次下载才返回 503。
 - 只读 service credential 的 `Verified` 由 `DRIVE_OCIS_INTEGRATION_VERIFIED` 与 `DRIVE_DELEGATION_VERIFIED` 共同决定。
 - 写路径还需要 `DRIVE_OCIS_WRITE_SERVICE_VERIFIED=true`（见 4.3）。
 - 启动日志会在 master key 或外部写开启、但上述门禁未全部为 true 时打印 `WARN`；生产环境应把它当作配置错误处理。
@@ -351,6 +352,7 @@ curl -sS https://drive.example.com/mcp \
 | HTTP 400 `X-On-Behalf-Of` | 请求头是否缺失/含非法字符 |
 | HTTP 403 | `DRIVE_MASTER_KEY_ALLOWED_CIDRS` 是否包含真实客户端 IP；经网关时 `DRIVE_TRUSTED_PROXY_CIDRS` 是否含网关网段、网关是否转发 `X-Forwarded-For` |
 | `ACCESS_DENIED` | `DRIVE_MASTER_KEY_SCOPES` 是否含 `drive.write`；`DRIVE_EXTERNAL_WRITE_ENABLED=true`；issuer 在 `DRIVE_EXTERNAL_WRITE_ISSUERS` 中；principal 是否活跃 |
+| `NOT_FOUND`（stat/versions） | `file_id` 不存在或不属于当前 `(issuer, subject)`；`/mcp` Agent 不查询共享，直接返回 `NOT_FOUND` |
 | `SPACE_PROVISIONER_UNAVAILABLE` | `DRIVE_SPACE_PROVISIONER_ENABLED/VERIFIED`；token URL/client；provisioner 是否有建盘权限；oCIS 是否 403/409；查 `operation=space_provision` 日志 |
 | `DEPENDENCY_UNAVAILABLE` | service credential 是否含 `openid`；`DRIVE_DELEGATION_KEY_FILE`、`DRIVE_OCIS_INTEGRATION_VERIFIED=true`、`DRIVE_DELEGATION_VERIFIED=true` 是否齐全；oCIS userinfo 是否 403；数据库迁移是否完整；oCIS/IdP 是否 5xx |
 | 上传 403 / userinfo 403 | `DRIVE_OCIS_WRITE_SERVICE_SCOPES` 是否含 `openid`；TUS 请求是否同时带 master key 与 `X-On-Behalf-Of` |
@@ -367,7 +369,7 @@ curl -sS https://drive.example.com/mcp \
 
 ## 8. 已知限制
 
-1. **`drive_stat` 的错误码已统一**：对不存在或无权 `file_id` 返回 `NOT_FOUND`；`/mcp` 的 Agent actor 不再查询共享。REST 的共享路径仍只对交互式用户开放。
+1. **`drive_stat` / `drive_versions` 的错误码已统一**：对不存在或无权 `file_id` 返回 `NOT_FOUND`；`/mcp` 的 Agent actor 不再查询共享。REST 的共享路径仍只对交互式用户开放。
 2. **覆盖写需要完整 revision**：`file_id` + `name` + `expected_version_id` + `expected_metadata_revision`；`parent_id` 可省略（从 `file_id` 推导），显式传入时必须与现有父目录一致。缺少 `expected_metadata_revision` 时仍可能返回 `VERSION_CONFLICT`，错误提示不够精确。
 3. **同名创建不隐式覆盖**：返回 `PATH_CONFLICT`，这是安全默认，但错误码更像路径问题。
 4. **业务错误 HTTP 200**：必须检查 `result.isError` 并解析内部 JSON。
@@ -377,7 +379,7 @@ curl -sS https://drive.example.com/mcp \
 8. **master key 泄漏的影响面**：可冒充允许 issuer 下任意 subject 并执行已配置 scopes。缓解手段是 CIDR allowlist、状态检查、独立写凭证、短 TTL、审计与轮换。
 9. **个人云盘范围**：当前只做个人空间，不做团队空间；Agent actor 不能使用接收共享。
 10. **oCIS 服务账号的 drive owner 语义**：原生 drive 的 owner 是 provisioner 服务账号，不是 Fenix 用户；这是为了支持 provisioner 建盘，不能据此认为 oCIS ACL 已经按用户隔离。
-11. **CIDR 依赖网络拓扑**：经网关时必须在 CloudDrive 配置 `DRIVE_TRUSTED_PROXY_CIDRS`，并确保网关覆盖/清洗 `X-Forwarded-For`；直连时不要配置该变量。否则 allowlist 看到的是网关 IP，可能误拒或失去限制意义。
+11. **CIDR 依赖网络拓扑**：经网关时必须在 CloudDrive 配置 `DRIVE_TRUSTED_PROXY_CIDRS`，并确保网关覆盖/清洗 `X-Forwarded-For`；直连时不要配置该变量。否则 allowlist 看到的是网关 IP，可能误拒或失去限制意义。从旧版本升级时必须重新渲染 `generated/nginx.conf`；`up.sh` 会拒绝启动过期配置。
 
 ## 9. 参考
 
