@@ -39,6 +39,22 @@ class DeploymentTests(unittest.TestCase):
                     check = subprocess.run([compose, "--project-directory", str(path), "config", "--quiet"], capture_output=True, text=True)
                     self.assertEqual(check.returncode, 0, check.stderr)
 
+    def test_gateway_template_refresh_is_detected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            result = self.run_setup(path, "--development-http")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            rendered = path / "generated/nginx.conf"
+            first = rendered.read_text().splitlines()[0]
+            self.assertTrue(first.startswith("# clouddrive-gateway-template-sha256: "))
+            check = self.run_setup(path, "--check-gateway")
+            self.assertEqual(check.returncode, 0, check.stderr)
+            rendered.chmod(0o600)
+            rendered.write_text("# stale\n" + rendered.read_text())
+            check = self.run_setup(path, "--check-gateway")
+            self.assertNotEqual(check.returncode, 0)
+            self.assertIn("older gateway template", check.stderr)
+
     def test_http_cannot_silently_be_production(self):
         with tempfile.TemporaryDirectory() as path:
             self.assertNotEqual(self.run_setup(path).returncode, 0)

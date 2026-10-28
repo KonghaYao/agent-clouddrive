@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Prepare idempotent local configuration. Does not deploy or migrate storage."""
 import argparse
+import hashlib
 import ipaddress
 import json
 import os
@@ -33,7 +34,19 @@ def main():
     parser.add_argument("--trusted-proxy-cidr", action="append", default=[], help="明确受信的 TLS 终止代理 CIDR，不得包含非受信客户端")
     parser.add_argument("--tls-cert", type=Path)
     parser.add_argument("--tls-key", type=Path)
+    parser.add_argument("--check-gateway", action="store_true", help="verify generated/nginx.conf was rendered from the current gateway template")
     args = parser.parse_args()
+    template = (HERE / "gateway" / "nginx.conf").read_bytes()
+    marker = "# clouddrive-gateway-template-sha256: " + hashlib.sha256(template).hexdigest()
+    if args.check_gateway:
+        rendered = args.directory.resolve() / "generated" / "nginx.conf"
+        if not rendered.exists():
+            sys.exit("generated/nginx.conf is missing; re-run setup.py with the original --mode, --public-url and --trusted-proxy-cidr values")
+        content = rendered.read_text()
+        first = content.splitlines()[0] if content.strip() else ""
+        if first != marker:
+            sys.exit("generated/nginx.conf was rendered from an older gateway template; re-run setup.py with the original --mode, --public-url and --trusted-proxy-cidr values")
+        return
     base = args.public_url.rstrip("/")
     parsed = urllib.parse.urlsplit(base)
     if parsed.scheme not in ("http", "https") or not parsed.hostname or parsed.path or parsed.query or parsed.fragment or parsed.username:
@@ -94,7 +107,7 @@ def main():
         configuration["sslRequired"] = "none"
     write(generated / "clouddrive-realm.json", json.dumps(configuration, indent=2) + "\n")
     write(generated / "config.json", json.dumps({"oidc_issuer": issuer, "oidc_client_id": "clouddrive-web", "oidc_audience": "agent-clouddrive"}) + "\n")
-    nginx = (HERE / "gateway" / "nginx.conf").read_text()
+    nginx = template.decode()
     try:
         trusted = [str(ipaddress.ip_network(value, strict=True)) for value in args.trusted_proxy_cidr]
     except ValueError:
@@ -108,6 +121,7 @@ def main():
     if parsed.scheme == "https":
         nginx = nginx.replace("    listen 8080;", "    listen 443 ssl;\n    ssl_certificate /run/secrets/tls_certificate;\n    ssl_certificate_key /run/secrets/tls_private_key;\n    ssl_protocols TLSv1.2 TLSv1.3;")
         nginx = nginx.replace("  server {", "  server { listen 8080; location = /healthz { return 200 'ok'; } }\n  server {", 1)
+    nginx = marker + "\n" + nginx
     write(generated / "nginx.conf", nginx)
     env = (HERE / ".env.example").read_text().splitlines()
     replacements = {"DRIVE_STORAGE_MODE": args.mode, "STORAGE_USERS_DRIVER": "ocis" if args.mode == "local" else "s3ng", "DRIVE_PUBLIC_URL": base,

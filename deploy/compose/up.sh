@@ -2,6 +2,7 @@
 set -eu
 cd "$(dirname "$0")"
 test -f .env || { echo 'Run python3 setup.py --mode s3 --development-http first.' >&2; exit 1; }
+python3 setup.py --check-gateway
 command -v docker >/dev/null || { echo 'Docker Engine and Compose v2 are required; no runtime test has run.' >&2; exit 1; }
 docker info >/dev/null
 docker compose config --quiet
